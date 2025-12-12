@@ -1,19 +1,14 @@
-# 의존성 모듈 (절대 올리면 안 됨 - 수천 개 파일임)
 node_modules/
 
-# 빌드 결과물
 build/
 dist/
 
-# 환경변수 (API 키 숨김)
 .env
 .env.local
 .env.*.local
 
-# 로그
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# 맥북 시스템
 .DS_Store

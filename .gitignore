@@ -1,11 +1,8 @@
-### macOS ###
 .DS_Store
 
-### IntelliJ IDEA (프로젝트 전체 설정) ###
 .idea/
 *.iws
 *.ipr
 
-### Docker Data (⭐ 절대 올리면 안 됨!) ###
 redis_data/
 db_data/

@@ -1,9 +1,7 @@
-### Gradle ###
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
-### STS / Eclipse ###
 .apt_generated
 .classpath
 .factorypath
@@ -13,22 +11,17 @@ build/
 .sts4-cache
 bin/
 
-### IntelliJ IDEA (모듈 빌드 파일) ###
 *.iml
 out/
 
-### VS Code ###
 .vscode/
 
-### NetBeans ###
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 
-### Documentation ###
 HELP.md
 
-### Security (⭐ 가장 중요: 내 서버 비밀번호) ###
 src/main/resources/application.properties
