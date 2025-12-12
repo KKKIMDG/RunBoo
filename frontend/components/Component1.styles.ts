@@ -1,0 +1,177 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    height: 852, // 필요시 '100%'로 변경
+    backgroundColor: '#f9f9f9',
+    position: 'relative',
+  },
+  icon: {
+    position: 'absolute',
+    top: 120,
+    left: 116,
+    width: 160,
+    height: 160,
+  },
+  // 계정 없음 영역
+  signupContainer: {
+    position: 'absolute',
+    top: 689,
+    left: 58,
+    width: 278,
+    height: 28,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signupText: {
+    fontSize: 14,
+    color: '#6b7280',
+    letterSpacing: -0.15,
+    marginRight: 8,
+  },
+  signupButton: {
+    // 터치 영역 확보를 위해 필요하다면 패딩 추가
+  },
+  signupButtonText: {
+    fontSize: 14,
+    color: '#3a4a98',
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    textTransform: 'uppercase',
+  },
+  // OR 구분선
+  dividerContainer: {
+    position: 'absolute',
+    top: 573,
+    left: 56,
+    width: 278,
+    height: 19,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  dividerLine: {
+    height: 1,
+    flex: 1,
+  },
+  orTextWrapper: {
+    width: 20,
+    alignItems: 'center',
+  },
+  orText: {
+    fontSize: 12,
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  // 폼 영역
+  form: {
+    position: 'absolute',
+    top: 296,
+    left: 57,
+    width: 278,
+    gap: 16,
+  },
+  inputGroup: {
+    height: 77,
+    gap: 8,
+  },
+  label: {
+    fontSize: 12,
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  inputBox: {
+    height: 53,
+    width: '100%',
+    position: 'relative',
+  },
+  textInput: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 15,
+    backgroundColor: '#fff',
+    borderWidth: 0.6,
+    borderColor: 'rgba(0, 0, 0, 0.25)',
+    justifyContent: 'center',
+    paddingLeft: 48,
+    paddingRight: 16,
+  },
+  inputText: {
+    fontSize: 16,
+    color: '#6b7280',
+    letterSpacing: -0.31,
+  },
+  inputIcon: {
+    position: 'absolute',
+    top: 16.5,
+    left: 16,
+    width: 20,
+    height: 20,
+  },
+  // 로그인 버튼
+  loginButton: {
+    height: 52,
+    borderRadius: 15,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    shadowColor: '#0ea5e9',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 15,
+    elevation: 5,
+  },
+  loginButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    letterSpacing: 0.55,
+    textTransform: 'uppercase',
+  },
+  // 구글 버튼 등 하단 요소
+  googleButtonBase: {
+    position: 'absolute',
+    width: 132,
+    height: 46,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.17,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  googleButtonWhite: {
+    top: 618,
+    left: 57,
+    backgroundColor: '#fff',
+  },
+  googleButtonYellow: {
+    top: 618,
+    left: 202,
+    backgroundColor: '#fee100',
+  },
+  googleIcon: {
+    position: 'absolute',
+    top: 11,
+    left: 55,
+    width: 23,
+    height: 23,
+  },
+  bottomIconContainer: {
+    position: 'absolute',
+    top: 627,
+    left: 257,
+    width: 23,
+    height: 27,
+    zIndex: 10,
+  },
+  bottomIcon: {
+    width: '100%',
+    height: '100%',
+  },
+});
