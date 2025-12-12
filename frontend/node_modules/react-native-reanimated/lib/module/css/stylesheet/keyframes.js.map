@@ -1,1 +1,0 @@
-{"version":3,"names":["CSSKeyframesRuleImpl","keyframes","keyframeDefinitions"],"sourceRoot":"../../../../src","sources":["css/stylesheet/keyframes.ts"],"mappings":"AAAA,YAAY;;AAEZ,SAASA,oBAAoB,QAAQ,aAAa;AAGlD,eAAe,SAASC,SAASA;AAC/B;AACAC,mBACmC,EACjB;EAClB,OAAO,IAAIF,oBAAoB,CAACE,mBAAmB,CAAC;AACtD","ignoreList":[]}

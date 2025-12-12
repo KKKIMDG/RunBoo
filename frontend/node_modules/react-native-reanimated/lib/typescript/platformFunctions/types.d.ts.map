@@ -1,1 +1,0 @@
-{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../src/platformFunctions/types.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,iBAAiB,EAAE,MAAM,gBAAgB,CAAC;AACxD,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,qBAAqB,CAAC;AAEvD,MAAM,MAAM,eAAe,GAAG,CAAC,IAAI,SAAS,iBAAiB,EAC3D,WAAW,EAAE,WAAW,CAAC,IAAI,CAAC,EAC9B,WAAW,EAAE,MAAM,EACnB,IAAI,CAAC,EAAE,OAAO,EAAE,KACb,IAAI,CAAC"}
