@@ -1,7 +1,7 @@
 // mobile-app/App.tsx
 
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Alert } from 'react-native';
+import { StyleSheet, View, Text, Alert, TouchableOpacity } from 'react-native';
 import Component1 from './components/Component1'; // 👈 Component1을 불러옵니다.
 
 export default function App() {
