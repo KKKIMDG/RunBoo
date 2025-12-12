@@ -1,0 +1,1 @@
+{"version":3,"file":"fabricUtils.d.ts","sourceRoot":"","sources":["../../src/fabricUtils.ts"],"names":[],"mappings":"AAIA,OAAO,KAAK,EAAE,oBAAoB,EAAE,iBAAiB,EAAE,MAAM,eAAe,CAAC;AAE7E,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,2BAA2B,CAAC;AAE9D,wBAAgB,2BAA2B,CACzC,GAAG,EAAE,oBAAoB,EACzB,YAAY,CAAC,EAAE,YAAY,GAC1B,iBAAiB,CAgBnB"}
