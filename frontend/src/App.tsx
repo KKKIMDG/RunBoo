@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Alert, TouchableOpacity } from 'react-native';
-import LoginScreen from './login/LoginScreen'; // 👈 LoginScreen을 불러옵니다.
+import RootNavigator from './navigation/RootNavigator';
 
 export default function App() {
     // 앱 상태 관리를 위한 state (로그인 상태, 유저 정보 등)
@@ -38,24 +38,7 @@ export default function App() {
         <View style={styles.container}>
             {/* 로그인 여부에 따라 화면을 다르게 보여줍니다.
       */}
-            {isLoggedIn ? (
-                // --- 로그인 성공 시 보이는 화면 ---
-                <View style={styles.loggedInContainer}>
-                    <Text style={styles.welcomeText}>🎉 {userName}님, 환영합니다! 🎉</Text>
-                    <Text style={styles.statusText}>이제 메인 화면을 구성하면 됩니다.</Text>
-                    <Text style={styles.statusText}>백엔드 API(`http://localhost:8080/api/running`) 연동 준비 완료!</Text>
-
-                    <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-                        <Text style={styles.logoutButtonText}>로그아웃</Text>
-                    </TouchableOpacity>
-                </View>
-            ) : (
-                // --- 로그인 전 (Component1 화면) ---
-                <LoginScreen
-                    onLogin={handleAppLogin} // 로그인 버튼 클릭 시 실행될 함수 연결
-                    onSignUp={handleAppSignUp} // 회원가입 버튼 클릭 시 실행될 함수 연결
-                />
-            )}
+            <RootNavigator isLoggedIn={isLoggedIn} onLogout={handleLogout} onLogin={(id: string, pw?: string) => handleAppLogin(id, pw || '')} />
         </View>
     );
 }
