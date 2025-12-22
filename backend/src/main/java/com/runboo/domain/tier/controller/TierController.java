@@ -1,4 +1,17 @@
-package com.runboo.domain.user.controller;
+package com.runboo.domain.tier.controller;
 
-public class test {
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("api/tier")
+public class TierController {
+
+    // 특정 러닝 기록으로 티어 계산
+    @PostMapping("/evaluate")
+    public void evaluateTier(){
+
+    }
+
 }

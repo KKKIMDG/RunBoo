@@ -1,4 +1,9 @@
-package com.runboo.domain.user.repository;
+package
+com.runboo.domain.tier.repository;
 
-public class test {
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class TierRepository {
+
 }

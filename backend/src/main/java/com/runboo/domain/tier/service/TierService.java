@@ -1,4 +1,8 @@
-package com.runboo.domain.user.service;
+package com.runboo.domain.tier.service;
 
-public class test {
+import org.springframework.stereotype.Service;
+
+@Service
+public class TierService {
+
 }
