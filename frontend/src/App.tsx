@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Alert, TouchableOpacity } from 'react-native';
-import Component1 from './components/Component1'; // 👈 Component1을 불러옵니다.
+import LoginScreen from './login/LoginScreen'; // 👈 LoginScreen을 불러옵니다.
 
 export default function App() {
     // 앱 상태 관리를 위한 state (로그인 상태, 유저 정보 등)
@@ -51,7 +51,7 @@ export default function App() {
                 </View>
             ) : (
                 // --- 로그인 전 (Component1 화면) ---
-                <Component1
+                <LoginScreen
                     onLogin={handleAppLogin} // 로그인 버튼 클릭 시 실행될 함수 연결
                     onSignUp={handleAppSignUp} // 회원가입 버튼 클릭 시 실행될 함수 연결
                 />
