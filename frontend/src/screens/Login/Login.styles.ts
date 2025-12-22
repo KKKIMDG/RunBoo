@@ -1,3 +1,6 @@
+// Login.styles.ts
+// - 스타일 정의: 레이아웃, 입력창, 버튼, 소셜아이콘 등.
+// - 필요 시 theme/토큰으로 추상화하세요.
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
