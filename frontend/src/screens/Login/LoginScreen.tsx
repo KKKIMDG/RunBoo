@@ -2,10 +2,11 @@
 // - LoginScreen.tsx: 로그인 UI 스크린(뷰 전용). 입력 폼, 버튼, 소셜 아이콘 포함.
 // - Login.styles.ts: 이 스크린 전용 스타일 정의.
 // 구현 팁: 뷰와 로직을 분리하여 `onLogin` / `onSignUp` 콜백을 사용하세요.
+
 import React, { FC, useState } from 'react';
 import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { styles } from './Login.styles';
-import { LinearGradient } from 'expo-linear-gradient';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface LoginScreenProps {
   onLogin?: (id: string, pw: string) => void;
