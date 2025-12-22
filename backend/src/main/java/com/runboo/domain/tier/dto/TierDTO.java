@@ -1,4 +1,4 @@
-package com.runboo.domain.user.dto;
+package com.runboo.domain.tier.dto;
 
 public class TierDTO {
     
