@@ -14,6 +14,7 @@ public class TierResponse {
     private String distanceType;
     private int minPaceSecPerKm;
     private int maxPaceSecPerKm;
+    private String imageUrl;
 
     // 엔티티 -> DTO
     public static TierResponse from(Tier tier) {
@@ -23,7 +24,8 @@ public class TierResponse {
                 tier.getDisplayName(),
                 tier.getDistanceType(),
                 tier.getMinPaceSecPerKm(),
-                tier.getMaxPaceSecPerKm()
+                tier.getMaxPaceSecPerKm(),
+                tier.getImageUrl()
         );
     }
 }
