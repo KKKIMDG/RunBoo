@@ -1,5 +1,6 @@
 package com.runboo.domain.tier.entity;
 
+import com.runboo.domain.record.entity.RunRecord;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,7 +23,7 @@ public class TierResult {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "record_id")
-    private Record record;
+    private RunRecord runRecord;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tier_id")
