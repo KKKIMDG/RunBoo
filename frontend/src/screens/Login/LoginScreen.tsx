@@ -6,7 +6,7 @@
 import React, { FC, useState } from 'react';
 import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { styles } from './Login.styles';
-import LinearGradient from 'react-native-linear-gradient';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface LoginScreenProps {
   onLogin?: (id: string, pw: string) => void;
@@ -39,19 +39,6 @@ const LoginScreen: FC<LoginScreenProps> = ({ onLogin, onSignUp }) => {
     <View style={styles.container}>
       <Image style={styles.icon} source={require('../../components/img/runboo.png')} resizeMode="contain" />
 
-      <View style={styles.signupContainer}>
-        <Text style={styles.signupText}>계정이 없으신가요?</Text>
-        <TouchableOpacity onPress={onSignUp} style={styles.signupButton}>
-          <Text style={styles.signupButtonText}>회원가입</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.dividerContainer}>
-        <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(14,165,233,0.3)', 'rgba(0,0,0,0)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.dividerLine} />
-        <View style={styles.orTextWrapper}><Text style={styles.orText}>or</Text></View>
-        <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(251,191,36,0.3)', 'rgba(0,0,0,0)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.dividerLine} />
-      </View>
-
       <View style={styles.form}>
         <View style={styles.inputGroup}>
           <Text style={styles.label}>아이디</Text>
@@ -69,19 +56,31 @@ const LoginScreen: FC<LoginScreenProps> = ({ onLogin, onSignUp }) => {
 
         <TouchableOpacity onPress={handleLogin} activeOpacity={0.8}>
           <View style={styles.loginButton}>
-            <LinearGradient colors={['#000000ff', '#000000ff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, borderRadius: 8 }} />
             <Text style={styles.loginButtonText}>로그인</Text>
           </View>
         </TouchableOpacity>
       </View>
 
-      <View style={{ gap: 10, alignItems: 'center' }}>
-        <TouchableOpacity style={[styles.googleButtonBase, styles.googleButtonWhite]} onPress={handleGoogleLogin}>
-          <Image style={styles.googleIcon} source={require('../../components/img/google.png')} />
+      <View style={styles.dividerContainer}>
+        <View style={styles.dividerLine} />
+        <View style={styles.orTextWrapper}><Text style={styles.orText}>or</Text></View>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <View style={styles.socialLoginContainer}>
+        <TouchableOpacity style={[styles.socialButton, styles.googleButton]} onPress={handleGoogleLogin}>
+          <Image style={styles.socialIcon} source={require('../../components/img/google.png')} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.googleButtonBase, styles.googleButtonYellow]} onPress={handleKakaoLogin}>
-          <Image style={styles.googleIcon} source={require('../../components/img/kakao.png')} />
+        <TouchableOpacity style={[styles.socialButton, styles.kakaoButton]} onPress={handleKakaoLogin}>
+          <Image style={styles.socialIcon} source={require('../../components/img/kakao.png')} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.signupContainer}>
+        <Text style={styles.signupText}>계정이 없으신가요?</Text>
+        <TouchableOpacity onPress={onSignUp} style={styles.signupButton}>
+          <Text style={styles.signupButtonText}>회원가입</Text>
         </TouchableOpacity>
       </View>
     </View>
