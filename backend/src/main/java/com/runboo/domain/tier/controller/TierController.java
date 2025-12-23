@@ -24,9 +24,7 @@ public class TierController {
 
     // 특정 러닝 기록으로 티어 계산
     @PostMapping("/evaluate")
-    public TierResponse evaluateTier(@RequestBody TierCreateRequest request,
-                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
-        return tierService.evaluateByRecord(request.getRecordId(), userId, request.getDistanceType());
+    public TierResponse evaluateTier(@RequestBody TierCreateRequest request){
+        return tierService.evaluateByRecord(request.getRecordId(), request.getDistanceType());
     }
 }
