@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface TierRepository extends JpaRepository<Tier, Long> {
 
-    //pace(초/킬로)와 distanceType으로 해당되는 티어 찾기
+    //pace(초/킬로)와 distanceType으로 해당되는 티어 조회
     @Query("""
         SELECT t
         FROM Tier t
