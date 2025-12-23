@@ -1,0 +1,30 @@
+package com.runboo.domain.ghost.dto;
+
+import com.runboo.domain.ghost.entity.GhostProfile;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.time.OffsetDateTime;
+
+@Getter
+@NoArgsConstructor
+public class GhostProfileDto {
+
+    private Long id;
+    private Long userId;
+    private Long runRecordId;
+    private String type;
+    private Double targetDistanceKm;
+    private Integer avgPace;
+    private OffsetDateTime createdAt;
+
+    public GhostProfileDto(GhostProfile gp) {
+        this.id = gp.getId();
+        this.userId = gp.getUserId();
+        this.runRecordId = gp.getRunRecordId();
+        this.type = gp.getType();
+        this.targetDistanceKm = gp.getTargetDistanceKm();
+        this.avgPace = gp.getAvgPace();
+        this.createdAt = gp.getCreatedAt();
+    }
+}
