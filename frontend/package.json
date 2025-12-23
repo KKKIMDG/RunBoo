@@ -1,12 +1,12 @@
 {
-  "name": "mobile-app",
+  "name": "RunBoo",
   "license": "0BSD",
   "version": "1.0.0",
   "main": "src/index.ts",
   "scripts": {
-    "start": "react-native start",
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
     "web": "expo start --web"
   },
   "dependencies": {
