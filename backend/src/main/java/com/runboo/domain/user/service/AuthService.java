@@ -19,7 +19,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     // private final EmailAuthService emailAuthService;
-    // private final SocialOAuthService socialOAuthService;
+    private final SocialOAuthService socialOAuthService;
 
     /**
      * 로컬 회원가입
@@ -71,38 +71,6 @@ public class AuthService {
         return LoginResponseDto.from(user, accessToken);
     }
 
-    /**
-     * 소셜 로그인
-     */
-    @Transactional
-    public LoginResponseDto loginBySocial(SocialLoginRequestDto request) {
-
-        SocialProvider provider = request.getProvider();
-
-        // 1. 소셜 accessToken 검증 및 사용자 정보 조회
-        /*
-        SocialUserInfo socialUser = socialOAuthService.getUserInfo(
-                provider, request.getAccessToken()
-        );
-        */
-
-        // 임시 값 (OAuth 붙이기 전)
-        String email = "temp@" + provider.name().toLowerCase() + ".com";
-        String nickname = provider.name() + "_user";
-
-        // 2. 기존 회원 조회 or 생성
-        User user = userRepository.findByEmail(email)
-                .orElseGet(() ->
-                        userRepository.save(
-                                User.createSocial(email, provider, nickname)
-                        )
-                );
-
-        // 3. JWT 발급
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
-
-        return LoginResponseDto.from(user, accessToken);
-    }
 
     /**
      * 이메일 인증 코드 발송
@@ -116,8 +84,8 @@ public class AuthService {
         }
 
         // 2. 인증 코드 생성 및 저장
-        // String code = emailAuthService.generateCode();
-        // emailAuthService.saveCode(request.getEmail(), code);
+         String code = emailAuthService.generateCode();
+         emailAuthService.saveCode(request.getEmail(), code);
 
         // 3. 이메일 발송
         // emailAuthService.send(request.getEmail(), code);
@@ -140,4 +108,36 @@ public class AuthService {
         // 3. 인증 완료 처리
         // emailAuthService.markVerified(request.getEmail());
     }
+
+    /**
+     * 소셜 로그인
+     */
+    @Transactional
+    public LoginResponseDto loginBySocial(SocialLoginRequestDto request) {
+
+        SocialProvider provider = request.getProvider();
+
+        // 1. 소셜 토큰 검증 + 사용자 정보 조회
+        SocialUserInfo socialUser =
+                socialOAuthService.getUserInfo(provider, request.getAccessToken());
+
+        // 2. 기존 회원 조회 or 생성
+        User user = userRepository.findByEmail(socialUser.getEmail())
+                .orElseGet(() ->
+                        userRepository.save(
+                                User.createSocial(
+                                        socialUser.getEmail(),
+                                        socialUser.getProvider(),
+                                        socialUser.getNickname()
+                                )
+                        )
+                );
+
+        // 3. JWT 발급
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
+
+        return LoginResponseDto.from(user, accessToken);
+    }
+
+
 }
