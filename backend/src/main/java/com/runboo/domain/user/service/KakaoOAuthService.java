@@ -17,11 +17,9 @@ public class KakaoOAuthService {
 
     /**
      * 카카오 AccessToken을 이용해 사용자 정보를 조회한다.
-     *
      * 책임:
      * - 카카오 서버와 통신
      * - 카카오 응답(JSON)을 KakaoUserResponse DTO로 역직렬화
-     *
      * 책임 아님:
      * - SocialUserInfo 변환
      * - 회원 가입/로그인 판단

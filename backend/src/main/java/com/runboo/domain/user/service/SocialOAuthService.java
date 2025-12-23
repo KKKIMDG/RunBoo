@@ -19,11 +19,9 @@ public class SocialOAuthService {
     /**
      * 소셜 타입(provider)에 따라 OAuth 사용자 정보를 조회하고
      * 공통 도메인 모델(SocialUserInfo)로 변환한다.
-     *
      * 이 클래스의 책임:
      * - 소셜 타입 분기
      * - 소셜별 응답 DTO → SocialUserInfo 변환
-     *
      * 책임 아님:
      * - 회원 가입/로그인 판단
      * - JWT 발급
@@ -46,7 +44,6 @@ public class SocialOAuthService {
 
     /**
      * 카카오 사용자 응답 DTO를 공통 SocialUserInfo로 변환한다.
-     *
      * - providerId: 카카오에서 제공하는 사용자 고유 ID
      * - nickname: profile 우선, 없으면 properties fallback
      * - email: 동의하지 않은 경우 null 가능
@@ -73,7 +70,6 @@ public class SocialOAuthService {
 
     /**
      * 구글 사용자 응답 DTO를 공통 SocialUserInfo로 변환한다.
-     *
      * - providerId: sub (구글 사용자 고유 식별자)
      */
     private SocialUserInfo toSocialUserInfo(GoogleUserResponse body) {

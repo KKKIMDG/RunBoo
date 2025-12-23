@@ -17,11 +17,9 @@ public class GoogleOAuthService {
 
     /**
      * Google AccessToken을 이용해 사용자 정보를 조회한다.
-     *
      * 책임:
      * - 구글 OAuth 서버와 통신
      * - 응답(JSON)을 GoogleUserResponse DTO로 역직렬화
-     *
      * 책임 아님:
      * - SocialUserInfo 변환
      * - 회원 가입/로그인 판단

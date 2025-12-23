@@ -3,8 +3,6 @@ package com.runboo.domain.user.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
-import java.awt.color.ICC_ColorSpace;
-
 @Getter
 public class KakaoUserResponse {
 
