@@ -12,6 +12,7 @@ import java.time.OffsetDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "user_saved_course")
 public class UserCourse {
 
     @Id

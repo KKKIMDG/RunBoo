@@ -2,6 +2,7 @@ package com.runboo.domain.user.entity;
 
 
 import com.runboo.domain.course.entity.UserCourse;
+import com.runboo.domain.record.entity.RunRecord;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Cleanup;
@@ -49,5 +50,8 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserCourse> userCourses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RunRecord> runRecords = new ArrayList<>();
 
 }
