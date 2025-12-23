@@ -16,6 +16,7 @@ public class RecordDto {
     private Integer avgPace;
     private Integer calories;
     private OffsetDateTime startedAt;
+    private OffsetDateTime endedAt;
     private String mode;
 
     public RecordDto(Record record) {
@@ -25,6 +26,7 @@ public class RecordDto {
         this.avgPace = record.getAvgPace();
         this.calories = record.getCalories();
         this.startedAt = record.getStartedAt();
+        this.endedAt = record.getEndedAt();
         this.mode = record.getMode();
     }
 }
