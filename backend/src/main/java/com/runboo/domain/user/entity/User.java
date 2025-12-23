@@ -3,6 +3,7 @@ package com.runboo.domain.user.entity;
 
 import com.runboo.domain.course.entity.UserCourse;
 import com.runboo.domain.record.entity.RunRecord;
+import com.runboo.domain.user.enums.SocialProvider;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Cleanup;
@@ -32,7 +33,7 @@ public class User {
     private String password;
 
     @Column(name = "nickname")
-    private String nickName;
+    private String nickname;
 
     @Column(name = "profile_image_url")
     private String profileImageUrl;
@@ -54,4 +55,29 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RunRecord> runRecords = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    private SocialProvider socialProvider;
+
+    public static User createLocal(String email, String encodedPassword, String nickname) {
+        User user = new User();
+        user.email = email;
+        user.password = encodedPassword;
+        user.nickname = nickname;
+        user.socialProvider = SocialProvider.LOCAL;
+        user.userState = UserState.ACTIVATION;
+        return user;
+    }
+
+    public static User createSocial(String email, SocialProvider provider, String nickname) {
+        User user = new User();
+        user.email = email;
+        user.nickname = nickname;
+        user.socialProvider = provider;
+        user.userState = UserState.ACTIVATION;
+        return user;
+    }
+
+    public boolean isSocialUser() {
+        return this.socialProvider != SocialProvider.LOCAL;
+    }
 }
