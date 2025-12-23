@@ -6,13 +6,14 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
-
-import java.time.OffsetDateTime;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user_saved_course")
+@EntityListeners(AuditingEntityListener.class)
 public class UserCourse {
 
     @Id
@@ -30,7 +31,7 @@ public class UserCourse {
 
     @CreatedDate
     @Column(name = "saved_at", updatable = false)
-    private OffsetDateTime savedAt;
+    private LocalDateTime savedAt;
 
     public UserCourse(User user, Course course) {
         this.user = user;
