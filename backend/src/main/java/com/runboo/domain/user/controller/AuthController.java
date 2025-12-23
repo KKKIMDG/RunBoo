@@ -2,6 +2,7 @@ package com.runboo.domain.user.controller;
 
 import com.runboo.domain.user.dto.*;
 import com.runboo.domain.user.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +23,7 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> emailLogin(
-            @RequestBody LocalLoginRequestDto request
+            @Valid @RequestBody LocalLoginRequestDto request
     ) {
         LoginResponseDto response = authService.loginByEmail(request);
         return ResponseEntity.ok(response);
@@ -34,7 +35,7 @@ public class AuthController {
      */
     @PostMapping("/login/oauth")
     public ResponseEntity<LoginResponseDto> socialLogin(
-            @RequestBody SocialLoginRequestDto request
+            @Valid @RequestBody SocialLoginRequestDto request
     ) {
         LoginResponseDto response = authService.loginBySocial(request);
         return ResponseEntity.ok(response);
@@ -46,7 +47,7 @@ public class AuthController {
      */
     @PostMapping("/email/verify")
     public ResponseEntity<Void> sendEmailVerifyCode(
-            @RequestBody EmailVerifyRequestDto request
+            @Valid @RequestBody EmailVerifyRequestDto request
     ) {
         authService.sendEmailVerifyCode(request);
         return ResponseEntity.ok().build();
@@ -58,7 +59,7 @@ public class AuthController {
      */
     @PostMapping("/email/verify/check")
     public ResponseEntity<Void> checkEmailVerifyCode(
-            @RequestBody EmailVerifyCheckRequestDto request
+            @Valid @RequestBody EmailVerifyCheckRequestDto request
     ) {
         authService.verifyEmailCode(request);
         return ResponseEntity.ok().build();
@@ -70,7 +71,7 @@ public class AuthController {
      */
     @PostMapping("/signup")
     public ResponseEntity<Void> signupLocal(
-            @RequestBody LocalSignupRequestDto request
+            @Valid @RequestBody LocalSignupRequestDto request
     ) {
         authService.signupLocal(request);
         return ResponseEntity.ok().build();
