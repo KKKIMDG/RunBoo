@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TierCreateRequest {
 
+    private Long recordId;
     private String name;
     private String displayName;
     private String distanceType;
