@@ -6,3 +6,4 @@
 
 redis_data/
 db_data/
+backend/src/main/java/com/runboo/domain/tier/Test.http

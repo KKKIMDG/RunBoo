@@ -10,6 +10,4 @@ import java.util.List;
 @Repository
 public interface TierResultRepository extends JpaRepository<TierResult, Long> {
 
-    // record_id로 티어 결과 조회
-    List<TierResult> findAllByRecord_RecordId(Long recordId);
 }
