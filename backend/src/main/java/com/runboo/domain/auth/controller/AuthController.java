@@ -1,7 +1,7 @@
-package com.runboo.domain.user.controller;
+package com.runboo.domain.auth.controller;
 
-import com.runboo.domain.user.dto.*;
-import com.runboo.domain.user.service.AuthService;
+import com.runboo.domain.auth.dto.*;
+import com.runboo.domain.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
