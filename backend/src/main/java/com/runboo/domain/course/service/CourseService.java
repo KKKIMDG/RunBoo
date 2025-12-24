@@ -24,6 +24,7 @@ public class CourseService {
 
         for (Course course : courses) {
             CourseDto dto = new CourseDto(course);
+            dto.setImageUrl(course.getImageUrl());
             courseList.add(dto);
         }
 
@@ -33,10 +34,18 @@ public class CourseService {
     public CourseDto findCourseDetail(Long id) {
         Optional<Course> courseBox = courseRepository.findById(id);
 
+        Course course = null;
+
         if (courseBox.isPresent()) {
-            return new CourseDto(courseBox.get());
+            course = courseBox.get();
         } else {
-            throw new IllegalArgumentException("해당 코스가 존재하지 않습니다. id=" + id);
+            throw new IllegalArgumentException("해당 코스가 없습니다. id=" + id);
         }
-    }
+
+        CourseDto dto = new CourseDto(course);
+
+        dto.setImageUrl(course.getImageUrl());
+
+        return dto;
+        }
 }
