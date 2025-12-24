@@ -1,28 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, Alert } from 'react-native';
-import * as Clipboard from 'expo-clipboard'; // 주소 복사를 위해 추가
-import { CourseService } from '../../services/CourseService';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { WebView } from 'react-native-webview';
+import { KAKAO_JAVASCRIPT_KEY } from '@env';
+
+interface CourseDetailType {
+    id: number;
+    name: string;
+    address: string;
+    lengthKm: number;
+    imageUrl: string | null;
+    description?: string;
+}
 
 export default function CourseDetailScreen({ route, navigation }: any) {
-    const { courseId } = route.params || { courseId: 1 };
-    const [course, setCourse] = useState<any>(null);
+    const { course } = route.params || {};
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchDetail();
-    }, [courseId]);
-
-    const fetchDetail = async () => {
-        const data = await CourseService.getCourseDetail(courseId);
-        setCourse(data);
-        setLoading(false);
-    };
+        if (!course) {
+            Alert.alert("오류", "코스 정보가 없습니다.");
+            navigation.goBack();
+        } else {
+            setLoading(false);
+        }
+    }, [course]);
 
     const handleClose = () => {
         navigation.goBack();
     };
 
-    // ★ 클립보드 복사 함수
     const handleCopyAddress = async () => {
         if (course?.address) {
             await Clipboard.setStringAsync(course.address);
@@ -30,35 +37,75 @@ export default function CourseDetailScreen({ route, navigation }: any) {
         }
     };
 
-    if (loading) {
-        return (
-            <View style={styles.overlay}>
-                <ActivityIndicator size="large" color="#fff" />
-            </View>
-        );
-    }
+    // ★ HTML 코드 생성 함수
+    const getMapHtml = () => {
+        // 주소 정제 (특수문자 제거)
+        const safeAddress = course.address ? course.address.replace(/'/g, "\\'").replace(/\n/g, " ").trim() : "";
 
-    if (!course) {
-        return (
-            <View style={styles.overlay}>
-                <View style={styles.popupContainer}>
-                    <Text>코스 정보를 불러올 수 없습니다.</Text>
-                    <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-                        <Text style={styles.closeButtonText}>닫기</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        );
+        return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JAVASCRIPT_KEY}&libraries=services"></script>
+            <style>
+                body { margin: 0; padding: 0; }
+                #map { width: 100%; height: 100vh; }
+            </style>
+        </head>
+        <body>
+            <div id="map"></div>
+            <script>
+                // 1. 지도 생성
+                var mapContainer = document.getElementById('map');
+                var mapOption = {
+                    center: new kakao.maps.LatLng(37.566826, 126.9786567), // 기본값(서울)
+                    level: 3
+                };
+                var map = new kakao.maps.Map(mapContainer, mapOption);
+
+                // 2. 주소 검색
+                var addressToSearch = '${safeAddress}';
+                
+                // 0.5초 뒤에 검색 실행 (지도 로딩 안정화)
+                setTimeout(function() {
+                    if (!addressToSearch) return;
+
+                    var geocoder = new kakao.maps.services.Geocoder();
+
+                    geocoder.addressSearch(addressToSearch, function(result, status) {
+                        if (status === kakao.maps.services.Status.OK) {
+                            // 성공: 좌표로 이동 및 마커 표시
+                            var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                            var marker = new kakao.maps.Marker({
+                                map: map,
+                                position: coords
+                            });
+                            map.setCenter(coords);
+                        } else {
+                            // 실패: 원인을 알림창으로 띄움 (디버깅용)
+                            // ZERO_RESULT: 주소가 이상함 / ERROR: 키 설정이나 네트워크 문제
+                            window.ReactNativeWebView.postMessage("FAIL:" + status + ":" + addressToSearch);
+                        }
+                    });
+                }, 500);
+            </script>
+        </body>
+        </html>
+        `;
+    };
+
+    if (loading || !course) {
+        return <View style={styles.overlay}><ActivityIndicator size="large" color="#fff" /></View>;
     }
 
     return (
         <View style={styles.overlay}>
             <View style={styles.popupContainer}>
-
-                {/* 헤더 영역 */}
                 <View style={styles.header}>
-                    <View style={{flex: 1}}>
-                        <Text style={styles.title} numberOfLines={1}>{course.name}</Text>
+                    <View style={{ flex: 1, marginRight: 10 }}>
+                        <Text style={styles.title} numberOfLines={1}>{course.title}</Text>
                         <Text style={styles.address} numberOfLines={1}>📍 {course.address}</Text>
                     </View>
                     <TouchableOpacity style={styles.closeIconButton} onPress={handleClose}>
@@ -66,28 +113,49 @@ export default function CourseDetailScreen({ route, navigation }: any) {
                     </TouchableOpacity>
                 </View>
 
-                {/* ★ 지도 영역: 목록과 동일하게 이미지로 표시 */}
                 <View style={styles.mapArea}>
-                    <Image
+                    <WebView
+                        originWhitelist={['*']}
                         source={{
-                            uri: course.imageUrl,
-                            headers: { Referer: 'http://localhost:8081' } // 카카오 정책 대응
+                            html: getMapHtml(),
+                            // ★ [핵심] 이 줄이 없으면 카카오 API가 작동을 거부할 수 있습니다!
+                            baseUrl: 'http://localhost'
                         }}
-                        style={styles.mapImage}
-                        resizeMode="cover"
+                        style={{ flex: 1 }}
+                        // 지도 내부에서 보낸 에러 메시지를 앱에서 받아서 경고창 띄우기
+                        onMessage={(event) => {
+                            const data = event.nativeEvent.data;
+                            if (data.startsWith("FAIL")) {
+                                const parts = data.split(":");
+                                const status = parts[1];
+                                if (status === 'ZERO_RESULT') {
+                                    Alert.alert("주소 찾기 실패", "카카오맵에 등록되지 않은 주소입니다.");
+                                } else {
+                                    Alert.alert("지도 오류", "에러 코드: " + status);
+                                }
+                            }
+                        }}
+                        startInLoadingState={true}
+                        renderLoading={() => (
+                            <ActivityIndicator
+                                size="small"
+                                color="#3A4A98"
+                                style={{ position: 'absolute', top: 100, left: '50%', marginLeft: -10 }}
+                            />
+                        )}
+                        mixedContentMode="always"
                     />
                 </View>
 
-                {/* 상세 정보 요약 (선택 사항) */}
                 <View style={styles.infoContent}>
-                    <Text style={styles.distanceText}>총 거리: {course.lengthKm} km</Text>
+                    <View style={styles.badge}>
+                        <Text style={styles.distanceText}>🏃 총 거리 {course.distance}</Text>
+                    </View>
                 </View>
 
-                {/* ★ 하단 버튼: 클릭 시 주소 복사 */}
                 <TouchableOpacity style={styles.copyButton} onPress={handleCopyAddress}>
                     <Text style={styles.copyButtonText}>클립보드 복사 →</Text>
                 </TouchableOpacity>
-
             </View>
         </View>
     );
@@ -95,73 +163,31 @@ export default function CourseDetailScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
     overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
+        flex: 1, backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'center', alignItems: 'center', padding: 20,
     },
     popupContainer: {
-        backgroundColor: '#fff',
-        width: '100%',
-        maxHeight: '80%',
-        borderRadius: 24,
-        overflow: 'hidden',
+        backgroundColor: '#fff', width: '100%', height: '70%',
+        borderRadius: 16, overflow: 'hidden',
     },
     header: {
-        backgroundColor: '#2B3467',
-        padding: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        backgroundColor: '#2B3467', padding: 20,
+        flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
     },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#fff',
-        marginBottom: 4,
-    },
-    address: {
-        color: '#D1D5DB',
-        fontSize: 13,
-    },
+    title: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 4 },
+    address: { color: '#E5E7EB', fontSize: 13 },
     closeIconButton: {
-        padding: 5,
+        backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20,
+        width: 30, height: 30, alignItems: 'center', justifyContent: 'center',
     },
-    closeIconText: {
-        color: '#fff',
-        fontSize: 24,
-    },
-    mapArea: {
-        width: '100%',
-        height: 250, // 지도 이미지 높이 고정
-        backgroundColor: '#F3F4F6',
-    },
-    mapImage: {
-        width: '100%',
-        height: '100%',
-    },
-    infoContent: {
-        padding: 20,
-    },
-    distanceText: {
-        fontSize: 16,
-        color: '#4B5563',
-        fontWeight: '600',
-    },
+    closeIconText: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginTop: -2 },
+    mapArea: { width: '100%', flex: 1, backgroundColor: '#E5E7EB' },
+    infoContent: { padding: 20, alignItems: 'flex-start' },
+    badge: { backgroundColor: '#F3F4F6', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
+    distanceText: { fontSize: 15, color: '#1F2937', fontWeight: '700' },
     copyButton: {
-        backgroundColor: '#1F2937',
-        padding: 18,
-        alignItems: 'center',
-        marginHorizontal: 20,
-        marginBottom: 20,
-        borderRadius: 12,
+        backgroundColor: '#1F2937', padding: 16, alignItems: 'center',
+        marginHorizontal: 20, marginBottom: 20, borderRadius: 10,
     },
-    copyButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    closeButton: { marginTop: 20, padding: 10, backgroundColor: '#eee', borderRadius: 5 },
-    closeButtonText: { color: '#333' }
+    copyButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
