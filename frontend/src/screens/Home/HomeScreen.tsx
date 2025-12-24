@@ -1,4 +1,4 @@
-// screens/Home
+// src/screens/HomeScreen.tsx
 // - HomeScreen.tsx: 로그인 후 표시되는 메인 화면(플레이스홀더). 실제 콘텐츠 추가.
 // - index.ts: 기본 export.
 

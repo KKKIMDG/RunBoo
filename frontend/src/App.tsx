@@ -1,78 +1,26 @@
-// mobile-app/App.tsx
-
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, Alert, TouchableOpacity } from 'react-native';
-import RootNavigator from './navigation/RootNavigator';
+import React, { useState } from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import RootNavigator from "./navigation/RootNavigator";
 
 export default function App() {
-    // 앱 상태 관리를 위한 state (로그인 상태, 유저 정보 등)
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userName, setUserName] = useState('');
 
-    // 💡 Component1에서 로그인 성공 시 호출될 함수
-    const handleAppLogin = (id: string, pw: string) => {
-        // 실제 앱에서는 여기서 받은 ID/PW를 이용해
-        // 서버에서 받은 토큰을 저장하고 메인 화면으로 이동합니다.
-
-        // 현재는 로그인 상태만 변경
+    const handleLogin = (id: string, pw: string) => {
+        // 지금 방식 그대로: 아무 값이나 입력하면 로그인 성공
         setIsLoggedIn(true);
-        setUserName(id);
-
-        Alert.alert('로그인 성공', `환영합니다, ${id}님!`);
     };
 
-    // 💡 Component1에서 회원가입 버튼 클릭 시 호출될 함수
-    const handleAppSignUp = () => {
-        Alert.alert('회원가입 이동', '회원가입 화면으로 이동합니다.');
-        // 실제로는 navigation.navigate('SignUpScreen'); 등을 사용합니다.
-    };
-
-    // 💡 로그아웃 함수 (테스트용)
     const handleLogout = () => {
         setIsLoggedIn(false);
-        setUserName('');
-        Alert.alert('로그아웃', '로그아웃 되었습니다.');
     };
 
     return (
-        <View style={styles.container}>
-            {/* 로그인 여부에 따라 화면을 다르게 보여줍니다.
-      */}
-            <RootNavigator isLoggedIn={isLoggedIn} onLogout={handleLogout} onLogin={(id: string, pw?: string) => handleAppLogin(id, pw || '')} />
-        </View>
+        <NavigationContainer>
+            <RootNavigator
+                isLoggedIn={isLoggedIn}
+                onLogin={handleLogin}
+                onLogout={handleLogout}
+            />
+        </NavigationContainer>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    // 로그인 성공 시 스타일
-    loggedInContainer: {
-        padding: 20,
-        alignItems: 'center',
-    },
-    welcomeText: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    statusText: {
-        fontSize: 16,
-        color: '#555',
-        marginBottom: 20,
-    },
-    logoutButton: {
-        marginTop: 20,
-        padding: 10,
-        backgroundColor: '#ff4444',
-        borderRadius: 5,
-    },
-    logoutButtonText: {
-        color: 'white',
-        fontWeight: 'bold',
-    }
-});
