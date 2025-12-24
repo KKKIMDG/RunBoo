@@ -1,10 +1,25 @@
 // navigation/RootNavigator.tsx
-// - 앱 루트 네비게이터: 로그인 상태에 따라 스크린을 렌더링합니다.
-// - 향후 React Navigation 등으로 확장할 수 있습니다.
 import React from 'react';
 import LoginScreen from '../screens/Login';
-import HomeScreen from '../screens/Home';
+import TierResultScreen from '../screens/TierResult'; // index.ts (TierResultIndex)를 불러옵니다.
 
-export default function RootNavigator({ isLoggedIn, onLogout, onLogin } : any) {
-  return isLoggedIn ? <HomeScreen onLogout={onLogout} /> : <LoginScreen onLogin={onLogin} />;
+interface RootNavigatorProps {
+  isLoggedIn: boolean;
+  onLogout: () => void;
+  onLogin: (id: string, pw: string) => void;
+}
+
+export default function RootNavigator({ isLoggedIn, onLogout, onLogin }: RootNavigatorProps) {
+  /**
+   * 1. isLoggedIn이 true일 때: 
+   * - TierResult/index.ts (TierResultIndex)를 렌더링합니다.
+   * - 이 컴포넌트 내부에서 거리(5.0km), 시간(0:10), 페이스(4'00") 등의 더미 데이터를 채워 TierResult 뷰를 보여줍니다.
+   * * 2. isLoggedIn이 false일 때: 
+   * - LoginScreen을 렌더링하여 아이디와 비밀번호 입력을 받습니다.
+   */
+  return isLoggedIn ? (
+    <TierResultScreen /> 
+  ) : (
+    <LoginScreen onLogin={onLogin} />
+  );
 }
