@@ -1,4 +1,4 @@
-// mobile-app/App.tsx
+//RunBoo/frontend/src/App.tsx
 
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, Alert, TouchableOpacity } from 'react-native';
