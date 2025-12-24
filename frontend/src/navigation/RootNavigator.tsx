@@ -1,13 +1,15 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+// 화면 컴포넌트 임포트
 import HomeScreen from '@/screens/Home/HomeScreen';
 import LoginScreen from '@/screens/Login/LoginScreen';
-import LoginScreen from '../screens/Login';
 import TierResultScreen from '../screens/TierResult';
-import RecordsScreen from "@/screens/records/RecordsScreen";
-import StatsScreen from "../screens/stats/StatsScreen";
+import RecordsScreen from '@/screens/records/RecordsScreen';
+import StatsScreen from '../screens/stats/StatsScreen';
+
+// 네비게이터 임포트
 import MainStackNavigator from './MainStackNavigator';
-import HomeScreen from "@/screens/Home";
 
 const Stack = createNativeStackNavigator();
 
