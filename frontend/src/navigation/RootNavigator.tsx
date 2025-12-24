@@ -4,6 +4,7 @@ import LoginScreen from '../screens/Login';
 import TierResultScreen from '../screens/TierResult';
 import RecordsScreen from "@/screens/records/RecordsScreen";
 import StatsScreen from "../screens/stats/StatsScreen";
+import MainStackNavigator from './MainStackNavigator';
 import HomeScreen from "@/screens/Home";
 
 interface RootNavigatorProps {
@@ -21,7 +22,7 @@ export default function RootNavigator({ isLoggedIn, onLogout, onLogin }: RootNav
    * - LoginScreen을 렌더링하여 아이디와 비밀번호 입력을 받습니다.
    */
   return isLoggedIn ? (
-    <HomeScreen />
+    <MainStackNavigator />
   ) : (
     <LoginScreen onLogin={onLogin} />
   );
