@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import Segmented from "./components/Segmented";
 import RecordCard from "./components/RecordCard";
-import { fetchMyRecords } from "../../api/records";
+import { fetchMyRecords } from "../../services/record/records";
 import { DEFAULT_USER_ID } from "../../constants/env";
 import type { RecordDto } from "../../types/record";
 

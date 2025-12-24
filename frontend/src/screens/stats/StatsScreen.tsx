@@ -8,7 +8,7 @@ import {
     RefreshControl,
 } from "react-native";
 import Segmented from "../records/components/Segmented";
-import { fetchDashboardStats } from "../../api/records";
+import { fetchDashboardStats } from "../../services/record/records";
 import { DEFAULT_USER_ID } from "../../constants/env";
 import type { DashboardStatsDto } from "../../types/record";
 import SummaryCards from "./components/SummaryCards";

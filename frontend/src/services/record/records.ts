@@ -1,5 +1,5 @@
 import { api } from "./client";
-import type { RecordDto, DashboardStatsDto } from "../types/record";
+import type { RecordDto, DashboardStatsDto } from "../../types/record";
 
 export async function fetchMyRecords(userId: number) {
     const res = await api.get<RecordDto[]>("/api/records", {
