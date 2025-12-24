@@ -1,5 +1,6 @@
-package com.runboo.domain.user.service;
+package com.runboo.domain.auth.service;
 
+import com.runboo.domain.auth.dto.*;
 import com.runboo.domain.user.dto.*;
 import com.runboo.domain.user.entity.User;
 import com.runboo.domain.user.enums.SocialProvider;

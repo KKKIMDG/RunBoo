@@ -1,4 +1,4 @@
-package com.runboo.domain.user.service;
+package com.runboo.domain.auth.service;
 
 import com.runboo.domain.user.dto.GoogleUserResponse;
 import com.runboo.domain.user.dto.KakaoUserResponse;

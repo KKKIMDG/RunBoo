@@ -1,4 +1,4 @@
-package com.runboo.domain.user.dto;
+package com.runboo.domain.auth.dto;
 
 import com.runboo.domain.user.enums.SocialProvider;
 import lombok.Getter;
