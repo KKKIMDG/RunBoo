@@ -1,10 +1,31 @@
-// navigation/RootNavigator.tsx
-// - 앱 루트 네비게이터: 로그인 상태에 따라 스크린을 렌더링합니다.
-// - 향후 React Navigation 등으로 확장할 수 있습니다.
-import React from 'react';
-import LoginScreen from '../screens/Login';
-import HomeScreen from '../screens/Home';
+import React from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-export default function RootNavigator({ isLoggedIn, onLogout, onLogin } : any) {
-  return isLoggedIn ? <HomeScreen onLogout={onLogout} /> : <LoginScreen onLogin={onLogin} />;
+import LoginScreen from "../screens/Login";
+import RecordsScreen from "../screens/records/RecordsScreen";
+import StatsScreen from "../screens/stats/StatsScreen";
+
+const Stack = createNativeStackNavigator();
+
+export default function RootNavigator({
+                                          isLoggedIn,
+                                          onLogin,
+                                          onLogout,
+                                      }: any) {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {!isLoggedIn ? (
+                // 🔐 로그인 전: 무조건 LoginScreen
+                <Stack.Screen name="Login">
+                    {(props) => <LoginScreen {...props} onLogin={onLogin} />}
+                </Stack.Screen>
+            ) : (
+                // ✅ 로그인 후: Records가 홈
+                <>
+                    <Stack.Screen name="Records" component={RecordsScreen} />
+                    <Stack.Screen name="Stats" component={StatsScreen} />
+                </>
+            )}
+        </Stack.Navigator>
+    );
 }
