@@ -9,15 +9,11 @@ export default function App() {
 
     const handleLogin = async (id: string, pw: string) => {
         try {
-            const res = await AuthService.login({
-                email: id,
-                password: pw,
-            });
-
+            const res = await AuthService.login({ email: id, password: pw });
             setAccessToken(res.accessToken);
             setIsLoggedIn(true);
         } catch (e) {
-            alert('로그인 실패');
+            alert('로그인 실패: 아이디와 비밀번호를 확인하세요.');
         }
     };
 
