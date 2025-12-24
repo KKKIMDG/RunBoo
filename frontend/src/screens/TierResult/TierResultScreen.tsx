@@ -108,7 +108,7 @@ const TierResultScreen: FC = () => {
         setLoading(true);
         const data = await evaluateTier({
           distanceType: '5k',
-          recordId: 4,
+          recordId: 2,
         });
         setTierData(data);
       } catch (err) {

@@ -1,22 +1,29 @@
-import React, { useState } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { StyleSheet } from "react-native";
-import RootNavigator from "./navigation/RootNavigator";
+import React, { useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import RootNavigator from './navigation/RootNavigator';
+import { AuthService } from './services/auth/authService';
+import { setAccessToken } from '@/services/api';
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userName, setUserName] = useState("");
 
-    // 로그인 성공 시 호출
-    const handleLogin = (id: string, pw: string) => {
-        // TODO: 실제로는 여기서 API 호출 + 토큰 저장
-        setIsLoggedIn(true);
-        setUserName(id);
+    const handleLogin = async (id: string, pw: string) => {
+        try {
+            const res = await AuthService.login({
+                email: id,
+                password: pw,
+            });
+
+            setAccessToken(res.accessToken);
+            setIsLoggedIn(true);
+        } catch (e) {
+            alert('로그인 실패');
+        }
     };
 
     const handleLogout = () => {
+        setAccessToken(null);
         setIsLoggedIn(false);
-        setUserName("");
     };
 
     return (
@@ -29,10 +36,3 @@ export default function App() {
         </NavigationContainer>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#fff",
-    },
-});
