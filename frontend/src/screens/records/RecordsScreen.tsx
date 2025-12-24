@@ -25,9 +25,15 @@ export default function RecordsScreen({ navigation }: any) {
     async function load() {
         try {
             setErrorMsg(null);
+
             const records = await fetchMyRecords(userId);
+
+            // ✅ 백엔드 실제 응답 확인용 로그
+            console.log("📦 records from backend:", records);
+
             setData(records);
         } catch (e) {
+            console.log("❌ records api error:", e);
             setErrorMsg("기록을 불러오지 못했어요. 네트워크/서버 상태를 확인해줘.");
             setData([]);
         }
@@ -46,7 +52,7 @@ export default function RecordsScreen({ navigation }: any) {
     const handleChangeTab = (v: "left" | "right") => {
         if (v === "right") {
             navigation.navigate("Stats");
-            setTab("left"); // 기록 화면 돌아왔을 때 기본 탭은 '기록'
+            setTab("left");
             return;
         }
         setTab(v);
@@ -76,7 +82,9 @@ export default function RecordsScreen({ navigation }: any) {
 
             {errorMsg && (
                 <View style={{ paddingVertical: 10 }}>
-                    <Text style={{ color: "#EF4444", fontWeight: "700" }}>{errorMsg}</Text>
+                    <Text style={{ color: "#EF4444", fontWeight: "700" }}>
+                        {errorMsg}
+                    </Text>
                 </View>
             )}
 
