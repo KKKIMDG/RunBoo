@@ -5,7 +5,7 @@
 
 import React, { FC, useState } from 'react';
 import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { styles } from './Login.styles';
+import { styles } from '../styles/Login.styles';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface LoginScreenProps {

@@ -36,8 +36,8 @@ export const styles = StyleSheet.create({
     width: '100%',
     position: 'relative',
   },
-  textInput: {
-    width: '100%',
+  textInputBox: {
+    flex: 1,
     height: '100%',
     borderRadius: 15,
     backgroundColor: '#fff',
@@ -139,5 +139,50 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.2,
     textTransform: 'uppercase',
+  },
+  // src/screens/styles/Login.styles.ts
+
+  // src/screens/styles/Login.styles.ts 수정
+
+  inlineInputBox: {
+    height: 53,
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 15,
+    backgroundColor: '#fff',
+    borderWidth: 0.6,
+    borderColor: 'rgba(0, 0, 0, 0.25)',
+    paddingRight: 10,
+    overflow: 'hidden', // 내부 요소가 둥근 테두리를 벗어나지 않게 함
+  },
+
+  textInput: {
+    flex: 1, // 버튼을 제외한 남은 공간만 차지함
+    height: '100%',
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: '#333',
+    // 중요: 여기서 borderWidth나 borderColor를 설정하면 이미지처럼 칸이 쪼개져 보이고 버튼을 가릴 수 있습니다.
+    borderWidth: 0, // 테두리 제거
+    backgroundColor: 'transparent', // 배경 투명하게
+  },
+
+  inlineButton: {
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: 15,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+    zIndex: 10, // 버튼을 최상단으로 올림
+  },
+
+  inlineButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.4,
   },
 });
