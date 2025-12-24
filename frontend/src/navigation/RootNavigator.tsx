@@ -1,31 +1,25 @@
-import React from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+// navigation/RootNavigator.tsx
+import React from 'react';
+import LoginScreen from '../screens/Login';
+import TierResultScreen from '../screens/TierResult'; // index.ts (TierResultIndex)를 불러옵니다.
 
-import LoginScreen from "../screens/Login";
-import RecordsScreen from "../screens/records/RecordsScreen";
-import StatsScreen from "../screens/stats/StatsScreen";
+interface RootNavigatorProps {
+  isLoggedIn: boolean;
+  onLogout: () => void;
+  onLogin: (id: string, pw: string) => void;
+}
 
-const Stack = createNativeStackNavigator();
-
-export default function RootNavigator({
-                                          isLoggedIn,
-                                          onLogin,
-                                          onLogout,
-                                      }: any) {
-    return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {!isLoggedIn ? (
-                // 🔐 로그인 전: 무조건 LoginScreen
-                <Stack.Screen name="Login">
-                    {(props) => <LoginScreen {...props} onLogin={onLogin} />}
-                </Stack.Screen>
-            ) : (
-                // ✅ 로그인 후: Records가 홈
-                <>
-                    <Stack.Screen name="Records" component={RecordsScreen} />
-                    <Stack.Screen name="Stats" component={StatsScreen} />
-                </>
-            )}
-        </Stack.Navigator>
-    );
+export default function RootNavigator({ isLoggedIn, onLogout, onLogin }: RootNavigatorProps) {
+  /**
+   * 1. isLoggedIn이 true일 때: 
+   * - TierResult/index.ts (TierResultIndex)를 렌더링합니다.
+   * - 이 컴포넌트 내부에서 거리(5.0km), 시간(0:10), 페이스(4'00") 등의 더미 데이터를 채워 TierResult 뷰를 보여줍니다.
+   * * 2. isLoggedIn이 false일 때: 
+   * - LoginScreen을 렌더링하여 아이디와 비밀번호 입력을 받습니다.
+   */
+  return isLoggedIn ? (
+    <TierResultScreen /> 
+  ) : (
+    <LoginScreen onLogin={onLogin} />
+  );
 }
