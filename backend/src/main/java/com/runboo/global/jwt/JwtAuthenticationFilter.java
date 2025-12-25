@@ -33,16 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null) {
             try {
                 Long userId = jwtTokenProvider.getUserIdFromToken(token);
-
-                User user = userRepository.findById(userId)
-                        .orElseThrow();
+                User user = userRepository.findById(userId).orElseThrow();
 
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                user,
-                                null,
-                                List.of() // 권한 안 쓰면 비워둠
-                        );
+                        new UsernamePasswordAuthenticationToken(user, null, List.of());
 
                 authentication.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
@@ -52,14 +46,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .setAuthentication(authentication);
 
             } catch (Exception e) {
-                // 토큰 문제 → 바로 401
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
+                // 🔥 여기서 response 건들지 말 것
             }
         }
 
         filterChain.doFilter(request, response);
     }
+
 
     private String resolveToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
