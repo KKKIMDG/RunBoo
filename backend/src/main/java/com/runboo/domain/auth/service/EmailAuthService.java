@@ -2,9 +2,12 @@ package com.runboo.domain.auth.service;
 
 import com.runboo.domain.auth.entity.EmailVerification;
 import com.runboo.domain.auth.repository.EmailVerificationRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,25 +56,92 @@ public class EmailAuthService {
 
     /**
      * 이메일 인증 코드 발송
-     * - 단순 텍스트 메일 방식
+     * - HTML + Plain Text 멀티파트 메일 방식
      */
     public void send(String email, String code) {
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("[RunBoo] 이메일 인증 코드");
-        message.setText(
-                """
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    message, true, "UTF-8");
+
+            helper.setTo(email);
+            helper.setSubject("[RunBoo] 이메일 인증 코드");
+            helper.setFrom("RunBoo <no-reply@runboo.com>");
+
+            // plain text (스팸/호환 대비)
+            String plainText = """
                 RunBoo 이메일 인증 코드입니다.
 
                 인증 코드: %s
 
                 ※ 5분 이내에 입력해주세요.
-                """
-                        .formatted(code)
-        );
+                """.formatted(code);
 
-        mailSender.send(message);
+            // html
+            String htmlText = """
+<!doctype html>
+<html lang="ko">
+<body style="margin:0;padding:0;background:#f6f7fb;">
+  <table width="100%%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:28px 16px;">
+        <table width="600"
+          style="background:#ffffff;border:1px solid #e7e9f0;">
+          <tr>
+            <td style="padding:24px;font-family:Arial,sans-serif;">
+              <div style="font-size:30px;font-weight:800;color:#2E3D6E;text-align: center;">
+                RunBoo
+              </div>
+
+              <p style="margin-top:16px;font-size:14px;color:#374151;">
+                이메일 인증을 위해 아래 인증 코드를 입력해주세요.<br/>
+                <b>5분 이내</b>에만 유효합니다.
+              </p>
+
+              <div style="
+                margin:20px 0;
+                padding:18px;
+                text-align:center;
+                background:#EEF1FA;
+                font-size:32px;
+                font-weight:800;
+                letter-spacing:15px;
+                color:#000;
+                font-family:monospace;">
+                %s
+              </div>
+
+              <p style="font-size:12px;color:#6b7280;">
+                본 메일을 요청하지 않았다면 무시하셔도 됩니다.<br/>
+                인증 코드는 타인에게 공유하지 마세요.
+              </p>
+
+              <p style="font-size:11px;color:#9ca3af;margin-top:24px;">
+                © %d RunBoo
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+                """.formatted(
+                    code,
+                    java.time.Year.now().getValue()
+            );
+
+            // 핵심
+            helper.setText(plainText, htmlText);
+
+            mailSender.send(message);
+
+        } catch (MessagingException e) {
+            throw new IllegalStateException("이메일 인증 메일 전송 실패", e);
+        }
     }
 
     /**
