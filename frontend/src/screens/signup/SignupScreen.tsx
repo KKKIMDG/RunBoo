@@ -8,11 +8,11 @@ import {
     StyleSheet,
     Alert,
 } from 'react-native';
-// ✅ 새로 만든 회원가입 전용 스타일 임포트
+// 새로 만든 회원가입 전용 스타일 임포트
 import { signupStyles as styles } from '../styles/Signup.styles';
 import { AuthService } from '@/services/auth/authService';
 
-export default function SignUpScreen() {
+export default function SignUpScreen({ navigation }: any) {
     const [email, setEmail] = useState('');
     const [code, setCode] = useState('');
     const [password, setPassword] = useState('');
@@ -28,8 +28,6 @@ export default function SignUpScreen() {
 
     /* ===================== 이메일 인증 코드 전송 (API 연결) ===================== */
     const handleSendCode = async () => {
-        // console.log("버튼 클릭됨"); // 브라우저 콘솔 확인용
-        // alert("함수 진입 성공");   // alert 사용 (Alert.alert는 웹에서 가끔 안 뜰 수 있음)
         if (!email) {
             Alert.alert('오류', '이메일을 입력하세요');
             return;
@@ -41,7 +39,7 @@ export default function SignUpScreen() {
         }
 
         try {
-            // ✅ AuthService를 통해 서버로 인증 메일 발송 요청
+            // AuthService를 통해 서버로 인증 메일 발송 요청
             await AuthService.sendEmailCode(email);
 
             Alert.alert('성공', '인증 코드가 전송되었습니다. 메일함을 확인해주세요.');
@@ -63,7 +61,7 @@ export default function SignUpScreen() {
         }
 
         try {
-            // ✅ 입력한 코드 검증 API 호출
+            // 입력한 코드 검증 API 호출
             await AuthService.verifyEmailCode(email, code);
             Alert.alert('완료', '이메일 인증이 완료되었습니다.');
             setIsEmailVerified(true);
@@ -93,7 +91,12 @@ export default function SignUpScreen() {
         try {
             await AuthService.signup({ email, password, nickname });
             Alert.alert('축하합니다!', '회원가입이 완료되었습니다.', [
-                { text: '확인', onPress: () => { /* 로그인 페이지 이동 로직 */ } }
+                {
+                    text: '확인',
+                    onPress: () => {
+                        navigation.navigate('Login');
+                    },
+                }
             ]);
         } catch (error: any) {
             Alert.alert('회원가입 실패', error?.response?.data?.message || '다시 시도해주세요.');

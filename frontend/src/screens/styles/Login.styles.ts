@@ -31,22 +31,6 @@ export const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-  inputBox: {
-    height: 53,
-    width: '100%',
-    position: 'relative',
-  },
-  textInputBox: {
-    flex: 1,
-    height: '100%',
-    borderRadius: 15,
-    backgroundColor: '#fff',
-    borderWidth: 0.6,
-    borderColor: 'rgba(0, 0, 0, 0.25)',
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#333',
-  },
   loginButton: {
     height: 52,
     borderRadius: 15,

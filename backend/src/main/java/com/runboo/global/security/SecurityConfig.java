@@ -34,6 +34,8 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/signup",
                                 "/api/auth/login/oauth",
+                                "/api/auth/email/verify",
+                                "/api/auth/email/verify/check",
 
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
