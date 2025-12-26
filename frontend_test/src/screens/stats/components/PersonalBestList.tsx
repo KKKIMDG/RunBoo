@@ -16,6 +16,7 @@ function Row({ title, record, valueText }: { title: string; record: RecordDto | 
 export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
     const longestDistance = pb.longestDistance;
     const longestDuration = pb.longestDuration;
+    console.log("🔥 longestDuration raw =", pb.longestDuration);
     const bestPace = pb.bestPace;
 
     return (

@@ -53,7 +53,7 @@ public class RecordService {
                 .mapToDouble(r -> Optional.ofNullable(r.getDistanceM()).orElse(0.0))
                 .sum();
 
-        // 🔥 핵심 수정: 실제 러닝 시간 = startedAt ~ endedAt 차이(초)
+        // ✅ startedAt ~ endedAt 기준
         long totalDurationSec = records.stream()
                 .mapToLong(this::calcDurationSec)
                 .sum();
@@ -94,7 +94,6 @@ public class RecordService {
 
         List<WeeklyItemDto> items = new ArrayList<>();
 
-        // 월 ~ 일 고정
         for (int i = 0; i < 7; i++) {
             LocalDate date = monday.plusDays(i);
             List<Record> dayRecords = grouped.getOrDefault(date, List.of());
@@ -105,7 +104,7 @@ public class RecordService {
                     .mapToDouble(r -> Optional.ofNullable(r.getDistanceM()).orElse(0.0))
                     .sum();
 
-            // 🔥 핵심 수정
+            // ✅ startedAt ~ endedAt 기준
             long durationSec = dayRecords.stream()
                     .mapToLong(this::calcDurationSec)
                     .sum();
@@ -128,27 +127,33 @@ public class RecordService {
 
     /* =========================
        개인 최고 기록
+       ✅ longestDuration는 실제 시간(ended-start)로 재계산해서 Top1 선정
      ========================= */
     private PersonalBestsDto getPersonalBests(Long userId) {
-        RecordDto longestDistance =
-                recordRepository.findTopByUserIdOrderByDistanceMDesc(userId)
-                        .map(RecordDto::new)
-                        .orElse(null);
+        // 개인 최고는 기간 제한 없이 전체 기록 기준
+        List<Record> all = recordRepository.findByUserIdOrderByStartedAtDesc(userId);
 
-        RecordDto longestDuration =
-                recordRepository.findTopByUserIdOrderByDurationSecDesc(userId)
-                        .map(RecordDto::new)
-                        .orElse(null);
+        RecordDto longestDistance = all.stream()
+                .max(Comparator.comparingDouble(r -> Optional.ofNullable(r.getDistanceM()).orElse(0.0)))
+                .map(RecordDto::new)
+                .orElse(null);
 
-        RecordDto bestPace =
-                recordRepository.findTopByUserIdOrderByAvgPaceAsc(userId)
-                        .map(RecordDto::new)
-                        .orElse(null);
+        // 🔥 핵심: durationSec가 아니라 startedAt~endedAt으로 비교
+        RecordDto longestDuration = all.stream()
+                .max(Comparator.comparingLong(this::calcDurationSec))
+                .map(RecordDto::new)
+                .orElse(null);
 
-        RecordDto mostCalories =
-                recordRepository.findTopByUserIdOrderByCaloriesDesc(userId)
-                        .map(RecordDto::new)
-                        .orElse(null);
+        RecordDto bestPace = all.stream()
+                .filter(r -> r.getAvgPace() != null)
+                .min(Comparator.comparingDouble(Record::getAvgPace))
+                .map(RecordDto::new)
+                .orElse(null);
+
+        RecordDto mostCalories = all.stream()
+                .max(Comparator.comparingLong(r -> Optional.ofNullable(r.getCalories()).orElse(0)))
+                .map(RecordDto::new)
+                .orElse(null);
 
         return new PersonalBestsDto(
                 longestDistance,
