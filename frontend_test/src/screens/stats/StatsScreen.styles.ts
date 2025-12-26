@@ -19,6 +19,10 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         color: Colors[scheme].icon, 
         fontWeight: "600" 
     },
+    backButtonContainer: {
+        alignSelf: 'flex-start',
+        marginBottom: 8,
+    },
     center: { 
         flex: 1, 
         alignItems: "center", 

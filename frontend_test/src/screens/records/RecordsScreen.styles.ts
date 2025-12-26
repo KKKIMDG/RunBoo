@@ -26,6 +26,10 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         justifyContent: "center",
         backgroundColor: Colors[scheme].background,
     },
+    backButtonContainer: {
+        alignSelf: 'flex-start',
+        marginBottom: 8,
+    },
     // 실제 RecordsScreen에서 사용되는 스타일들
     segmentedContainer: {
         marginTop: 12,

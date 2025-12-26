@@ -4,6 +4,9 @@ import HomeScreen from '@/screens/Home/HomeScreen';
 import ProfileScreen from '@/screens/Profile/ProfileScreen';
 import SettingsScreen from '@/screens/Settings/SettingsScreen';
 import CourseScreen from '@/screens/Course/CourseScreen';
+import CourseDetailScreen from '@/screens/Course/CourseDetailScreen';
+import RecordsScreen from '@/screens/records/RecordsScreen';
+import StatsScreen from '@/screens/stats/StatsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +19,9 @@ export default function AppStack({ onLogout }: any) {
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Course" component={CourseScreen} />
+            <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
+            <Stack.Screen name="Records" component={RecordsScreen} />
+            <Stack.Screen name="Stats" component={StatsScreen} />
         </Stack.Navigator>
     );
 }

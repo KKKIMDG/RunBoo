@@ -44,6 +44,9 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     if (tabName === '코스') {
       navigation?.navigate('Course');
     }
+    if (tabName === '통계') {
+      navigation?.navigate('Records');
+    }
   };
 
   return (

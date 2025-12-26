@@ -14,7 +14,7 @@ export const useCourseScreen = () => {
 
     const fetchCourses = useCallback(async () => {
         try {
-            const data = await CourseService.getCourses({ filter: activeFilter });
+            const data = await CourseService.getCourses(activeFilter);
             setCourses(data);
         } catch (error) {
             console.error('Failed to fetch courses:', error);
@@ -29,12 +29,21 @@ export const useCourseScreen = () => {
         setActiveFilter(filter);
     };
 
-    const handleToggleHeart = (courseId: number) => {
-        setCourses(prevCourses =>
-            prevCourses.map(course =>
-                course.id === courseId ? { ...course, isSaved: !course.isSaved } : course
-            )
-        );
+    const handleToggleHeart = async (courseId: number) => {
+        try {
+            const result = await CourseService.toggleCourse(courseId);
+            setCourses(prevCourses =>
+                prevCourses.flatMap(course => {
+                    if (course.id !== courseId) return [course];
+                    const nextIsSaved = typeof result?.isSaved === 'boolean' ? result.isSaved : !course.isSaved;
+                    const nextCourse = { ...course, isSaved: nextIsSaved };
+                    if (activeFilter === 'SAVED' && !nextIsSaved) return [];
+                    return [nextCourse];
+                })
+            );
+        } catch (error) {
+            console.error('Failed to toggle course:', error);
+        }
     };
 
     const handlePressCard = (course: CourseType) => {

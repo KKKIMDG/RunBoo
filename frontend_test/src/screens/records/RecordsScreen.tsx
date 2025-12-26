@@ -1,19 +1,33 @@
 import React from "react";
-import { View, Text, FlatList, RefreshControl } from "react-native";
+import { View, Text, FlatList, RefreshControl, ActivityIndicator } from "react-native";
 import Segmented from "./components/Segmented";
 import RecordCard from "./components/RecordCard";
 import { useRecordsScreen } from "./useRecordsScreen";
 import { getStyles } from "./RecordsScreen.styles"; // getStyles 함수 임포트
-import ScreenLayout from "@/components/layout/ScreenLayout";
 import { useColorScheme } from "@/hooks/use-color-scheme"; // useColorScheme 훅 임포트
+import BackButton from "@/components/ui/BackButton";
+import { Colors } from "@/constants/theme";
 
 export default function RecordsScreen() {
     const { tab, loading, refreshing, data, errorMsg, handlers } = useRecordsScreen();
     const colorScheme = useColorScheme() ?? 'light';
     const styles = getStyles(colorScheme); // 현재 테마에 맞는 스타일 생성
 
+    if (loading) {
+        return (
+            <View style={styles.center}>
+                <ActivityIndicator color={Colors[colorScheme].tint} />
+            </View>
+        );
+    }
+
     return (
-        <ScreenLayout title="기록" subtitle="나의 러닝 기록" loading={loading}>
+        <View style={styles.container}>
+            <View style={styles.backButtonContainer}>
+                <BackButton />
+            </View>
+            <Text style={styles.title}>기록</Text>
+            <Text style={styles.subTitle}>나의 러닝 기록</Text>
             <View style={styles.segmentedContainer}>
                 <Segmented
                     leftLabel="기록"
@@ -46,6 +60,6 @@ export default function RecordsScreen() {
                 }
                 contentContainerStyle={styles.listContentContainer}
             />
-        </ScreenLayout>
+        </View>
     );
 }

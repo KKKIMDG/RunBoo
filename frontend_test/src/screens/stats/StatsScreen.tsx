@@ -1,21 +1,35 @@
 import React from "react";
-import { View, Text, ScrollView, RefreshControl } from "react-native";
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
 import Segmented from "@/screens/records/components/Segmented";
 import SummaryCards from "./components/SummaryCards";
 import WeeklyChart from "./components/WeeklyChart";
 import PersonalBestList from "./components/PersonalBestList";
 import { useStatsScreen } from "./useStatsScreen";
 import { getStyles } from "./StatsScreen.styles";
-import ScreenLayout from "@/components/layout/ScreenLayout";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import BackButton from "@/components/ui/BackButton";
+import { Colors } from "@/constants/theme";
 
 export default function StatsScreen() {
     const { tab, loading, refreshing, stats, errorMsg, handlers } = useStatsScreen();
     const colorScheme = useColorScheme() ?? 'light';
     const styles = getStyles(colorScheme);
 
+    if (loading) {
+        return (
+            <View style={styles.center}>
+                <ActivityIndicator color={Colors[colorScheme].tint} />
+            </View>
+        );
+    }
+
     return (
-        <ScreenLayout title="통계" subtitle="나의 러닝 통계" loading={loading}>
+        <View style={styles.container}>
+            <View style={styles.backButtonContainer}>
+                <BackButton />
+            </View>
+            <Text style={styles.title}>통계</Text>
+            <Text style={styles.subTitle}>나의 러닝 통계</Text>
             <View style={styles.segmentedContainer}>
                 <Segmented
                     leftLabel="기록"
@@ -48,6 +62,6 @@ export default function StatsScreen() {
 
                 <View style={styles.scrollViewFooter} />
             </ScrollView>
-        </ScreenLayout>
+        </View>
     );
 }

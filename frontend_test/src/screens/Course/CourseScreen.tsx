@@ -8,6 +8,7 @@ import { useCourseScreen, FilterType } from './useCourseScreen';
 import { getStyles } from './CourseScreen.styles';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
+import BackButton from '@/components/ui/BackButton';
 
 const FILTERS: { label: string; type: FilterType }[] = [
     { label: "5km 미만", type: 'UNDER_5K' },
@@ -26,8 +27,11 @@ export default function CourseScreen() {
             <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
-                    <Text style={styles.subHeader}>HOT PLACES</Text>
-                    <Text style={styles.mainHeader}>코스 추천</Text>
+                    <BackButton />
+                    <View style={styles.headerText}>
+                        <Text style={styles.subHeader}>HOT PLACES</Text>
+                        <Text style={styles.mainHeader}>코스 추천</Text>
+                    </View>
                 </View>
 
                 {/* 필터 영역 */}
