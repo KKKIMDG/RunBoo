@@ -16,9 +16,9 @@ import SummaryCards from "../stats/components/SummaryCards";
 import WeeklyChart from "../stats/components/WeeklyChart";
 import PersonalBestList from "../stats/components/PersonalBestList";
 
-import { fetchMyRecords, fetchDashboardStats } from "../../services/record/records";
-import { DEFAULT_USER_ID } from "../../constants/env";
-import type { RecordDto, DashboardStatsDto } from "../../types/record";
+import { fetchMyRecords, fetchDashboardStats } from "@/services/record/records";
+import { DEFAULT_USER_ID } from "@/constants/env";
+import type { RecordDto, DashboardStatsDto } from "@/types/record";
 
 type TopTab = "record" | "stats";
 
