@@ -1,8 +1,8 @@
-
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, FlatList, StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import CourseCard from '@/components/CourseCard';
+// 🔥 [핵심] 여기서도 '정품 설명서' CourseType을 가져와야 합니다.
+import CourseCard, { CourseType } from '@/components/CourseCard';
 import FilterChip from '@/components/FilterChip';
 import { useCourseScreen, FilterType } from './useCourseScreen';
 import { getStyles } from './CourseScreen.styles';
@@ -18,6 +18,7 @@ const FILTERS: { label: string; type: FilterType }[] = [
     { label: "❤ 저장", type: 'SAVED' },
 ];
 
+// 🔥 [Render Error 해결] export default function 필수!
 export default function CourseScreen() {
     const { activeFilter, courses, handlers } = useCourseScreen();
     const colorScheme = useColorScheme() ?? 'light';
@@ -31,58 +32,57 @@ export default function CourseScreen() {
         if (tabName === '통계') navigation.navigate('Records');
     };
 
+    const renderItem = ({ item }: { item: CourseType }) => (
+        <CourseCard
+            course={item}
+            onToggle={() => handlers.handleToggleHeart(item.id)}
+            onPress={() => handlers.handlePressCard(item)}
+            scheme={colorScheme}
+        />
+    );
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-                <View style={styles.header}>
-                    <BackButton />
-                    <View style={styles.headerText}>
-                        <Text style={styles.subHeader}>HOT PLACES</Text>
-                        <Text style={styles.mainHeader}>코스 추천</Text>
-                    </View>
+            <View style={styles.header}>
+                <BackButton />
+                <View style={styles.headerText}>
+                    <Text style={styles.subHeader}>HOT PLACES</Text>
+                    <Text style={styles.mainHeader}>코스 추천</Text>
                 </View>
+            </View>
 
-                {/* 필터 영역 */}
-                <View style={styles.filterContainer}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {FILTERS.map(({ label, type }) => (
-                            <FilterChip
-                                key={type}
-                                label={label}
-                                isActive={activeFilter === type}
-                                onPress={() => handlers.handleFilterChange(type)}
-                                scheme={colorScheme}
-                            />
-                        ))}
-                    </ScrollView>
-                </View>
-
-                {/* 코스 리스트 영역 */}
-                <View style={styles.courseList}>
-                    {courses.map((course) => (
-                        <TouchableOpacity
-                            key={course.id}
-                            onPress={() => handlers.handlePressCard(course)}
-                            activeOpacity={0.8}
-                        >
-                            <CourseCard
-                                course={course}
-                                onToggle={() => handlers.handleToggleHeart(course.id)}
-                                scheme={colorScheme}
-                            />
-                        </TouchableOpacity>
-                    ))}
-
-                    {courses.length === 0 && (
-                        <View style={styles.emptyListContainer}>
-                            <Text style={styles.emptyListText}>
-                                {activeFilter === 'SAVED' ? "아직 저장한 코스가 없습니다." : "코스 데이터가 없습니다."}
-                            </Text>
-                        </View>
+            <View style={styles.filterContainer}>
+                <FlatList
+                    horizontal
+                    data={FILTERS}
+                    keyExtractor={(item) => item.type}
+                    showsHorizontalScrollIndicator={false}
+                    renderItem={({ item }) => (
+                        <FilterChip
+                            label={item.label}
+                            isActive={activeFilter === item.type}
+                            onPress={() => handlers.handleFilterChange(item.type)}
+                            scheme={colorScheme}
+                        />
                     )}
-                </View>
-            </ScrollView>
+                    contentContainerStyle={{ paddingHorizontal: 4 }}
+                />
+            </View>
+
+            <FlatList
+                data={courses}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => item.id ? item.id.toString() : index.toString()}
+                contentContainerStyle={styles.listContent}
+                ListEmptyComponent={
+                    <View style={styles.emptyListContainer}>
+                        <Text style={styles.emptyListText}>
+                            {activeFilter === 'SAVED' ? "아직 저장한 코스가 없습니다." : "코스 데이터가 없습니다."}
+                        </Text>
+                    </View>
+                }
+            />
             <BottomNavBar activeTab="코스" onTabPress={handleTabPress} />
         </SafeAreaView>
     );

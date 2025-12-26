@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { TopNavBar } from '@/components/layout/TopNavBar';
 import { BottomNavBar } from '@/components/layout/BottomNavBar';
