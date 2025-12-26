@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { fetchMyRecords } from '@/services/record/records';
-import { DEFAULT_USER_ID } from '@/constants/env';
 import type { RecordDto } from '@/types/record';
 
 // 네비게이션 스택 파라미터 타입 정의
@@ -21,7 +20,7 @@ export const useRecordsScreen = () => {
     const [data, setData] = useState<RecordDto[]>([]);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    const userId = DEFAULT_USER_ID;
+    const userId = 1;
 
     const loadRecords = useCallback(async () => {
         try {
