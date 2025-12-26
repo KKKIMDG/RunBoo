@@ -3,58 +3,32 @@ import { View, Text, StyleSheet } from "react-native";
 import type { WeeklySummaryDto } from "@/types/record";
 import { Colors } from "@/constants/theme";
 
-const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
-    card: { 
-        backgroundColor: Colors[scheme].card, 
-        borderRadius: 18, 
-        padding: 14, 
-        borderWidth: 1, 
-        borderColor: Colors[scheme].secondaryBackground 
-    },
-    header: { 
-        flexDirection: "row", 
-        justifyContent: "space-between", 
-        alignItems: "center" 
-    },
-    h: { 
-        fontSize: 16, 
-        fontWeight: "900", 
-        color: Colors[scheme].text 
-    },
-    sub: { 
-        color: Colors[scheme].icon, 
-        fontWeight: "700" 
-    },
-    chartRow: { 
-        flexDirection: "row", 
-        marginTop: 12, 
-        justifyContent: "space-between" 
-    },
-    col: { 
-        width: 40, 
-        alignItems: "center" 
-    },
-    bar: { 
-        width: 10, 
-        borderRadius: 6, 
-        backgroundColor: Colors[scheme].primary
-    },
-    day: { 
-        marginTop: 8, 
-        fontWeight: "800", 
-        color: Colors[scheme].text 
-    },
-    km: { 
-        marginTop: 2, 
-        fontSize: 11, 
-        color: Colors[scheme].icon, 
-        fontWeight: "700" 
-    },
-});
+type Scheme = "light" | "dark";
+const norm = (s?: Scheme): Scheme => (s === "dark" ? "dark" : "light");
 
-export default function WeeklyChart({ weekly, scheme }: { weekly: WeeklySummaryDto, scheme: 'light' | 'dark' }) {
+const getStyles = (scheme?: Scheme) => {
+    const sc = norm(scheme);
+    return StyleSheet.create({
+        card: {
+            backgroundColor: Colors[sc].card,
+            borderRadius: 18,
+            padding: 14,
+            borderWidth: 1,
+            borderColor: Colors[sc].secondaryBackground,
+        },
+        header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+        h: { fontSize: 16, fontWeight: "900", color: Colors[sc].text },
+        sub: { color: Colors[sc].icon, fontWeight: "700" },
+        chartRow: { flexDirection: "row", marginTop: 12, justifyContent: "space-between" },
+        col: { width: 40, alignItems: "center" },
+        bar: { width: 10, borderRadius: 6, backgroundColor: Colors[sc].primary },
+        day: { marginTop: 8, fontWeight: "800", color: Colors[sc].text },
+        km: { marginTop: 2, fontSize: 11, color: Colors[sc].icon, fontWeight: "700" },
+    });
+};
+
+export default function WeeklyChart({ weekly, scheme }: { weekly: WeeklySummaryDto; scheme?: Scheme }) {
     const styles = getStyles(scheme);
-    // 간단하게 거리만 사용 (m -> km)
     const points = weekly.items.map((x) => x.distanceM / 1000);
     const max = Math.max(1, ...points);
 
@@ -65,7 +39,6 @@ export default function WeeklyChart({ weekly, scheme }: { weekly: WeeklySummaryD
                 <Text style={styles.sub}>이번 주</Text>
             </View>
 
-            {/* 아주 단순한 “막대/라인 느낌” */}
             <View style={styles.chartRow}>
                 {points.map((v, idx) => {
                     const h = Math.round((v / max) * 70) + 6;

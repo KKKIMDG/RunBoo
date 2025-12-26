@@ -1,5 +1,5 @@
 // src/services/tierService.ts
-import { api } from './api';
+import { api } from '@/services/api';
 import { TierEvaluationRequest, TierData } from '@/types/tier';
 
 export const evaluateTier = async (params: TierEvaluationRequest): Promise<TierData> => {

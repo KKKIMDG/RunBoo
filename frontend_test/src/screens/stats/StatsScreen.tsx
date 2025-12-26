@@ -7,71 +7,58 @@ import PersonalBestList from "./components/PersonalBestList";
 import { useStatsScreen } from "./useStatsScreen";
 import { getStyles } from "./StatsScreen.styles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import BackButton from "@/components/ui/BackButton";
 import { Colors } from "@/constants/theme";
-import { BottomNavBar } from "@/components/layout/BottomNavBar";
-import { useNavigation } from "@react-navigation/native";
+
+type Scheme = "light" | "dark";
+const normalize = (s: any): Scheme => (s === "dark" ? "dark" : "light");
 
 export default function StatsScreen() {
     const { tab, loading, refreshing, stats, errorMsg, handlers } = useStatsScreen();
-    const colorScheme = useColorScheme() ?? 'light';
-    const styles = getStyles(colorScheme);
-    const navigation = useNavigation<any>();
-
-    const handleTabPress = (tabName: string) => {
-        if (tabName === '홈') navigation.navigate('Home');
-        if (tabName === '코스') navigation.navigate('Course');
-        if (tabName === '통계') navigation.navigate('Records');
-    };
+    const scheme = normalize(useColorScheme());
+    const styles = getStyles(scheme);
 
     if (loading) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator color={Colors[colorScheme].tint} />
+                <ActivityIndicator color={Colors[scheme].tint} />
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            <View style={styles.backButtonContainer}>
-                <BackButton />
-            </View>
             <Text style={styles.title}>통계</Text>
             <Text style={styles.subTitle}>나의 러닝 통계</Text>
+
             <View style={styles.segmentedContainer}>
                 <Segmented
                     leftLabel="기록"
                     rightLabel="통계"
                     value={tab}
                     onChange={handlers.handleChangeTab}
-                    scheme={colorScheme}
+                    scheme={scheme} // ✅ 이제 optional이라 없어도 되지만, 있으면 테마 반영
                 />
             </View>
 
-            {errorMsg && (
+            {errorMsg ? (
                 <View style={styles.errorContainer}>
                     <Text style={styles.errorText}>{errorMsg}</Text>
                 </View>
-            )}
+            ) : null}
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={handlers.onRefresh} />
-                }
+                contentContainerStyle={styles.scrollContent}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handlers.onRefresh} />}
             >
-                {stats && (
+                {stats ? (
                     <>
-                        <SummaryCards monthly={stats.monthly} scheme={colorScheme} />
-                        <WeeklyChart weekly={stats.weekly} scheme={colorScheme} />
-                        <PersonalBestList pb={stats.personalBests} scheme={colorScheme} />
+                        <SummaryCards monthly={stats.monthly} />
+                        <WeeklyChart weekly={stats.weekly} scheme={scheme} />
+                        <PersonalBestList pb={stats.personalBests} scheme={scheme} />
                     </>
-                )}
-
-                <View style={styles.scrollViewFooter} />
+                ) : null}
             </ScrollView>
-            <BottomNavBar activeTab="통계" onTabPress={handleTabPress} />
         </View>
     );
 }
