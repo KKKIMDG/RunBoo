@@ -33,14 +33,45 @@ export default function WeeklyChart({ weekly }: { weekly: WeeklySummaryDto }) {
 }
 
 const s = StyleSheet.create({
-    card: { backgroundColor: "white", borderRadius: 18, padding: 14, borderWidth: 1, borderColor: "#EEF1F7" },
-    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-    h: { fontSize: 16, fontWeight: "900", color: "#111827" },
-    sub: { color: "#6B7280", fontWeight: "700" },
-
-    chartRow: { flexDirection: "row", marginTop: 12, justifyContent: "space-between" },
-    col: { width: 40, alignItems: "center" },
-    bar: { width: 10, borderRadius: 6, backgroundColor: "#2F4BFF" },
-    day: { marginTop: 8, fontWeight: "800", color: "#111827" },
-    km: { marginTop: 2, fontSize: 11, color: "#6B7280", fontWeight: "700" },
+    card: {
+        backgroundColor: "white",
+        borderRadius: 18,
+        padding: 14,
+        borderWidth: 1,
+        borderColor: "#EEF1F7"
+    },
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center" },
+    h: {
+        fontSize: 16,
+        fontWeight: "900",
+        color: "#111827"
+    },
+    sub: {
+        color: "#6B7280",
+        fontWeight: "700"
+    },
+    chartRow: {
+        flexDirection: "row",
+        marginTop: 12,
+        justifyContent: "space-between"
+    },
+    col: {
+        width: 40,
+        alignItems: "center"},
+    bar: {
+        width: 10,
+        borderRadius: 6,
+        backgroundColor: "#2F4BFF" },
+    day: {
+        marginTop: 8,
+        fontWeight: "800",
+        color: "#111827" },
+    km: {
+        marginTop: 2,
+        fontSize: 11,
+        color: "#6B7280",
+        fontWeight: "700" },
 });
