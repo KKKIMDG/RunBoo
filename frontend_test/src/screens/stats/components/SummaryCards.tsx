@@ -1,12 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import type { MonthlySummaryDto } from "../../../types/record";
+import type { MonthlySummaryDto } from "@/types/record";
 
 function km(m: number) {
-    return (m / 1000).toFixed(0);
+    return (m / 1000).toFixed(2);
 }
+
 function hours(sec: number) {
-    return Math.floor(sec / 3600);
+    return (sec / 3600).toFixed(1);
 }
 
 export default function SummaryCards({ monthly }: { monthly: MonthlySummaryDto }) {
