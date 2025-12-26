@@ -32,7 +32,4 @@ public class Tier {
     @Column(name = "max_pace_sec_per_km")
     private int maxPaceSecPerKm;
 
-    @Column(name = "image_url")
-    private String imageUrl; // 이미지 파일 경로 또는 URL 추가
-
 }

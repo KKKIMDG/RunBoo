@@ -18,5 +18,4 @@ export interface TierData {
   distanceType: '5k' | '10k'; // 거리 유형
   minPaceSecPerKm: number; // 최소 페이스 (km당 초)
   maxPaceSecPerKm: number; // 최대 페이스 (km당 초)
-  imageUrl: string; // 티어 이미지 URL
 }

@@ -44,7 +44,7 @@ const TierResultScreen: FC<{ route: any; navigation: any }> = ({ route, navigati
   const [error, setError] = useState<string | null>(null);
 
   // 테스트를 위해 recordId 1, distanceType 5k 하드코딩
-  const recordId = 1;
+  const recordId = 2;
   const distanceType = '5k';
 
   /* =========================
