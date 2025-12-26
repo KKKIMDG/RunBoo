@@ -8,6 +8,7 @@ import {
     RefreshControl,
     ScrollView,
 } from "react-native";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 import Segmented from "./components/Segmented";
 import RecordCard from "./components/RecordCard";
@@ -24,6 +25,7 @@ type TopTab = "record" | "stats";
 
 export default function RecordsScreen() {
     const [activeTab, setActiveTab] = useState<TopTab>("record");
+    const tabBarHeight = useBottomTabBarHeight();
 
     // 기록 데이터 상태
     const [recordsLoading, setRecordsLoading] = useState(true);
@@ -98,9 +100,7 @@ export default function RecordsScreen() {
         <View style={s.container}>
             {/* 타이틀은 탭에 따라 변경 */}
             <Text style={s.title}>{activeTab === "record" ? "기록" : "통계"}</Text>
-            <Text style={s.subTitle}>
-                {activeTab === "record" ? "나의 러닝 기록" : "나의 러닝 통계"}
-            </Text>
+            <Text style={s.subTitle}>{activeTab === "record" ? "나의 러닝 기록" : "나의 러닝 통계"}</Text>
 
             <View style={{ marginTop: 12, marginBottom: 12 }}>
                 <Segmented
@@ -146,7 +146,8 @@ export default function RecordsScreen() {
                                 </Text>
                             </View>
                         }
-                        contentContainerStyle={{ paddingBottom: 24 }}
+                        // ✅ 하단 탭바 높이만큼 여백 확보
+                        contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}
                     />
                 </>
             )}
@@ -163,6 +164,8 @@ export default function RecordsScreen() {
                     )}
 
                     <ScrollView
+                        // ✅ 하단 탭바 높이만큼 여백 확보
+                        contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}
                         refreshControl={
                             <RefreshControl
                                 refreshing={statsRefreshing}
@@ -184,8 +187,6 @@ export default function RecordsScreen() {
                                 <PersonalBestList pb={stats.personalBests} />
                             </>
                         )}
-
-                        <View style={{ height: 24 }} />
                     </ScrollView>
                 </>
             )}
