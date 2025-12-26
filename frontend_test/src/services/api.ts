@@ -1,7 +1,7 @@
 // services/api.ts
 
-const BASE_URL = 'http://10.0.2.2:8080'; //android 애뮬레이터용
-//const BASE_URL = 'http://localhost:8080'; //mac os 사용자는 이 값 사용.
+const BASE_URL = 'http://10.0.2.2:8080'; //android 애뮬레이터용 (지우지 마세요 !!!)
+//const BASE_URL = 'http://localhost:8080'; //mac os 사용자는 이 값 사용. (지우지 마세요 !!!)
 
 let accessToken: string | null = null;
 
