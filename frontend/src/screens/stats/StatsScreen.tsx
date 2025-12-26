@@ -7,6 +7,7 @@ import {
     ScrollView,
     RefreshControl,
 } from "react-native";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 import { fetchDashboardStats } from "@/services/record/records";
 import { DEFAULT_USER_ID } from "@/constants/env";
@@ -17,6 +18,8 @@ import WeeklyChart from "./components/WeeklyChart";
 import PersonalBestList from "./components/PersonalBestList";
 
 export default function StatsScreen() {
+    const tabBarHeight = useBottomTabBarHeight();
+
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [stats, setStats] = useState<DashboardStatsDto | null>(null);
@@ -66,6 +69,8 @@ export default function StatsScreen() {
             )}
 
             <ScrollView
+                // ✅ 하단 탭바 높이만큼 여백 확보
+                contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -87,8 +92,6 @@ export default function StatsScreen() {
                         <PersonalBestList pb={stats.personalBests} />
                     </>
                 )}
-
-                <View style={{ height: 24 }} />
             </ScrollView>
         </View>
     );
