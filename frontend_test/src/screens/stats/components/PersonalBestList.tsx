@@ -4,46 +4,44 @@ import type { PersonalBestsDto, RecordDto } from "@/types/record";
 import { formatDate, formatDuration, formatKm, formatPace } from "@/screens/records/components/format";
 import { Colors } from "@/constants/theme";
 
-const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
-    card: { 
-        backgroundColor: Colors[scheme].card, 
-        borderRadius: 18, 
-        padding: 14, 
-        borderWidth: 1, 
-        borderColor: Colors[scheme].secondaryBackground 
-    },
-    h: { 
-        fontSize: 16, 
-        fontWeight: "900", 
-        color: Colors[scheme].text, 
-        marginBottom: 10 
-    },
-    row: {
-        backgroundColor: Colors[scheme].secondaryBackground,
-        borderRadius: 14,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        marginTop: 8,
-    },
-    rowTitle: { 
-        color: Colors[scheme].icon, 
-        fontWeight: "800" 
-    },
-    rowValue: { 
-        marginTop: 6, 
-        color: Colors[scheme].text, 
-        fontSize: 18, 
-        fontWeight: "900" 
-    },
-    rowDate: { 
-        marginTop: 4, 
-        color: Colors[scheme].icon, 
-        fontWeight: "700", 
-        fontSize: 12 
-    },
-});
+type Scheme = "light" | "dark";
+const norm = (s?: Scheme): Scheme => (s === "dark" ? "dark" : "light");
 
-function Row({ title, record, valueText, scheme }: { title: string; record: RecordDto | null; valueText: string, scheme: 'light' | 'dark' }) {
+const getStyles = (scheme?: Scheme) => {
+    const sc = norm(scheme);
+    return StyleSheet.create({
+        card: {
+            backgroundColor: Colors[sc].card,
+            borderRadius: 18,
+            padding: 14,
+            borderWidth: 1,
+            borderColor: Colors[sc].secondaryBackground,
+        },
+        h: { fontSize: 16, fontWeight: "900", color: Colors[sc].text, marginBottom: 10 },
+        row: {
+            backgroundColor: Colors[sc].secondaryBackground,
+            borderRadius: 14,
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            marginTop: 8,
+        },
+        rowTitle: { color: Colors[sc].icon, fontWeight: "800" },
+        rowValue: { marginTop: 6, color: Colors[sc].text, fontSize: 18, fontWeight: "900" },
+        rowDate: { marginTop: 4, color: Colors[sc].icon, fontWeight: "700", fontSize: 12 },
+    });
+};
+
+function Row({
+                 title,
+                 record,
+                 valueText,
+                 scheme,
+             }: {
+    title: string;
+    record: RecordDto | null;
+    valueText: string;
+    scheme?: Scheme;
+}) {
     const styles = getStyles(scheme);
     return (
         <View style={styles.row}>
@@ -54,8 +52,9 @@ function Row({ title, record, valueText, scheme }: { title: string; record: Reco
     );
 }
 
-export default function PersonalBestList({ pb, scheme }: { pb: PersonalBestsDto, scheme: 'light' | 'dark' }) {
+export default function PersonalBestList({ pb, scheme }: { pb: PersonalBestsDto; scheme?: Scheme }) {
     const styles = getStyles(scheme);
+
     const longestDistance = pb.longestDistance;
     const longestDuration = pb.longestDuration;
     const bestPace = pb.bestPace;
