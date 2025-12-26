@@ -9,6 +9,8 @@ import { getStyles } from './CourseScreen.styles';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import BackButton from '@/components/ui/BackButton';
+import { BottomNavBar } from '@/components/layout/BottomNavBar';
+import { useNavigation } from '@react-navigation/native';
 
 const FILTERS: { label: string; type: FilterType }[] = [
     { label: "5km 미만", type: 'UNDER_5K' },
@@ -21,6 +23,13 @@ export default function CourseScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const styles = getStyles(colorScheme);
     const colors = Colors[colorScheme];
+    const navigation = useNavigation<any>();
+
+    const handleTabPress = (tabName: string) => {
+        if (tabName === '홈') navigation.navigate('Home');
+        if (tabName === '코스') navigation.navigate('Course');
+        if (tabName === '통계') navigation.navigate('Records');
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -74,6 +83,7 @@ export default function CourseScreen() {
                     )}
                 </View>
             </ScrollView>
+            <BottomNavBar activeTab="코스" onTabPress={handleTabPress} />
         </SafeAreaView>
     );
 }

@@ -9,11 +9,20 @@ import { getStyles } from "./StatsScreen.styles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import BackButton from "@/components/ui/BackButton";
 import { Colors } from "@/constants/theme";
+import { BottomNavBar } from "@/components/layout/BottomNavBar";
+import { useNavigation } from "@react-navigation/native";
 
 export default function StatsScreen() {
     const { tab, loading, refreshing, stats, errorMsg, handlers } = useStatsScreen();
     const colorScheme = useColorScheme() ?? 'light';
     const styles = getStyles(colorScheme);
+    const navigation = useNavigation<any>();
+
+    const handleTabPress = (tabName: string) => {
+        if (tabName === '홈') navigation.navigate('Home');
+        if (tabName === '코스') navigation.navigate('Course');
+        if (tabName === '통계') navigation.navigate('Records');
+    };
 
     if (loading) {
         return (
@@ -62,6 +71,7 @@ export default function StatsScreen() {
 
                 <View style={styles.scrollViewFooter} />
             </ScrollView>
+            <BottomNavBar activeTab="통계" onTabPress={handleTabPress} />
         </View>
     );
 }
