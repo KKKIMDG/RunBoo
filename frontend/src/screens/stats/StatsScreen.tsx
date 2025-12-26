@@ -8,9 +8,9 @@ import {
     RefreshControl,
 } from "react-native";
 
-import { fetchDashboardStats } from "../../services/record/records";
-import { DEFAULT_USER_ID } from "../../constants/env";
-import type { DashboardStatsDto } from "../../types/record";
+import { fetchDashboardStats } from "@/services/record/records";
+import { DEFAULT_USER_ID } from "@/constants/env";
+import type { DashboardStatsDto } from "@/types/record";
 
 import SummaryCards from "./components/SummaryCards";
 import WeeklyChart from "./components/WeeklyChart";
