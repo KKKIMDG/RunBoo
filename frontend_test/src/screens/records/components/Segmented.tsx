@@ -2,38 +2,44 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
 
+type Scheme = "light" | "dark";
 type Props = {
     leftLabel: string;
     rightLabel: string;
     value: "left" | "right";
     onChange: (v: "left" | "right") => void;
-    scheme: 'light' | 'dark';
+    scheme?: Scheme;
 };
 
-const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
-    wrap: {
-        flexDirection: "row",
-        backgroundColor: Colors[scheme].secondaryBackground,
-        padding: 4,
-        borderRadius: 14,
-    },
-    item: {
-        flex: 1,
-        paddingVertical: 8,
-        borderRadius: 12,
-        alignItems: "center",
-    },
-    active: { 
-        backgroundColor: Colors[scheme].primary,
-    },
-    text: { 
-        color: Colors[scheme].icon,
-        fontWeight: "700" 
-    },
-    activeText: { 
-        color: Colors[scheme].background,
-    },
-});
+const norm = (s?: Scheme): Scheme => (s === "dark" ? "dark" : "light");
+
+const getStyles = (scheme?: Scheme) => {
+    const sc = norm(scheme);
+    return StyleSheet.create({
+        wrap: {
+            flexDirection: "row",
+            backgroundColor: Colors[sc].secondaryBackground,
+            padding: 4,
+            borderRadius: 14,
+        },
+        item: {
+            flex: 1,
+            paddingVertical: 8,
+            borderRadius: 12,
+            alignItems: "center",
+        },
+        active: {
+            backgroundColor: Colors[sc].primary,
+        },
+        text: {
+            color: Colors[sc].icon,
+            fontWeight: "700",
+        },
+        activeText: {
+            color: Colors[sc].background,
+        },
+    });
+};
 
 export default function Segmented({ leftLabel, rightLabel, value, onChange, scheme }: Props) {
     const styles = getStyles(scheme);
