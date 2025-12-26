@@ -8,6 +8,11 @@ import { getStyles } from './HomeScreen.styles';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 
+type HomeScreenProps = {
+  navigation?: { navigate: (screen: string) => void };
+  onLogout?: () => void;
+};
+
 const ModeTab: FC<{
   mode: RunningMode;
   activeMode: RunningMode;
@@ -30,7 +35,7 @@ const ModeTab: FC<{
   );
 };
 
-const HomeScreen: FC = () => {
+const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
   const { activeMode, handleModeChange } = useHomeScreen();
   const colorScheme = useColorScheme() ?? 'light';
   const styles = getStyles(colorScheme);
@@ -38,7 +43,7 @@ const HomeScreen: FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <TopNavBar />
+      <TopNavBar onLeftPress={() => navigation?.navigate('Profile')} />
 
       <View style={styles.content}>
         {/* 1. 모드 선택 탭 */}

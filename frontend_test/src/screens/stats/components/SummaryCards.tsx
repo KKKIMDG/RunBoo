@@ -65,7 +65,7 @@ export default function SummaryCards({ monthly }: { monthly: MonthlySummaryDto }
             <View style={styles.grid}>
                 <View style={styles.box}>
                     <Text style={styles.boxLabel}>총 거리</Text>
-                    <Text style={styles.boxValue}>{km(monthly.totalDistanceM)}</T ext>
+                    <Text style={styles.boxValue}>{km(monthly.totalDistanceM)}</Text>
                     <Text style={styles.boxUnit}>km</Text>
                 </View>
                 <View style={styles.box}>
