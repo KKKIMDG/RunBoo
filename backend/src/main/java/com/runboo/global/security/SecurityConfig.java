@@ -37,6 +37,7 @@ public class SecurityConfig {
                                 "/api/auth/email/verify",
                                 "/api/auth/email/verify/check",
                                 "/api/courses/**",
+                                "/api/tier/**",
 
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
