@@ -34,7 +34,7 @@ export default function RecordsScreen({ navigation }: any) {
             setData(records);
         } catch (e) {
             console.log("❌ records api error:", e);
-            setErrorMsg("기록을 불러오지 못했어요. 네트워크/서버 상태를 확인해줘.");
+            setErrorMsg("기록을 불러오지 못했어요. 네트워크/서버 상태를 확인해주세요.");
             setData([]);
         }
     }
