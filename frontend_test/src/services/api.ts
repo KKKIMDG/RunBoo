@@ -1,9 +1,7 @@
 // services/api.ts
 
-// 안드로이드 에뮬레이터에서 개발 서버 접속 시 사용하는 IP 주소입니다.
-// export const BASE_URL = 'http://10.0.2.2:8080';
-// iOS 시뮬레이터 또는 웹 환경에서는 아래 주석을 해제하고 위 라인을 주석 처리하세요.
-export const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'http://10.0.2.2:8080'; //android 애뮬레이터용 (지우지 마세요 !!!)
+//const BASE_URL = 'http://localhost:8080'; //mac os 사용자는 이 값 사용. (지우지 마세요 !!!)
 
 let accessToken: string | null = null;
 
