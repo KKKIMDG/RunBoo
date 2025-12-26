@@ -30,6 +30,7 @@ export default function CourseScreen() {
         if (tabName === '홈') navigation.navigate('Home');
         if (tabName === '코스') navigation.navigate('Course');
         if (tabName === '통계') navigation.navigate('Records');
+        if (tabName === '도전') navigation.navigate('Challenge'); // 추가
     };
 
     const renderItem = ({ item }: { item: CourseType }) => (
