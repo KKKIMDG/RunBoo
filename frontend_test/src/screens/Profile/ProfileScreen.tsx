@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomNavBar } from '@/components/layout/BottomNavBar';
 import BackButton from '@/components/ui/BackButton';
 import { styles } from './ProfileScreen.styles';
 
+// 활동 잔디를 위한 더미 데이터
 const GRASS_DATA = Array.from({ length: 7 }, () =>
   Array.from({ length: 12 }, () => Math.floor(Math.random() * 3))
 );
@@ -18,6 +19,7 @@ export default function ProfileScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* 헤더 영역 */}
       <View style={styles.headerContainer}>
         <BackButton />
         <Text style={styles.headerTitle}>프로필</Text>
@@ -34,6 +36,21 @@ export default function ProfileScreen({ navigation }: any) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* --- 티어 확인 테스트 버튼 (추가된 부분) --- */}
+        <TouchableOpacity 
+          style={tempStyles.tierButton} 
+          onPress={() => {
+            // 실제 DB에 존재하는 recordId(예: 1)를 명시적으로 넘겨주거나, 
+            // TierResultScreen 내부의 useTierResult에서 이 값을 받도록 설계해야 합니다.
+            navigation.navigate('TierResult', { recordId: 1, distanceType: '5k' });
+          }}
+        >
+          <Ionicons name="analytics-outline" size={14} color="#FFF" />
+          <Text style={tempStyles.tierButtonText}>티어 결과 확인 (recordId: 1)</Text>
+        </TouchableOpacity>
+        {/* -------------------------------------- */}
+
+        {/* 유저 정보 카드 */}
         <View style={styles.card}>
           <View style={styles.userHeaderRow}>
             <View style={styles.profileImagePlaceholder}>
@@ -46,6 +63,7 @@ export default function ProfileScreen({ navigation }: any) {
             <Text style={styles.userName}>러너</Text>
           </View>
 
+          {/* 주요 지표 (5KM, 10KM, 총 거리) */}
           <View style={styles.metricsRow}>
             <View style={styles.metricBox}>
               <View style={[styles.metricIconPlaceholder, { backgroundColor: '#F3E5D8' }]} />
@@ -61,6 +79,7 @@ export default function ProfileScreen({ navigation }: any) {
             </View>
           </View>
 
+          {/* 배지 섹션 */}
           <View style={styles.badgeSectionHeader}>
             <Text style={styles.badgeSectionTitle}>획득한 배지</Text>
             <Ionicons name="arrow-forward-circle-outline" size={20} color="#ADB5BD" />
@@ -72,6 +91,7 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
 
+        {/* 연속 일수 및 배지 갯수 요약 */}
         <View style={styles.statsSummaryRow}>
           <View style={styles.miniStatCard}>
             <View style={styles.miniStatIconBox}>
@@ -93,31 +113,72 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
 
+        {/* 활동 잔디 (그리드) 섹션 */}
         <View style={styles.card}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <Text style={[styles.headerTitle, { fontSize: 16 }]}>활동 잔디</Text>
             <View style={styles.legendContainer}>
-              <View style={styles.legendItem}><View style={[styles.legendBox, { backgroundColor: '#F1F3F5' }]} /><Text style={styles.legendText}>없음</Text></View>
-              <View style={styles.legendItem}><View style={[styles.legendBox, { backgroundColor: 'rgba(58, 74, 152, 0.3)' }]} /><Text style={styles.legendText}>5km미만</Text></View>
-              <View style={styles.legendItem}><View style={[styles.legendBox, { backgroundColor: '#3A4A98' }]} /><Text style={styles.legendText}>5km이상</Text></View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendBox, { backgroundColor: '#F1F3F5' }]} />
+                <Text style={styles.legendText}>없음</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendBox, { backgroundColor: 'rgba(58, 74, 152, 0.3)' }]} />
+                <Text style={styles.legendText}>5km미만</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendBox, { backgroundColor: '#3A4A98' }]} />
+                <Text style={styles.legendText}>5km이상</Text>
+              </View>
             </View>
           </View>
+          
           <View style={styles.grassGrid}>
             {GRASS_DATA.map((row, rowIndex) => (
               <View key={`row-${rowIndex}`} style={styles.grassRow}>
                 {row.map((cell, cellIndex) => (
-                  <View key={`cell-${cellIndex}`} style={[styles.grassCell, { backgroundColor: cell === 2 ? '#3A4A98' : cell === 1 ? 'rgba(58, 74, 152, 0.3)' : '#F1F3F5' }]} />
+                  <View 
+                    key={`cell-${cellIndex}`} 
+                    style={[
+                      styles.grassCell, 
+                      { backgroundColor: cell === 2 ? '#3A4A98' : cell === 1 ? 'rgba(58, 74, 152, 0.3)' : '#F1F3F5' }
+                    ]} 
+                  />
                 ))}
               </View>
             ))}
           </View>
+          
           <View style={styles.grassFooter}>
             <Text style={styles.grassFooterText}>3개월 전</Text>
             <Text style={styles.grassFooterText}>오늘</Text>
           </View>
         </View>
       </ScrollView>
+
+      {/* 하단 네비게이션 바 */}
       <BottomNavBar activeTab="프로필" onTabPress={handleTabPress} />
     </SafeAreaView>
   );
 }
+
+// 임시 버튼을 위한 스타일 정의
+const tempStyles = StyleSheet.create({
+  tierButton: {
+    backgroundColor: '#6366F1',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+  },
+  tierButtonText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginLeft: 6,
+  }
+});

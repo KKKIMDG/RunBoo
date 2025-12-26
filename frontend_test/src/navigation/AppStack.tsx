@@ -7,6 +7,7 @@ import CourseScreen from '@/screens/Course/CourseScreen';
 import CourseDetailScreen from '@/screens/Course/CourseDetailScreen';
 import RecordsScreen from '@/screens/records/RecordsScreen';
 import StatsScreen from '@/screens/stats/StatsScreen';
+import TierResultScreen from '@/screens/TierResult'; // 새로 최적화한 index.ts 경로
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +23,8 @@ export default function AppStack({ onLogout }: any) {
             <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
             <Stack.Screen name="Records" component={RecordsScreen} />
             <Stack.Screen name="Stats" component={StatsScreen} />
+            <Stack.Screen name="TierResult" component={TierResultScreen} />
+            
         </Stack.Navigator>
     );
 }
