@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import {Image, KeyboardAvoidingView, Platform, Text, TouchableOpacity, View} from 'react-native';
 import { getStyles } from './Login.styles';
 // Signup 스크린에서 만들었던 재사용 컴포넌트를 임포트합니다.
 import { FormField } from '@/components/form/FormField';
@@ -28,6 +28,10 @@ const LoginScreen: FC<LoginScreenProps> = ({
     const styles = getStyles(colorScheme);
 
     return (
+        <KeyboardAvoidingView
+            style={{ flex: 2 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
         <View style={styles.container}>
             <Image
                 style={styles.icon}
@@ -98,6 +102,7 @@ const LoginScreen: FC<LoginScreenProps> = ({
                 </TouchableOpacity>
             </View>
         </View>
+        </KeyboardAvoidingView>
     );
 };
 

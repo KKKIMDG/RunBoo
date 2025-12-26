@@ -6,7 +6,8 @@ import {
     TouchableOpacity,
     Image,
     StyleSheet,
-    Alert,
+    Alert, KeyboardAvoidingView, Platform,
+    ScrollView,
 } from 'react-native';
 // 새로 만든 회원가입 전용 스타일 임포트
 import { signupStyles as styles } from '../styles/Signup.styles';
@@ -104,7 +105,14 @@ export default function SignUpScreen({ navigation }: any) {
     };
 
     return (
-        <View style={styles.container}>
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+        <ScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.container}
+        >
             <Image
                 style={styles.icon}
                 source={require('../../components/img/runboo.png')}
@@ -213,6 +221,7 @@ export default function SignUpScreen({ navigation }: any) {
                     <Text style={styles.submitButtonText}>회원가입 완료</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </ScrollView>
+        </KeyboardAvoidingView>
     );
 }

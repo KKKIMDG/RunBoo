@@ -42,7 +42,6 @@ export const AuthService = {
 
   /**
    * 이메일 인증 코드 발송
-   * - 회원가입 전 이메일 소유 여부 확인
    */
   sendEmailCode: (email: string): Promise<void> => {
     return api.post('/api/auth/email/verify', { email });
@@ -50,7 +49,6 @@ export const AuthService = {
 
   /**
    * 이메일 인증 코드 검증
-   * - 성공 시 서버에서 해당 이메일을 인증 완료 상태로 처리
    */
   verifyEmailCode: (email: string, code: string): Promise<void> => {
     return api.post<EmailVerifyRequest>('/api/auth/email/verify/check', {

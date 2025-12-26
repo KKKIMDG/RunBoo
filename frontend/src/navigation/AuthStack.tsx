@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginContainer from '@/screens/Login/LoginContainer';
-import SignUpScreen from '@/screens/signup/SignupScreen';
+import LoginScreen from '@/screens/Login/LoginScreen';
+import SignUpScreen from '@/screens/signup/SignUpScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -10,7 +10,7 @@ export default function AuthStack({ onLoginSuccess }: any) {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Login">
                 {(props) => (
-                    <LoginContainer
+                    <LoginScreen
                         {...props}
                         onLoginSuccess={onLoginSuccess}
                     />
