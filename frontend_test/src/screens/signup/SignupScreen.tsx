@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, TouchableOpacity, Text } from 'react-native';
+import {View, Image, TouchableOpacity, Text, KeyboardAvoidingView, Platform} from 'react-native';
 import { getStyles } from './Signup.styles';
 import { useSignupForm } from './useSignupForm';
 import { FormField, InlineFormField } from '@/components/form/FormField';
@@ -17,11 +17,18 @@ export default function SignUpScreen() {
         nickname,
         isCodeSent,
         isEmailVerified,
+        timeLeft,
+        isCodeExpired,
+        canResend,
     } = formState;
     const { setEmail, setCode, setPassword, setPasswordCheck, setNickname } = formHandlers;
-    const { handleSendCode, handleVerifyCode, handleSignUp } = apiHandlers;
+    const { handleSendCode, handleVerifyCode, handleSignUp, formatTime } = apiHandlers;
 
     return (
+        <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
         <View style={styles.container}>
             <Image
                 style={styles.icon}
@@ -37,13 +44,17 @@ export default function SignUpScreen() {
                     placeholder="example@email.com"
                     autoCapitalize="none"
                     keyboardType="email-address"
-                    editable={!isEmailVerified}
-                    buttonText="인증"
+
+                    editable={!isCodeSent}
+                    buttonText={
+                        isCodeSent
+                            ? `재발송`
+                            : '인증'
+                    }
                     onButtonPress={handleSendCode}
-                    buttonDisabled={isEmailVerified}
+                    buttonDisabled={!canResend}
                     scheme={colorScheme}
                 />
-
                 {isCodeSent && (
                     <InlineFormField
                         label="인증코드"
@@ -52,10 +63,13 @@ export default function SignUpScreen() {
                         placeholder="6자리 입력"
                         keyboardType="number-pad"
                         maxLength={6}
-                        editable={!isEmailVerified}
-                        buttonText="확인"
+                        rightText={formatTime(timeLeft)}
+                        editable={!isCodeExpired && !isEmailVerified}
+                        buttonText={
+                            isCodeExpired ? '만료' : '확인'
+                        }
                         onButtonPress={handleVerifyCode}
-                        buttonDisabled={isEmailVerified}
+                        buttonDisabled={isCodeExpired || isEmailVerified}
                         scheme={colorScheme}
                     />
                 )}
@@ -95,5 +109,6 @@ export default function SignUpScreen() {
                 </TouchableOpacity>
             </View>
         </View>
+        </KeyboardAvoidingView>
     );
 }

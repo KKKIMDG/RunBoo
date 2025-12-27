@@ -1,19 +1,39 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { Colors } from "@/constants/theme";
 
 type Props = {
     leftLabel: string;
     rightLabel: string;
     value: "left" | "right";
     onChange: (v: "left" | "right") => void;
-    scheme: 'light' | 'dark';
 };
 
-const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
+export default function Segmented({ leftLabel, rightLabel, value, onChange }: Props) {
+    return (
+        <View style={s.wrap}>
+            <TouchableOpacity
+                style={[s.item, value === "left" && s.active]}
+                onPress={() => onChange("left")}
+                activeOpacity={0.85}
+            >
+                <Text style={[s.text, value === "left" && s.activeText]}>{leftLabel}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={[s.item, value === "right" && s.active]}
+                onPress={() => onChange("right")}
+                activeOpacity={0.85}
+            >
+                <Text style={[s.text, value === "right" && s.activeText]}>{rightLabel}</Text>
+            </TouchableOpacity>
+        </View>
+    );
+}
+
+const s = StyleSheet.create({
     wrap: {
         flexDirection: "row",
-        backgroundColor: Colors[scheme].secondaryBackground,
+        backgroundColor: "#EEF1F7",
         padding: 4,
         borderRadius: 14,
     },
@@ -23,38 +43,7 @@ const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         borderRadius: 12,
         alignItems: "center",
     },
-    active: { 
-        backgroundColor: Colors[scheme].primary,
-    },
-    text: { 
-        color: Colors[scheme].icon,
-        fontWeight: "700" 
-    },
-    activeText: { 
-        color: Colors[scheme].background,
-    },
+    active: { backgroundColor: "#2F4BFF" },
+    text: { color: "#6B7280", fontWeight: "700" },
+    activeText: { color: "white" },
 });
-
-export default function Segmented({ leftLabel, rightLabel, value, onChange, scheme }: Props) {
-    const styles = getStyles(scheme);
-
-    return (
-        <View style={styles.wrap}>
-            <TouchableOpacity
-                style={[styles.item, value === "left" && styles.active]}
-                onPress={() => onChange("left")}
-                activeOpacity={0.85}
-            >
-                <Text style={[styles.text, value === "left" && styles.activeText]}>{leftLabel}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={[styles.item, value === "right" && styles.active]}
-                onPress={() => onChange("right")}
-                activeOpacity={0.85}
-            >
-                <Text style={[styles.text, value === "right" && styles.activeText]}>{rightLabel}</Text>
-            </TouchableOpacity>
-        </View>
-    );
-}

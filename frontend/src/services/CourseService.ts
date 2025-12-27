@@ -1,9 +1,7 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = Platform.OS === 'android'
-    ? 'http://10.0.2.2:8080/api'
-    : 'http://localhost:8080/api';
+const API_BASE_URL = 'http://localhost:8080/api'
 
 const getHeaders = async () => {
     const token = await AsyncStorage.getItem('accessToken');

@@ -1,9 +1,8 @@
 // services/api.ts
 
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'http://localhost:8080'
 
 let accessToken: string | null = null;
-
 /**
  * 인증 토큰 설정 (로그인 / 로그아웃 시 호출)
  */

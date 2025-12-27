@@ -1,12 +1,11 @@
 import { StyleSheet, Dimensions } from 'react-native';
-import { TierTheme } from './useTierResult'; // TierTheme 타입을 임포트합니다.
 
 const { width, height } = Dimensions.get('window');
 
-export const getStyles = (theme: TierTheme) => StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.background,
+    backgroundColor: '#F5F5F5',
   },
   gradient: {
     ...StyleSheet.absoluteFillObject,
@@ -20,7 +19,7 @@ export const getStyles = (theme: TierTheme) => StyleSheet.create({
     zIndex: 10,
   },
   tierLabelBox: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: '#d0d0d0',
     paddingHorizontal: 30,
     paddingVertical: 10,
     borderRadius: 24,
@@ -33,12 +32,12 @@ export const getStyles = (theme: TierTheme) => StyleSheet.create({
   tierTitle: {
     fontSize: 30,
     fontWeight: '800',
-    color: theme.text,
+    color: '#FFF',
   },
   tierName: {
     fontSize: 34,
     fontWeight: '900',
-    color: theme.text,
+    color: '#000',
     marginTop: 15,
     textShadowColor: 'rgba(255, 255, 255, 0.6)',
     textShadowOffset: { width: 0, height: 4 },
@@ -54,7 +53,7 @@ export const getStyles = (theme: TierTheme) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
-    borderColor: theme.card,
+    borderColor: '#FFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
@@ -68,7 +67,7 @@ export const getStyles = (theme: TierTheme) => StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: theme.card,
+    backgroundColor: '#F9F9F9',
     borderTopLeftRadius: 100,
     borderTopRightRadius: 100,
     paddingTop: 40,
@@ -86,21 +85,21 @@ export const getStyles = (theme: TierTheme) => StyleSheet.create({
     marginBottom: 40,
   },
   checkBadge: {
-    backgroundColor: theme.point,
+    backgroundColor: '#6366F1',
     paddingHorizontal: 15,
     paddingVertical: 5,
     borderRadius: 20,
     marginRight: 10,
   },
   checkText: {
-    color: theme.card,
+    color: '#FFF',
     fontSize: 14,
     fontWeight: 'bold',
   },
   analysisTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: theme.text,
+    color: '#333',
   },
   // 통계 그리드
   statsGrid: {
@@ -115,22 +114,22 @@ export const getStyles = (theme: TierTheme) => StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: theme.icon,
+    color: '#999',
     marginTop: 5,
     marginBottom: 2,
   },
   statValue: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: theme.text,
+    color: '#000',
   },
   statUnit: {
     fontSize: 11,
-    color: theme.icon,
+    color: '#AAA',
     fontWeight: '600',
   },
   paceValue: {
-    color: theme.point,
+    color: '#2e3d6e',
   },
   // 버튼 그룹
   buttonGroup: {
@@ -148,12 +147,12 @@ export const getStyles = (theme: TierTheme) => StyleSheet.create({
     marginBottom: 12,
   },
   shareButton: {
-    backgroundColor: theme.text,
+    backgroundColor: '#000',
   },
   homeButton: {
-    backgroundColor: theme.card,
+    backgroundColor: '#FFF',
     borderWidth: 1.5,
-    borderColor: theme.secondaryBackground,
+    borderColor: '#E9ECEF',
   },
   buttonText: {
     fontSize: 17,
@@ -161,9 +160,9 @@ export const getStyles = (theme: TierTheme) => StyleSheet.create({
     marginLeft: 10,
   },
   whiteText: {
-    color: theme.card,
+    color: '#FFF',
   },
   blackText: {
-    color: theme.text,
+    color: '#000',
   },
 });

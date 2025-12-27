@@ -6,6 +6,19 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
     inputGroup: {
         gap: 6,
     },
+    inputWrapper: {
+        position: 'relative',
+        flex: 1,
+    },
+
+    inputRightText: {
+        position: 'absolute',
+        right: 6,
+        top: '45%',
+        transform: [{ translateY: -8 }],
+        fontSize: 16,
+        color: '#ef4444',
+    },
     label: {
         fontSize: 12,
         color: Colors[scheme].icon,
@@ -66,5 +79,13 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         color: Colors[scheme].background,
         fontSize: 14,
         fontWeight: '700',
+    },
+    // 입력칸 비활성화
+    inputTextDisabled: {
+        color: '#9ca3af', // 회색 (tailwind gray-400 느낌)
+    },
+    // 버튼 비활성화
+    inlineButtonDisabled: {
+        backgroundColor: '#e5e7eb',
     },
 });

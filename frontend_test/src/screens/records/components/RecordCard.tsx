@@ -8,65 +8,13 @@ import {
     formatTimeRange,
     formatDurationFromRange,
 } from "./format";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Colors } from "@/constants/theme";
 
-const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
-    card: {
-        backgroundColor: Colors[scheme].card,
-        borderRadius: 18,
-        padding: 14,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: Colors[scheme].secondaryBackground,
-    },
-    header: { 
-        flexDirection: "row", 
-        justifyContent: "space-between", 
-        alignItems: "center" 
-    },
-    date: { 
-        fontSize: 16, 
-        fontWeight: "800", 
-        color: Colors[scheme].text 
-    },
-    badge: { 
-        fontSize: 12, 
-        color: Colors[scheme].icon, 
-        fontWeight: "700" 
-    },
-    sub: { 
-        marginTop: 4, 
-        marginBottom: 10, 
-        color: Colors[scheme].icon 
-    },
-    rowBox: {
-        backgroundColor: Colors[scheme].secondaryBackground,
-        borderRadius: 14,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        marginTop: 8,
-    },
-    label: { 
-        color: Colors[scheme].icon, 
-        fontWeight: "700", 
-        marginBottom: 4 
-    },
-    value: { 
-        color: Colors[scheme].text, 
-        fontSize: 18, 
-        fontWeight: "900" 
-    },
-});
-
-export default function RecordCard({ item, scheme }: { item: RecordDto, scheme: 'light' | 'dark' }) {
-    const styles = getStyles(scheme);
-
+export default function RecordCard({ item }: { item: RecordDto }) {
     return (
-        <View style={styles.card}>
-            <View style={styles.header}>
-                <Text style={styles.date}>{formatDate(item.startedAt)}</Text>
-                <Text style={styles.badge}>
+        <View style={s.card}>
+            <View style={s.header}>
+                <Text style={s.date}>{formatDate(item.startedAt)}</Text>
+                <Text style={s.badge}>
                     {item.mode === "GHOST"
                         ? "고스트"
                         : item.mode === "TIER"
@@ -75,22 +23,47 @@ export default function RecordCard({ item, scheme }: { item: RecordDto, scheme: 
                 </Text>
             </View>
 
-            <Text style={styles.sub}>{formatTimeRange(item.startedAt, item.endedAt)}</Text>
+            <Text style={s.sub}>{formatTimeRange(item.startedAt, item.endedAt)}</Text>
 
-            <View style={styles.rowBox}>
-                <Text style={styles.label}>러닝 거리</Text>
-                <Text style={styles.value}>{formatKm(item.distanceM)}</Text>
+            <View style={s.rowBox}>
+                <Text style={s.label}>러닝 거리</Text>
+                <Text style={s.value}>{formatKm(item.distanceM)}</Text>
             </View>
 
-            <View style={styles.rowBox}>
-                <Text style={styles.label}>평균 페이스</Text>
-                <Text style={styles.value}>{formatPace(item.avgPace)}</Text>
+            <View style={s.rowBox}>
+                <Text style={s.label}>평균 페이스</Text>
+                <Text style={s.value}>{formatPace(item.avgPace)}</Text>
             </View>
 
-            <View style={styles.rowBox}>
-                <Text style={styles.label}>러닝 시간</Text>
-                <Text style={styles.value}>{formatDurationFromRange(item.startedAt, item.endedAt)}</Text>
+            <View style={s.rowBox}>
+                <Text style={s.label}>러닝 시간</Text>
+                <Text style={s.value}>{formatDurationFromRange(item.startedAt, item.endedAt)}</Text>
             </View>
         </View>
     );
 }
+
+const s = StyleSheet.create({
+    card: {
+        backgroundColor: "white",
+        borderRadius: 18,
+        padding: 14,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: "#EEF1F7",
+    },
+    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+    date: { fontSize: 16, fontWeight: "800", color: "#111827" },
+    badge: { fontSize: 12, color: "#6B7280", fontWeight: "700" },
+    sub: { marginTop: 4, marginBottom: 10, color: "#6B7280" },
+
+    rowBox: {
+        backgroundColor: "#F7F8FC",
+        borderRadius: 14,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        marginTop: 8,
+    },
+    label: { color: "#6B7280", fontWeight: "700", marginBottom: 4 },
+    value: { color: "#111827", fontSize: 18, fontWeight: "900" },
+});

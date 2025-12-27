@@ -3,12 +3,14 @@ import type { RecordDto, DashboardStatsDto } from "@/types/record";
 
 /** 내 기록 목록 조회 */
 export async function fetchMyRecords(userId: number): Promise<RecordDto[]> {
-    const { data } = await api.get<RecordDto[]>(`/records/user/${userId}`);
-    return data;
+    // ✅ 백엔드: GET /api/records?userId=...
+    const res = await api.get(`/api/records?userId=${userId}`);
+    return (res ?? []) as RecordDto[];
 }
 
 /** 대시보드 통계 조회 */
 export async function fetchDashboardStats(userId: number): Promise<DashboardStatsDto> {
-    const { data } = await api.get<DashboardStatsDto>(`/records/user/${userId}/dashboard`);
-    return data;
+    // ✅ 백엔드: GET /api/records/stats/dashboard?userId=...
+    const res = await api.get(`/api/records/stats/dashboard?userId=${userId}`);
+    return res as DashboardStatsDto;
 }

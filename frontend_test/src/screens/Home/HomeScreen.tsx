@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { TopNavBar } from '@/components/layout/TopNavBar';
 import { BottomNavBar } from '@/components/layout/BottomNavBar';
@@ -7,6 +8,11 @@ import { useHomeScreen, RunningMode } from './useHomeScreen';
 import { getStyles } from './HomeScreen.styles';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
+
+type HomeScreenProps = {
+  navigation?: { navigate: (screen: string) => void };
+  onLogout?: () => void;
+};
 
 const ModeTab: FC<{
   mode: RunningMode;
@@ -30,15 +36,23 @@ const ModeTab: FC<{
   );
 };
 
-const HomeScreen: FC = () => {
+const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
   const { activeMode, handleModeChange } = useHomeScreen();
   const colorScheme = useColorScheme() ?? 'light';
   const styles = getStyles(colorScheme);
   const colors = Colors[colorScheme];
+  const handleTabPress = (tabName: string) => {
+    if (tabName === '코스') {
+      navigation?.navigate('Course');
+    }
+    if (tabName === '통계') {
+      navigation?.navigate('Records');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <TopNavBar />
+      <TopNavBar onLeftPress={() => navigation?.navigate('Profile')} />
 
       <View style={styles.content}>
         {/* 1. 모드 선택 탭 */}
@@ -83,7 +97,7 @@ const HomeScreen: FC = () => {
         </View>
       </View>
 
-      <BottomNavBar activeTab="홈" />
+      <BottomNavBar activeTab="홈" onTabPress={handleTabPress} />
     </SafeAreaView>
   );
 };

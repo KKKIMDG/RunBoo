@@ -20,6 +20,7 @@ export const Colors = {
     secondaryBackground: '#EEF1F7',
     primary: '#3A4A98',
     primaryButtonText: '#fff',
+    disabled: '#9ca3af',
   },
   dark: {
     text: '#ECEDEE',
@@ -32,6 +33,7 @@ export const Colors = {
     secondaryBackground: '#2C2C2E',
     primary: '#5E6DAF',
     primaryButtonText: '#fff',
+    disabled: '#6b7280',
   },
 };
 

@@ -33,6 +33,8 @@ interface InlineFormFieldProps extends TextInputProps {
     onButtonPress: () => void;
     buttonDisabled?: boolean;
     scheme: 'light' | 'dark';
+    rightText?: string;
+    editable?: boolean;
 }
 
 export const InlineFormField: React.FC<InlineFormFieldProps> = ({
@@ -41,26 +43,50 @@ export const InlineFormField: React.FC<InlineFormFieldProps> = ({
     onButtonPress,
     buttonDisabled,
     scheme,
+    rightText,
+    editable,
     ...props
 }) => {
     const styles = getStyles(scheme);
     const colors = Colors[scheme];
+
     return (
         <View style={styles.inputGroup}>
             <Text style={styles.label}>{label}</Text>
+
             <View style={styles.inlineInputBox}>
-                <TextInput
-                    style={styles.textInput}
-                    placeholderTextColor={colors.icon}
-                    {...props}
-                />
+                <View style={styles.inputWrapper}>
+                    <TextInput
+                        {...props}
+                        editable={editable}
+                        style={[
+                            styles.textInput,
+                            editable === false ? styles.inputTextDisabled : undefined,
+                        ]}
+                        placeholderTextColor={
+                            editable === false ? colors.disabled : colors.icon
+                        }
+                    />
+
+                    {rightText && (
+                        <Text style={styles.inputRightText}>
+                            {rightText}
+                        </Text>
+                    )}
+                </View>
+
                 <TouchableOpacity
-                    style={styles.inlineButton}
+                    style={[
+                        styles.inlineButton,
+                        buttonDisabled ? styles.inlineButtonDisabled : undefined,
+                    ]}
                     onPress={onButtonPress}
                     disabled={buttonDisabled}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.inlineButtonText}>{buttonText}</Text>
+                    <Text style={styles.inlineButtonText}>
+                        {buttonText}
+                    </Text>
                 </TouchableOpacity>
             </View>
         </View>
