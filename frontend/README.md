@@ -65,7 +65,7 @@ npx expo start --web
         -   `TierResult/`: 티어 결과 화면 (예: `TierResultScreen.tsx`)
     -   `services/`: 외부 API 연동, 인증 처리 등 앱의 핵심 비즈니스 로직을 담당하는 코드를 작성합니다.
         -   `auth/`: 인증 관련 서비스 (예: `authService.ts`)
-        -   `record/`: 기록 관련 서비스 (예: `records.ts`)
+        -   `record/`: 기록 관련 서비스 (예: `recordsService.ts`)
         -   직접적인 서비스 파일 (예: `api.ts`, `CourseService.ts`, `tierService.ts`)
     -   `types/`: TypeScript에서 사용되는 타입 정의(interface, type)를 모아둡니다. (예: `record.ts`, `tier.ts`, `user.ts`)
     -   `utils/`: 날짜 포맷팅, 데이터 변환 등 특정 도메인에 종속되지 않는 유틸리티 함수를 작성합니다.
