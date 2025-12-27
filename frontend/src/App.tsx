@@ -4,6 +4,9 @@ import RootNavigator from './navigation/root/RootNavigator';
 import { setAccessToken } from '@/services/api';
 import { useColorScheme } from 'react-native';
 import { Colors } from '@/constants/theme';
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
