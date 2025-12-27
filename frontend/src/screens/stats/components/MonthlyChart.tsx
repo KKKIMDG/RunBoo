@@ -1,4 +1,4 @@
-//frontend/src/screens/stats/components/SummaryCards.tsx
+//frontend/src/screens/stats/components/MonthlyChart.tsx
 
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
@@ -12,7 +12,7 @@ function hours(sec: number) {
     return (sec / 3600).toFixed(1);
 }
 
-export default function SummaryCards({ monthly }: { monthly: MonthlySummaryDto }) {
+export default function MonthlyChart({ monthly }: { monthly: MonthlySummaryDto }) {
     return (
         <View style={s.card}>
             {/* 헤더 영역 */}

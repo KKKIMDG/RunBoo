@@ -14,7 +14,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import Segmented from "./components/Segmented";
 import RecordCard from "./components/RecordCard";
 
-import SummaryCards from "../stats/components/SummaryCards";
+import MonthlyChart from "../stats/components/MonthlyChart";
 import WeeklyChart from "../stats/components/WeeklyChart";
 import PersonalBestList from "../stats/components/PersonalBestList";
 
@@ -174,7 +174,7 @@ export default function RecordsScreen() {
                             ListHeaderComponent={
                                 stats && (
                                     <>
-                                        <SummaryCards monthly={stats.monthly} />
+                                        <MonthlyChart monthly={stats.monthly} />
                                         <WeeklyChart weekly={stats.weekly} />
                                         <PersonalBestList pb={stats.personalBests} />
                                     </>

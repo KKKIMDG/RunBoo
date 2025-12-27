@@ -15,7 +15,7 @@ import { fetchDashboardStats } from "@/services/record/recordsService";
 import { DEFAULT_USER_ID } from "@/constants/env";
 import type { DashboardStatsDto } from "@/types/record";
 
-import SummaryCards from "./components/SummaryCards";
+import MonthlyChart from "./components/MonthlyChart";
 import WeeklyChart from "./components/WeeklyChart";
 import PersonalBestList from "./components/PersonalBestList";
 
@@ -76,7 +76,7 @@ export default function StatsScreen() {
                     ListHeaderComponent={
                         stats && (
                             <>
-                                <SummaryCards monthly={stats.monthly} />
+                                <MonthlyChart monthly={stats.monthly} />
                                 <WeeklyChart weekly={stats.weekly} />
                                 <PersonalBestList
                                     pb={stats.personalBests}
