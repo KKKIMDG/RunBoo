@@ -1,3 +1,5 @@
+//frontend/src/screens/records/components/format.ts
+
 export function formatKm(distanceM: number) {
     const km = distanceM / 1000;
     return `${km.toFixed(1)} km`;
@@ -24,7 +26,7 @@ export function formatDurationSeconds(sec: number) {
 }
 
 export function formatPace(avgPaceSecPerKm: number) {
-    const pace = Math.max(0, Math.floor(avgPaceSecPerKm)); // 방어
+    const pace = Math.max(0, Math.floor(avgPaceSecPerKm));
     const m = Math.floor(pace / 60);
     const s = pace % 60;
     return `${m}'${String(s).padStart(2, "0")}''/km`;

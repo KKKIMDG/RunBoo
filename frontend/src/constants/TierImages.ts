@@ -1,4 +1,5 @@
-// src/constants/TierImages.ts (파일 생성 또는 Screen 상단)
+//frontend/src/constants/TierImages.ts
+
 export const TIER_IMAGES: Record<string, any> = {
   '맨발': require('@/assets/images/tiers/barefoot.png'),
   '짚신': require('@/assets/images/tiers/straw.png'),

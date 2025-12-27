@@ -1,3 +1,5 @@
+//frontend/src/screens/records/components/Segmented.tsx
+
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
@@ -43,7 +45,7 @@ const s = StyleSheet.create({
         borderRadius: 12,
         alignItems: "center",
     },
-    active: { backgroundColor: "#2F4BFF" },
-    text: { color: "#6B7280", fontWeight: "700" },
+    active: { backgroundColor: "#3A4A98" },
+    text: { color: "#687076", fontWeight: "700" },
     activeText: { color: "white" },
 });
