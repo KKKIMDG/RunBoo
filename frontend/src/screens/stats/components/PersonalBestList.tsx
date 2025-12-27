@@ -12,13 +12,18 @@ function Row({
                  title,
                  record,
                  valueText,
+                 accentColor,
              }: {
     title: string;
     record: RecordDto | null;
     valueText: string;
+    accentColor: string;
 }) {
     return (
         <View style={s.row}>
+            {/* ✅ 왼쪽 끝 포인트 컬러 */}
+            <View style={[s.accent, { backgroundColor: accentColor }]} />
+
             {/* 좌측(제목 + 값) */}
             <View style={s.left}>
                 <Text style={s.rowTitle}>{title}</Text>
@@ -26,7 +31,9 @@ function Row({
             </View>
 
             {/* 우측(날짜) */}
-            <Text style={s.rowDate}>{record ? formatDate(record.startedAt) : "-"}</Text>
+            <Text style={s.rowDate}>
+                {record ? formatDate(record.startedAt) : "-"}
+            </Text>
         </View>
     );
 }
@@ -44,16 +51,19 @@ export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
                 title="최장 거리"
                 record={longestDistance}
                 valueText={longestDistance ? formatKm(longestDistance.distanceM) : "-"}
+                accentColor="#2F4AA0"
+            />
+            <Row
+                title="최고 속도"
+                record={bestPace}
+                valueText={bestPace ? "23.3 km/h" : "-"}
+                accentColor="#111827"
             />
             <Row
                 title="최장 시간"
                 record={longestDuration}
                 valueText={longestDuration ? formatDuration(longestDuration.durationSec) : "-"}
-            />
-            <Row
-                title="최고 페이스"
-                record={bestPace}
-                valueText={bestPace ? formatPace(bestPace.avgPace) : "-"}
+                accentColor="#2F4AA0"
             />
         </View>
     );
@@ -74,18 +84,31 @@ const s = StyleSheet.create({
         marginBottom: 10,
     },
     row: {
-        backgroundColor: "#F7F8FC",
-        borderRadius: 14,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        marginTop: 8,
+        backgroundColor: "#F2F3F5",
+        borderRadius: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        marginTop: 10,
 
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
+
+        position: "relative",
+        overflow: "hidden",
+    },
+    accent: {
+        position: "absolute",
+        left: 0,
+        top: 8,
+        bottom: 8,
+        width: 5,
+        borderTopRightRadius: 6,
+        borderBottomRightRadius: 6,
     },
     left: {
         flex: 1,
+        paddingLeft: 6,
         paddingRight: 10,
     },
 
@@ -99,12 +122,10 @@ const s = StyleSheet.create({
         fontSize: 24,
         fontWeight: "900",
     },
-
     rowDate: {
-        color: "#6B7280",
-        fontWeight: "700",
+        color: "#9CA3AF",
+        fontWeight: "600",
         fontSize: 12,
         textAlign: "right",
-        alignSelf: "center",
     },
 });
