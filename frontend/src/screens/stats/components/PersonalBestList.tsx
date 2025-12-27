@@ -121,7 +121,7 @@ const s = StyleSheet.create({
     rowValue: {
         marginTop: 6,
         color: "#111827",
-        fontSize: 24,
+        fontSize: 21,
         fontWeight: "900",
     },
     rowDate: {
