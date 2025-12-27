@@ -131,7 +131,7 @@ const s = StyleSheet.create({
     bar: {
         width: 10,
         borderRadius: 6,
-        backgroundColor: "#2F4BFF",
+        backgroundColor: "#3A4A98",
     },
 
     // ✅ 라벨 영역도 따로 묶어서 항상 같은 위치
