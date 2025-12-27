@@ -11,12 +11,6 @@ const GRASS_DATA = Array.from({ length: 7 }, () =>
 );
 
 export default function ProfileScreen({ navigation }: any) {
-  const handleTabPress = (tabName: string) => {
-    if (tabName === '홈') navigation.navigate('Home');
-    if (tabName === '코스') navigation.navigate('Course');
-    if (tabName === '통계') navigation.navigate('Records');
-    if (tabName === '도전') navigation.navigate('Challenge'); // 추가
-  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -156,9 +150,6 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
       </ScrollView>
-
-      {/* 하단 네비게이션 바 */}
-      <BottomNavBar activeTab="프로필" onTabPress={handleTabPress} />
     </SafeAreaView>
   );
 }

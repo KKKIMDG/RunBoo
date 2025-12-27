@@ -1,9 +1,8 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_BASE_URL} from "@env";
 
-const API_BASE_URL = Platform.OS === 'android'
-    ? 'http://10.0.2.2:8080/api'
-    : 'http://localhost:8080/api';
+const BASE_URL = API_BASE_URL
 
 const getHeaders = async () => {
     const token = await AsyncStorage.getItem('accessToken');
@@ -17,7 +16,7 @@ export const CourseService = {
     getCourses: async (condition: string) => {
         try {
             const headers = await getHeaders();
-            let url = `${API_BASE_URL}/courses?category=${condition}`;
+            let url = `${API_BASE_URL}/api/courses?category=${condition}`;
 
             // ★ [400 에러 해결]
             // 찜한 목록은 '/courses'가 아니라 DB 테이블(user_saved_course)을 조회하는 별도 URL이어야 함.
@@ -28,7 +27,7 @@ export const CourseService = {
                 // [백엔드 주소 추측]
                 // 1순위: /user-courses/{userId} (RESTful 표준)
                 // 2순위: /user-courses?userId={userId}
-                url = `${API_BASE_URL}/user-courses/${userId}`;
+                url = `${API_BASE_URL}/api/user-courses/${userId}`;
             }
 
             const response = await fetch(url, {
@@ -52,7 +51,7 @@ export const CourseService = {
     getCourseDetail: async (id: number) => {
         try {
             const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/courses/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/courses/${id}`, {
                 method: 'GET',
                 headers: headers
             });
@@ -80,7 +79,7 @@ export const CourseService = {
 
             console.log(`찜하기 요청: User ${userId} -> Course ${courseId}`);
 
-            const response = await fetch(`${API_BASE_URL}/user-courses/toggle`, {
+            const response = await fetch(`${API_BASE_URL}/api/user-courses/toggle`, {
                 method: 'POST',
                 headers: headers,
                 // ★ DB 테이블에 userId와 courseId를 넣으려면 둘 다 보내주는 게 가장 확실합니다.

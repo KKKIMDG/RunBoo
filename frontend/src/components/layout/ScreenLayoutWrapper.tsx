@@ -14,7 +14,7 @@ interface ScreenLayoutProps {
   bottomNavProps?: BottomNavBarProps;
 }
 
-export function ScreenLayout({
+export function Layout({
   children,
   showBottomNav = true,
   showTopNav = true,
