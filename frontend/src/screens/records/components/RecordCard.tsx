@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import type { RecordDto } from "../../../types/record";
+import type { RecordDto } from "@/types/record";
 import {
     formatDate,
     formatKm,

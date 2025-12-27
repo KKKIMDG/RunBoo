@@ -1,28 +1,30 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-// ★ 방금 만든 탭 네비게이터 불러오기
-import MainTabNavigator from './MainTabNavigator';
-
-// 상세 페이지들 (탭바 없이 덮어씌워질 화면들)
+import HomeScreen from '@/screens/Home/HomeScreen';
+import ProfileScreen from '@/screens/Profile/ProfileScreen';
+import SettingsScreen from '@/screens/Settings/SettingsScreen';
+import CourseScreen from '@/screens/Course/CourseScreen';
 import CourseDetailScreen from '@/screens/Course/CourseDetailScreen';
+import RecordsScreen from '@/screens/records/RecordsScreen';
+import StatsScreen from '@/screens/stats/StatsScreen';
+import TierResultScreen from '@/screens/TierResult'; // 새로 최적화한 index.ts 경로
 
 const Stack = createNativeStackNavigator();
 
 export default function AppStack({ onLogout }: any) {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-
-            {/* ★ 1. 스택의 첫 번째 화면을 '탭 네비게이터'로 설정합니다.
-        이렇게 하면 로그인 후 바로 하단바가 있는 화면이 뜹니다.
-      */}
-            <Stack.Screen name="MainTab" component={MainTabNavigator} />
-
-            {/* ★ 2. 상세 페이지들은 탭 네비게이터 '밖에' 둡니다.
-        그래야 상세 페이지 들어갔을 때 하단바가 가려지고 전체 화면을 씁니다.
-      */}
+            <Stack.Screen name="Home">
+                {(props) => <HomeScreen {...props} onLogout={onLogout} />}
+            </Stack.Screen>
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="Course" component={CourseScreen} />
             <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
-
+            <Stack.Screen name="Records" component={RecordsScreen} />
+            <Stack.Screen name="Stats" component={StatsScreen} />
+            <Stack.Screen name="TierResult" component={TierResultScreen} />
+            
         </Stack.Navigator>
     );
 }
