@@ -2,12 +2,13 @@
 // - 스타일 정의: 레이아웃, 입력창, 버튼, 소셜아이콘 등.
 // - 필요 시 theme/토큰으로 추상화하세요.
 import { StyleSheet } from 'react-native';
+import { Colors } from '@/constants/theme';
 
-export const styles = StyleSheet.create({
+export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: Colors[scheme].background,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
@@ -27,30 +28,14 @@ export const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    color: '#6b7280',
+    color: Colors[scheme].icon,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
-  },
-  inputBox: {
-    height: 53,
-    width: '100%',
-    position: 'relative',
-  },
-  textInput: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 15,
-    backgroundColor: '#fff',
-    borderWidth: 0.6,
-    borderColor: 'rgba(0, 0, 0, 0.25)',
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#333',
   },
   loginButton: {
     height: 52,
     borderRadius: 15,
-    backgroundColor: '#000',
+    backgroundColor: Colors[scheme].text,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -62,7 +47,7 @@ export const styles = StyleSheet.create({
     marginTop: 10,
   },
   loginButtonText: {
-    color: '#fff',
+    color: Colors[scheme].background,
     fontSize: 14,
     fontWeight: 'bold',
     letterSpacing: 0.55,
@@ -80,14 +65,14 @@ export const styles = StyleSheet.create({
   dividerLine: {
     height: 1,
     flex: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: Colors[scheme].secondaryBackground,
   },
   orTextWrapper: {
     alignItems: 'center',
   },
   orText: {
     fontSize: 12,
-    color: '#6b7280',
+    color: Colors[scheme].icon,
     textTransform: 'uppercase',
     letterSpacing: 1.2,
   },
@@ -111,7 +96,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   googleButton: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors[scheme].card,
   },
   kakaoButton: {
     backgroundColor: '#fee100',
@@ -128,16 +113,61 @@ export const styles = StyleSheet.create({
   },
   signupText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: Colors[scheme].icon,
     letterSpacing: -0.15,
     marginRight: 8,
   },
   signupButton: {},
   signupButtonText: {
     fontSize: 14,
-    color: '#3a4a98',
+    color: Colors[scheme].primary,
     fontWeight: '700',
     letterSpacing: 0.2,
     textTransform: 'uppercase',
+  },
+  // src/screens/styles/Login.styles.ts
+
+  // src/screens/styles/Login.styles.ts 수정
+
+  inlineInputBox: {
+    height: 53,
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 15,
+    backgroundColor: Colors[scheme].card,
+    borderWidth: 0.6,
+    borderColor: 'rgba(0, 0, 0, 0.25)',
+    paddingRight: 10,
+    overflow: 'hidden', // 내부 요소가 둥근 테두리를 벗어나지 않게 함
+  },
+
+  textInput: {
+    flex: 1, // 버튼을 제외한 남은 공간만 차지함
+    height: '100%',
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: Colors[scheme].text,
+    // 중요: 여기서 borderWidth나 borderColor를 설정하면 이미지처럼 칸이 쪼개져 보이고 버튼을 가릴 수 있습니다.
+    borderWidth: 0, // 테두리 제거
+    backgroundColor: 'transparent', // 배경 투명하게
+  },
+
+  inlineButton: {
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: 15,
+    backgroundColor: Colors[scheme].text,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+    zIndex: 10, // 버튼을 최상단으로 올림
+  },
+
+  inlineButtonText: {
+    color: Colors[scheme].background,
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.4,
   },
 });

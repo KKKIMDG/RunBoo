@@ -1,38 +1,42 @@
-import React, { useState } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { StyleSheet } from "react-native";
-import RootNavigator from "./navigation/RootNavigator";
+import React, { useState } from 'react';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import RootNavigator from './navigation/root/RootNavigator';
+import { setAccessToken } from '@/services/api';
+import { useColorScheme } from 'react-native';
+import { Colors } from '@/constants/theme';
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [userName, setUserName] = useState("");
+    const colorScheme = useColorScheme();
 
-    // 로그인 성공 시 호출
-    const handleLogin = (id: string, pw: string) => {
-        // TODO: 실제로는 여기서 API 호출 + 토큰 저장
+    const handleLoginSuccess = (token: string) => {
+        setAccessToken(token);
         setIsLoggedIn(true);
-        setUserName(id);
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        setAccessToken(null);
         setIsLoggedIn(false);
-        setUserName("");
+    };
+
+    const MyTheme = {
+        ...(colorScheme === 'dark' ? DarkTheme : DefaultTheme),
+        colors: {
+            ...(colorScheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
+            primary: Colors[colorScheme === 'dark' ? 'dark' : 'light'].primary,
+            background: Colors[colorScheme === 'dark' ? 'dark' : 'light'].background,
+            card: Colors[colorScheme === 'dark' ? 'dark' : 'light'].card,
+            text: Colors[colorScheme === 'dark' ? 'dark' : 'light'].text,
+        },
     };
 
     return (
-        <NavigationContainer>
+        <NavigationContainer theme={MyTheme}>
             <RootNavigator
                 isLoggedIn={isLoggedIn}
-                onLogin={handleLogin}
+                onLoginSuccess={handleLoginSuccess}
                 onLogout={handleLogout}
             />
         </NavigationContainer>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#fff",
-    },
-});

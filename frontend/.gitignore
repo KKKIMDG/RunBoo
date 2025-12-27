@@ -2,7 +2,7 @@
 
 # dependencies
 node_modules/
-
+api.ts
 # Expo
 .expo/
 dist/
@@ -38,3 +38,5 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+.env
