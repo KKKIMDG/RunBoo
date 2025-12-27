@@ -1,6 +1,6 @@
 import React from 'react';
-import AuthStack from './AuthStack';
-import AppStack from './AppStack';
+import AuthStack from '../auth/AuthStack';
+import MainStack from '@/navigation/stacks/MainStack';
 
 export default function RootNavigator({
                                         isLoggedIn,
@@ -8,7 +8,7 @@ export default function RootNavigator({
                                         onLogout,
                                       }: any) {
   return isLoggedIn ? (
-      <AppStack onLogout={onLogout} />
+      <MainStack onLogout={onLogout} />
   ) : (
       <AuthStack onLoginSuccess={onLoginSuccess} />
   );

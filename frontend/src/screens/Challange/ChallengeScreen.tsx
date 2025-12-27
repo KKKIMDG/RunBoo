@@ -17,16 +17,6 @@ const ChallengeScreen = ({ navigation: defaultNavigation }: any) => {
   const { challenges, loading } = useChallenge(navigation);
   const [activeStatus, setActiveStatus] = useState<'진행 중' | '완료'>('진행 중');
 
-  const handleTabPress = useCallback((tabName: NavTab) => {
-    const routeMap: Record<NavTab, string> = {
-      '홈': 'Home',
-      '코스': 'Course',
-      '도전': 'Challenge',
-      '통계': 'Records',
-    };
-    navigation.navigate(routeMap[tabName]);
-  }, [navigation]);
-
   const renderCompletedItem = ({ item }: { item: Challenge }) => (
     <View style={styles.completedCard}>
       <View style={styles.badgeIconBox}>
@@ -56,11 +46,10 @@ const ChallengeScreen = ({ navigation: defaultNavigation }: any) => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         {/* 1. 헤더 */}
         <View style={styles.header}>
-          <BackButton maginright={10} />
           <Text style={styles.headerTitle}>도전과제</Text>
           <Text style={styles.headerSubtitle}>목표를 달성하고 보상을 받으세요</Text>
         </View>
@@ -108,7 +97,6 @@ const ChallengeScreen = ({ navigation: defaultNavigation }: any) => {
           />
         )}
       </View>
-      <BottomNavBar activeTab="도전" onTabPress={handleTabPress} />
     </SafeAreaView>
   );
 };

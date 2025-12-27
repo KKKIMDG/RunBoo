@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, FlatList, StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// 🔥 [핵심] 여기서도 '정품 설명서' CourseType을 가져와야 합니다.
+// [핵심] 여기서도 '정품 설명서' CourseType을 가져와야 합니다.
 import CourseCard, { CourseType } from '@/components/CourseCard';
 import FilterChip from '@/components/FilterChip';
 import { useCourseScreen, FilterType } from './useCourseScreen';
@@ -18,20 +18,12 @@ const FILTERS: { label: string; type: FilterType }[] = [
     { label: "❤ 저장", type: 'SAVED' },
 ];
 
-// 🔥 [Render Error 해결] export default function 필수!
 export default function CourseScreen() {
     const { activeFilter, courses, handlers } = useCourseScreen();
     const colorScheme = useColorScheme() ?? 'light';
     const styles = getStyles(colorScheme);
     const colors = Colors[colorScheme];
     const navigation = useNavigation<any>();
-
-    const handleTabPress = (tabName: string) => {
-        if (tabName === '홈') navigation.navigate('Home');
-        if (tabName === '코스') navigation.navigate('Course');
-        if (tabName === '통계') navigation.navigate('Records');
-        if (tabName === '도전') navigation.navigate('Challenge'); // 추가
-    };
 
     const renderItem = ({ item }: { item: CourseType }) => (
         <CourseCard
@@ -46,10 +38,9 @@ export default function CourseScreen() {
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
             <View style={styles.header}>
-                <BackButton />
                 <View style={styles.headerText}>
-                    <Text style={styles.subHeader}>HOT PLACES</Text>
                     <Text style={styles.mainHeader}>코스 추천</Text>
+                    <Text style={styles.subHeader}>HOT PLACES</Text>
                 </View>
             </View>
 
@@ -84,7 +75,6 @@ export default function CourseScreen() {
                     </View>
                 }
             />
-            <BottomNavBar activeTab="코스" onTabPress={handleTabPress} />
         </SafeAreaView>
     );
 }

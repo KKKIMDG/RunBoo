@@ -54,7 +54,7 @@ npx expo start --web
         -   직접적인 컴포넌트 파일 (예: `CourseCard.tsx`, `FilterChip.tsx`)
     -   `constants/`: 테마 색상, API 주소 등 앱 전체에서 사용되는 상수 값을 정의합니다. (예: `env.ts`, `theme.ts`)
     -   `hooks/`: 여러 컴포넌트에서 공통으로 사용될 수 있는 로직을 담은 커스텀 React 훅을 작성합니다. (예: `use-color-scheme.ts`, `use-theme-color.ts`)
-    -   `navigation/`: 화면 간의 이동 로직을 관리합니다. 네비게이션 스택을 이곳에서 정의합니다. (예: `AppStack.tsx`, `AuthStack.tsx`, `RootNavigator.tsx`)
+    -   `navigation/`: 화면 간의 이동 로직을 관리합니다. 네비게이션 스택을 이곳에서 정의합니다. (예: `MainStack.tsx`, `AuthStack.tsx`, `RootNavigator.tsx`)
     -   `screens/`: 앱의 각 화면을 구성하는 메인 컴포넌트 폴더입니다. 각 화면은 하위 폴더로 구성됩니다.
         -   `Course/`: 코스 관련 화면 (예: `CourseScreen.tsx`, `CourseDetailScreen.tsx`)
         -   `Home/`: 홈 화면 (예: `HomeScreen.tsx`)
@@ -65,7 +65,7 @@ npx expo start --web
         -   `TierResult/`: 티어 결과 화면 (예: `TierResultScreen.tsx`)
     -   `services/`: 외부 API 연동, 인증 처리 등 앱의 핵심 비즈니스 로직을 담당하는 코드를 작성합니다.
         -   `auth/`: 인증 관련 서비스 (예: `authService.ts`)
-        -   `record/`: 기록 관련 서비스 (예: `records.ts`)
+        -   `record/`: 기록 관련 서비스 (예: `recordsService.ts`)
         -   직접적인 서비스 파일 (예: `api.ts`, `CourseService.ts`, `tierService.ts`)
     -   `types/`: TypeScript에서 사용되는 타입 정의(interface, type)를 모아둡니다. (예: `record.ts`, `tier.ts`, `user.ts`)
     -   `utils/`: 날짜 포맷팅, 데이터 변환 등 특정 도메인에 종속되지 않는 유틸리티 함수를 작성합니다.

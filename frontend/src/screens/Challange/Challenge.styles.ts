@@ -14,10 +14,7 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
   },
   // --- 헤더 섹션 수정 ---
   header: {
-    flexDirection: 'row', // 가로 배치
-    alignItems: 'center', // 수직 중앙 정렬
-    marginBottom: 20,
-    paddingTop: 16,
+    marginLeft: 12,
   },
   backButton: {
     marginRight: 12, // 버튼과 텍스트 사이 간격

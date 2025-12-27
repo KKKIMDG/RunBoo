@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
-import { fetchDashboardStats } from "@/services/record/records";
+import { fetchDashboardStats } from "@/services/record/recordsService";
 import { DEFAULT_USER_ID } from "@/constants/env";
 import type { DashboardStatsDto } from "@/types/record";
 
