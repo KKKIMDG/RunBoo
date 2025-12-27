@@ -1,4 +1,4 @@
-//frontend/src/screens/stats/components/PersonalBestList.tsx
+// frontend/src/screens/stats/components/PersonalBestList.tsx
 
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
@@ -7,7 +7,6 @@ import {
     formatDate,
     formatDuration,
     formatKm,
-    formatPace,
 } from "../../records/components/format";
 
 function Row({
@@ -23,19 +22,19 @@ function Row({
 }) {
     return (
         <View style={s.row}>
-            {/* ✅ 왼쪽 끝 포인트 컬러 */}
+            {/* 왼쪽 포인트 컬러 */}
             <View style={[s.accent, { backgroundColor: accentColor }]} />
 
-            {/* 좌측(제목 + 값) */}
+            {/* 왼쪽 영역 (제목 + 날짜) */}
             <View style={s.left}>
                 <Text style={s.rowTitle}>{title}</Text>
-                <Text style={s.rowValue}>{valueText}</Text>
+                <Text style={s.rowDate}>
+                    {record ? formatDate(record.startedAt) : "-"}
+                </Text>
             </View>
 
-            {/* 우측(날짜) */}
-            <Text style={s.rowDate}>
-                {record ? formatDate(record.startedAt) : "-"}
-            </Text>
+            {/* 오른쪽 영역 (값) */}
+            <Text style={s.rowValueRight}>{valueText}</Text>
         </View>
     );
 }
@@ -47,24 +46,32 @@ export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
 
     return (
         <View style={[s.card, { marginTop: 12 }]}>
-            <Text style={s.h}>개인 기록</Text>
+            <Text style={s.h}>최고 기록</Text>
 
             <Row
                 title="최장 거리"
                 record={longestDistance}
-                valueText={longestDistance ? formatKm(longestDistance.distanceM) : "-"}
+                valueText={
+                    longestDistance ? formatKm(longestDistance.distanceM) : "-"
+                }
                 accentColor="#2F4AA0"
             />
+
             <Row
-                title="최고 속도"
+                title="최고 페이스"
                 record={bestPace}
                 valueText={bestPace ? "23.3 km/h" : "-"}
                 accentColor="#111827"
             />
+
             <Row
                 title="최장 시간"
                 record={longestDuration}
-                valueText={longestDuration ? formatDuration(longestDuration.durationSec) : "-"}
+                valueText={
+                    longestDuration
+                        ? formatDuration(longestDuration.durationSec)
+                        : "-"
+                }
                 accentColor="#2F4AA0"
             />
         </View>
@@ -80,10 +87,9 @@ const s = StyleSheet.create({
         borderColor: "#EEF1F7",
     },
     h: {
-        fontSize: 16,
-        fontWeight: "900",
-        color: "#111827",
-        marginBottom: 10,
+        color: "#000",
+        fontWeight: "700",
+        marginBottom: 14,
     },
     row: {
         backgroundColor: "#F2F3F5",
@@ -113,21 +119,20 @@ const s = StyleSheet.create({
         paddingLeft: 6,
         paddingRight: 10,
     },
-
     rowTitle: {
         color: "#6B7280",
         fontWeight: "600",
     },
-    rowValue: {
-        marginTop: 6,
-        color: "#111827",
-        fontSize: 21,
-        fontWeight: "900",
-    },
     rowDate: {
+        marginTop: 6,
         color: "#9CA3AF",
         fontWeight: "600",
         fontSize: 12,
+    },
+    rowValueRight: {
+        color: "#3A4A98",
+        fontSize: 20,
+        fontWeight: "800",
         textAlign: "right",
     },
 });
