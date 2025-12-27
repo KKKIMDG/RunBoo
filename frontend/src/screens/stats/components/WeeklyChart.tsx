@@ -53,16 +53,19 @@ export default function WeeklyChart({ weekly }: { weekly: WeeklySummaryDto }) {
                         MIN_BAR_HEIGHT,
                         Math.round(ratio * CHART_HEIGHT)
                     );
+                    const hasValue = v > 0;
 
                     return (
                         <View key={idx} style={s.col}>
                             <View style={s.barWrap}>
-                                <View style={[s.bar, { height: barHeight }]} />
+                                <View style={[s.bar,
+                                    !hasValue && s.barZero,
+                                    { height: barHeight }]} />
                             </View>
 
                             <View style={s.labelWrap}>
-                                <Text style={s.day}>{DAYS[idx]}</Text>
-                                <Text style={s.km}>{v.toFixed(1)}km</Text>
+                                <Text style={[s.day, !hasValue && s.dayZero]}>{DAYS[idx]}</Text>
+                                <Text style={[s.km, !hasValue && s.kmZero]}>{v.toFixed(1)}km</Text>
                             </View>
                         </View>
                     );
@@ -115,6 +118,9 @@ const s = StyleSheet.create({
         borderRadius: 6,
         backgroundColor: "#3A4A98",
     },
+    barZero: {
+        backgroundColor: "#D1D5DB", // 연한 회색
+    },
     labelWrap: {
         marginTop: 8,
         alignItems: "center",
@@ -123,10 +129,16 @@ const s = StyleSheet.create({
         fontWeight: "800",
         color: "#111827",
     },
+    dayZero: {
+        color: "#9CA3AF",
+    },
     km: {
         marginTop: 2,
         fontSize: 11,
         color: "#6B7280",
         fontWeight: "700",
+    },
+    kmZero: {
+        color: "#9CA3AF",
     },
 });

@@ -23,12 +23,12 @@ export default function MonthlyChart({ monthly }: { monthly: MonthlySummaryDto }
 
             <View style={s.grid}>
                 <View style={s.box}>
-                    <Text style={s.boxLabel}>총 거리</Text>
+                    <Text style={s.boxLabel}>거리</Text>
                     <Text style={s.boxValue1}>{km(monthly.totalDistanceM)}</Text>
                     <Text style={s.boxUnit}>km</Text>
                 </View>
                 <View style={s.box}>
-                    <Text style={s.boxLabel}>총 시간</Text>
+                    <Text style={s.boxLabel}>시간</Text>
                     <Text style={s.boxValue2}>{hours(monthly.totalDurationSec)}</Text>
                     <Text style={s.boxUnit}>시간</Text>
                 </View>
@@ -75,26 +75,27 @@ const s = StyleSheet.create({
         backgroundColor: "#F7F8FC",
         borderRadius: 14,
         padding: 12,
+        alignItems: "center",
     },
     boxLabel: {
-        color: "#6B7280",
-        fontWeight: "700",
+        color: "#9CA3AF",
+        fontWeight: "600",
     },
     boxValue1: {
         marginTop: 6,
-        fontSize: 22,
+        fontSize: 25,
         fontWeight: "900",
         color: "#3A4A98",
     },
     boxValue2: {
         marginTop: 6,
-        fontSize: 22,
+        fontSize: 25,
         fontWeight: "900",
         color: "#111827",
     },
     boxUnit: {
         marginTop: 2,
-        color: "#6B7280",
-        fontWeight: "700",
+        color: "#9CA3AF",
+        fontWeight: "500",
     },
 });
