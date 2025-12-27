@@ -64,4 +64,23 @@ export const AuthService = {
     signup: (data: SignupRequest): Promise<void> => {
         return api.post<SignupRequest>('/api/auth/signup', data);
     },
+
+    /**
+     * 구글로그인
+     */
+    googleLogin: async (googleAccessToken: string) => {
+        return api.post('/api/auth/login/oauth', {
+            provider: 'GOOGLE',
+            accessToken: googleAccessToken,
+        });
+    },
+    /**
+     * 카카오 로그인
+     */
+    kakaoLogin: (kakaoAccessToken: string) => {
+        return api.post('/api/auth/login/oauth', {
+            provider: 'KAKAO',
+            accessToken: kakaoAccessToken,
+        });
+    },
 };
