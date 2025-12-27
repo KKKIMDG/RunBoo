@@ -80,7 +80,7 @@ const s = StyleSheet.create({
         borderColor: "#EEF1F7",
     },
     h: {
-        color: "#6B7280",
+        color: "#000",
         fontWeight: "700",
         marginBottom: 14,
     },

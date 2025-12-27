@@ -86,7 +86,7 @@ const s = StyleSheet.create({
         alignItems: "center",
     },
     h: {
-        color: "#6B7280",
+        color: "#000",
         fontWeight: "700",
         marginBottom: 10,
     },
