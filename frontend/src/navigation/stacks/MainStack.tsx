@@ -16,27 +16,9 @@ export default function MainStack({ onLogout }: any) {
             <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
 
             {/* 탭 위로 올라오는 화면들 */}
-            <Stack.Screen
-                name="Settings"
-                component={SettingsScreen}
-                options={{
-                    presentation: 'modal',
-                }}
-            />
-            <Stack.Screen
-                name="Profile"
-                component={ProfileScreen}
-                options={{
-                    presentation: 'modal',
-                }}
-            />
-            <Stack.Screen
-                name="TierResult"
-                component={TierResultScreen}
-                options={{
-                    presentation: 'modal',
-                }}
-            />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="TierResult" component={TierResultScreen} />
             <Stack.Screen
                 name="CourseDetail"
                 component={CourseDetailScreen}
