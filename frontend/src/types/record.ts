@@ -6,7 +6,7 @@ export type RecordDto = {
     calories: number;
     startedAt: string; // OffsetDateTime
     endedAt: string;
-    mode: string;      // "NORMAL" | "GHOST"
+    mode: string;      // "NORMAL" | "GHOST" | "TIER"
 };
 
 export type MonthlySummaryDto = {

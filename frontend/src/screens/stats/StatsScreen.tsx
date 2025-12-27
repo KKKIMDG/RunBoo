@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
     View,
     Text,
@@ -7,16 +7,19 @@ import {
     ScrollView,
     RefreshControl,
 } from "react-native";
-import Segmented from "../records/components/Segmented";
-import { fetchDashboardStats } from "../../services/record/records";
-import { DEFAULT_USER_ID } from "../../constants/env";
-import type { DashboardStatsDto } from "../../types/record";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+
+import { fetchDashboardStats } from "@/services/record/records";
+import { DEFAULT_USER_ID } from "@/constants/env";
+import type { DashboardStatsDto } from "@/types/record";
+
 import SummaryCards from "./components/SummaryCards";
 import WeeklyChart from "./components/WeeklyChart";
 import PersonalBestList from "./components/PersonalBestList";
 
-export default function StatsScreen({ navigation }: any) {
-    const [tab, setTab] = useState<"left" | "right">("right");
+export default function StatsScreen() {
+    const tabBarHeight = useBottomTabBarHeight();
+
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [stats, setStats] = useState<DashboardStatsDto | null>(null);
@@ -24,16 +27,17 @@ export default function StatsScreen({ navigation }: any) {
 
     const userId = DEFAULT_USER_ID;
 
-    async function load() {
+    const load = useCallback(async () => {
         try {
             setErrorMsg(null);
             const res = await fetchDashboardStats(userId);
             setStats(res);
         } catch (e) {
-            setErrorMsg("통계를 불러오지 못했어요. 네트워크/서버 상태를 확인해줘.");
+            console.log("❌ stats api error:", e);
+            setErrorMsg("통계를 불러오지 못했어요. 네트워크/서버 상태를 확인해주세요.");
             setStats(null);
         }
-    }
+    }, [userId]);
 
     useEffect(() => {
         (async () => {
@@ -43,16 +47,7 @@ export default function StatsScreen({ navigation }: any) {
                 setLoading(false);
             }
         })();
-    }, []);
-
-    const handleChangeTab = (v: "left" | "right") => {
-        if (v === "left") {
-            navigation.navigate("Records");
-            setTab("right"); // 통계 화면 돌아왔을 때 기본 탭은 '통계'
-            return;
-        }
-        setTab(v);
-    };
+    }, [load]);
 
     if (loading) {
         return (
@@ -67,15 +62,6 @@ export default function StatsScreen({ navigation }: any) {
             <Text style={s.title}>통계</Text>
             <Text style={s.subTitle}>나의 러닝 통계</Text>
 
-            <View style={{ marginTop: 12, marginBottom: 12 }}>
-                <Segmented
-                    leftLabel="기록"
-                    rightLabel="통계"
-                    value={tab}
-                    onChange={handleChangeTab}
-                />
-            </View>
-
             {errorMsg && (
                 <View style={{ paddingVertical: 10 }}>
                     <Text style={{ color: "#EF4444", fontWeight: "700" }}>{errorMsg}</Text>
@@ -83,6 +69,8 @@ export default function StatsScreen({ navigation }: any) {
             )}
 
             <ScrollView
+                // ✅ 하단 탭바 높이만큼 여백 확보
+                contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -104,8 +92,6 @@ export default function StatsScreen({ navigation }: any) {
                         <PersonalBestList pb={stats.personalBests} />
                     </>
                 )}
-
-                <View style={{ height: 24 }} />
             </ScrollView>
         </View>
     );
