@@ -47,7 +47,7 @@ export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
 
     return (
         <View style={[s.card, { marginTop: 12 }]}>
-            <Text style={s.h}>개인 기록</Text>
+            <Text style={s.h}>최고 기록</Text>
 
             <Row
                 title="최장 거리"
@@ -80,10 +80,9 @@ const s = StyleSheet.create({
         borderColor: "#EEF1F7",
     },
     h: {
-        fontSize: 16,
-        fontWeight: "900",
-        color: "#111827",
-        marginBottom: 10,
+        color: "#6B7280",
+        fontWeight: "700",
+        marginBottom: 14,
     },
     row: {
         backgroundColor: "#F2F3F5",
@@ -121,8 +120,8 @@ const s = StyleSheet.create({
     rowValue: {
         marginTop: 6,
         color: "#111827",
-        fontSize: 21,
-        fontWeight: "900",
+        fontSize: 19,
+        fontWeight: "800",
     },
     rowDate: {
         color: "#9CA3AF",

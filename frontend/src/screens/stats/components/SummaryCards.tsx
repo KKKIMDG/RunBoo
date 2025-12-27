@@ -15,8 +15,11 @@ function hours(sec: number) {
 export default function SummaryCards({ monthly }: { monthly: MonthlySummaryDto }) {
     return (
         <View style={s.card}>
-            <Text style={s.h}>이번달 총 기록</Text>
-            <Text style={s.sub}>총 {monthly.totalRuns}회</Text>
+            {/* 헤더 영역 */}
+            <View style={s.headerRow}>
+                <Text style={s.h}>이번 달</Text>
+                <Text style={s.sub}>총 {monthly.totalRuns}회</Text>
+            </View>
 
             <View style={s.grid}>
                 <View style={s.box}>
@@ -40,13 +43,58 @@ export default function SummaryCards({ monthly }: { monthly: MonthlySummaryDto }
 }
 
 const s = StyleSheet.create({
-    card: { backgroundColor: "white", borderRadius: 18, padding: 14, borderWidth: 1, borderColor: "#EEF1F7" },
-    h: { fontSize: 16, fontWeight: "900", color: "#111827" },
-    sub: { marginTop: 4, color: "#6B7280", fontWeight: "600" },
-    grid: { flexDirection: "row", gap: 10, marginTop: 12 },
-    box: { flex: 1, backgroundColor: "#F7F8FC", borderRadius: 14, padding: 12 },
-    boxLabel: { color: "#6B7280", fontWeight: "700" },
-    boxValue1: { marginTop: 6, fontSize: 22, fontWeight: "900", color: "#3A4A98" },
-    boxValue2: { marginTop: 6, fontSize: 22, fontWeight: "900", color: "#111827" },
-    boxUnit: { marginTop: 2, color: "#6B7280", fontWeight: "700" },
+    card: {
+        backgroundColor: "white",
+        borderRadius: 18,
+        padding: 14,
+        borderWidth: 1,
+        borderColor: "#EEF1F7",
+    },
+    headerRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    h: {
+        color: "#6B7280",
+        fontWeight: "700",
+        marginBottom: 10,
+    },
+    sub: {
+        color: "#6B7280",
+        fontWeight: "600",
+        marginBottom: 10,
+    },
+    grid: {
+        flexDirection: "row",
+        gap: 10,
+        marginTop: 12,
+    },
+    box: {
+        flex: 1,
+        backgroundColor: "#F7F8FC",
+        borderRadius: 14,
+        padding: 12,
+    },
+    boxLabel: {
+        color: "#6B7280",
+        fontWeight: "700",
+    },
+    boxValue1: {
+        marginTop: 6,
+        fontSize: 22,
+        fontWeight: "900",
+        color: "#3A4A98",
+    },
+    boxValue2: {
+        marginTop: 6,
+        fontSize: 22,
+        fontWeight: "900",
+        color: "#111827",
+    },
+    boxUnit: {
+        marginTop: 2,
+        color: "#6B7280",
+        fontWeight: "700",
+    },
 });

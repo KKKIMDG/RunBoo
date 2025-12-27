@@ -98,7 +98,7 @@ export default function StatsScreen() {
                         />
                     }
                     contentContainerStyle={{
-                        paddingBottom: tabBarHeight + 24,
+                        paddingBottom: tabBarHeight,
                     }}
                 />
             </View>

@@ -194,7 +194,7 @@ export default function RecordsScreen() {
                                 />
                             }
                             contentContainerStyle={{
-                                paddingBottom: tabBarHeight + 24,
+                                paddingBottom: tabBarHeight,
                             }}
                         />
                     </>
