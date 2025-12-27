@@ -1,3 +1,5 @@
+//frontend/src/screens/stats/components/PersonalBestList.tsx
+
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import type { PersonalBestsDto, RecordDto } from "../../../types/record";

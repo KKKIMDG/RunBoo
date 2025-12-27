@@ -1,4 +1,4 @@
-// RecordsScreen.style.ts
+//frontend/src/screens/records/RecordsScreen.style.ts
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({

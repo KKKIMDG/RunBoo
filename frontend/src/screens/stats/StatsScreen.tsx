@@ -1,3 +1,5 @@
+//frontend/src/screens/stats/StatsScreen.tsx
+
 import React, { useEffect, useState, useCallback } from "react";
 import {
     View,

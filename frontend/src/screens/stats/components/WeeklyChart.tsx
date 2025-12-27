@@ -1,13 +1,15 @@
+//frontend/src/screens/stats/components/WeeklyChart.tsx
+
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import type { WeeklySummaryDto } from "../../../types/record";
+import type { WeeklySummaryDto } from "@/types/record";
 
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 
 // ✅ 막대가 그려질 “그래프 영역”의 고정 높이
 const CHART_HEIGHT = 74;
 // ✅ 0km여도 보이는 최소 막대 높이
-const MIN_BAR_HEIGHT = 6;
+const MIN_BAR_HEIGHT = 2;
 
 /**
  * item에서 "이게 무슨 요일인지"를 뽑아내서
@@ -134,7 +136,6 @@ const s = StyleSheet.create({
         backgroundColor: "#3A4A98",
     },
 
-    // ✅ 라벨 영역도 따로 묶어서 항상 같은 위치
     labelWrap: {
         marginTop: 8,
         alignItems: "center",

@@ -1,3 +1,5 @@
+//frontend/src/screens/stats/components/SummaryCards.tsx
+
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import type { MonthlySummaryDto } from "@/types/record";
