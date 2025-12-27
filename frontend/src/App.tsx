@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
-import RootNavigator from './navigation/RootNavigator';
+import RootNavigator from './navigation/root/RootNavigator';
 import { setAccessToken } from '@/services/api';
 import { useColorScheme } from 'react-native';
 import { Colors } from '@/constants/theme';

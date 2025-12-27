@@ -23,7 +23,7 @@ import type { RecordDto, DashboardStatsDto } from "@/types/record";
 
 type TopTab = "record" | "stats";
 
-// ✅ 탭 네비게이터 밖에서도 안 터지게 안전 래퍼
+// 탭 네비게이터 밖에서도 안 터지게 안전 래퍼
 function useSafeBottomTabBarHeight() {
     try {
         return useBottomTabBarHeight();
@@ -76,7 +76,7 @@ export default function RecordsScreen() {
         }
     }, [userId]);
 
-    // ✅ 최초 진입 시: 둘 다 한 번 로드해두면 탭 전환이 바로바로 됨
+    // 최초 진입 시: 둘 다 한 번 로드해두면 탭 전환이 바로바로 됨
     useEffect(() => {
         (async () => {
             try {
@@ -88,14 +88,14 @@ export default function RecordsScreen() {
         })();
     }, [loadRecords, loadStats]);
 
-    // ✅ 상단 탭 전환(네비게이션 X)
+    // 상단 탭 전환(네비게이션 X)
     const handleChangeTopTab = (v: "left" | "right") => {
         setActiveTab(v === "left" ? "record" : "stats");
     };
 
     const segmentedValue: "left" | "right" = activeTab === "record" ? "left" : "right";
 
-    // ✅ 탭별 로딩 처리
+    // 탭별 로딩 처리
     const currentLoading = activeTab === "record" ? recordsLoading : statsLoading;
 
     if (currentLoading) {
@@ -112,7 +112,7 @@ export default function RecordsScreen() {
             <Text style={s.subTitle}>{activeTab === "record" ? "나의 러닝 기록" : "나의 러닝 통계"}</Text>
 
             <View style={{ marginTop: 12, marginBottom: 12 }}>
-                {/* ✅ Segmented가 scheme props 필요하면 여기서 맞춰서 넣어줘야 함 */}
+                {/* Segmented가 scheme props 필요하면 여기서 맞춰서 넣어줘야 함 */}
                 <Segmented leftLabel="기록" rightLabel="통계" value={segmentedValue} onChange={handleChangeTopTab} />
             </View>
 

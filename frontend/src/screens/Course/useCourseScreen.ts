@@ -76,7 +76,7 @@ export const useCourseScreen = () => {
             );
 
             try {
-                // 🔥 [수정] CourseService를 사용하여 찜하기 API 호출
+                // CourseService를 사용하여 찜하기 API 호출
                 await CourseService.toggleCourse(courseId);
 
                 // '저장' 필터가 활성 상태일 때, 찜 해제한 항목을 목록에서 제거
@@ -85,7 +85,7 @@ export const useCourseScreen = () => {
                 }
             } catch (error) {
                 console.error('찜하기 실패:', error);
-                // 🚨 에러 발생 시, 원래 상태로 롤백
+                // 에러 발생 시, 원래 상태로 롤백
                 setCourses((prev) =>
                     prev.map((c) =>
                         c.id === courseId ? { ...c, isSaved: !c.isSaved } : c

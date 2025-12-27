@@ -41,14 +41,6 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
   const colorScheme = useColorScheme() ?? 'light';
   const styles = getStyles(colorScheme);
   const colors = Colors[colorScheme];
-  const handleTabPress = (tabName: string) => {
-    if (tabName === '코스') {
-      navigation?.navigate('Course');
-    }
-    if (tabName === '통계') {
-      navigation?.navigate('Records');
-    }
-  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -97,7 +89,6 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         </View>
       </View>
 
-      <BottomNavBar activeTab="홈" onTabPress={handleTabPress} />
     </SafeAreaView>
   );
 };

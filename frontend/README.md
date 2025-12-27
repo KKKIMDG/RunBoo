@@ -54,7 +54,7 @@ npx expo start --web
         -   직접적인 컴포넌트 파일 (예: `CourseCard.tsx`, `FilterChip.tsx`)
     -   `constants/`: 테마 색상, API 주소 등 앱 전체에서 사용되는 상수 값을 정의합니다. (예: `env.ts`, `theme.ts`)
     -   `hooks/`: 여러 컴포넌트에서 공통으로 사용될 수 있는 로직을 담은 커스텀 React 훅을 작성합니다. (예: `use-color-scheme.ts`, `use-theme-color.ts`)
-    -   `navigation/`: 화면 간의 이동 로직을 관리합니다. 네비게이션 스택을 이곳에서 정의합니다. (예: `AppStack.tsx`, `AuthStack.tsx`, `RootNavigator.tsx`)
+    -   `navigation/`: 화면 간의 이동 로직을 관리합니다. 네비게이션 스택을 이곳에서 정의합니다. (예: `MainStack.tsx`, `AuthStack.tsx`, `RootNavigator.tsx`)
     -   `screens/`: 앱의 각 화면을 구성하는 메인 컴포넌트 폴더입니다. 각 화면은 하위 폴더로 구성됩니다.
         -   `Course/`: 코스 관련 화면 (예: `CourseScreen.tsx`, `CourseDetailScreen.tsx`)
         -   `Home/`: 홈 화면 (예: `HomeScreen.tsx`)

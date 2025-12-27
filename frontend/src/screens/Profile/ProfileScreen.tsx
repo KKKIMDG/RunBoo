@@ -19,6 +19,7 @@ export default function ProfileScreen({ navigation }: any) {
   };
 
   return (
+
     <SafeAreaView style={styles.safeArea}>
       {/* 헤더 영역 */}
       <View style={styles.headerContainer}>
