@@ -1,124 +1,109 @@
-// screens/Login
-// - LoginScreen.tsx: 로그인 UI 스크린(뷰 전용).
-// - 입력 폼, 버튼, 소셜 아이콘 포함.
-// - 뷰와 로직을 분리하여 `onLogin` / `onSignUp` 콜백만 호출한다.
-
-import React, { FC, useState } from 'react';
-import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { styles } from '../styles/Login.styles';
+import React, { FC } from 'react';
+import {Image, KeyboardAvoidingView, Platform, Text, TouchableOpacity, View} from 'react-native';
+import { getStyles } from './Login.styles';
+// Signup 스크린에서 만들었던 재사용 컴포넌트를 임포트합니다.
+import { FormField } from '@/components/form/FormField';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 interface LoginScreenProps {
-  onLogin?: (id: string, pw: string) => void;
-  onSignUp?: () => void;
+    email?: string;
+    password?: string;
+    onEmailChange?: (text: string) => void;
+    onPasswordChange?: (text: string) => void;
+    onLogin?: () => void;
+    onSignUp?: () => void;
+    onSocialLogin?: (platform: 'Google' | 'Kakao') => void;
 }
 
-const LoginScreen: FC<LoginScreenProps> = ({ onLogin, onSignUp }) => {
-  const [id, setId] = useState('');
-  const [password, setPassword] = useState('');
+const LoginScreen: FC<LoginScreenProps> = ({
+    email,
+    password,
+    onEmailChange,
+    onPasswordChange,
+    onLogin,
+    onSignUp,
+    onSocialLogin,
+}) => {
+    const colorScheme = useColorScheme() ?? 'light';
+    const styles = getStyles(colorScheme);
 
-  const handleLogin = () => {
-    if (!id || !password) {
-      Alert.alert('알림', '아이디와 비밀번호를 모두 입력해주세요.');
-      return;
-    }
-
-    onLogin?.(id, password);
-  };
-
-  const handleGoogleLogin = () => {
-    Alert.alert('Google Login', '소셜 로그인은 비활성화 되어 있습니다.');
-  };
-
-  const handleKakaoLogin = () => {
-    Alert.alert('Kakao Login', '소셜 로그인은 비활성화 되어 있습니다.');
-  };
-
-  const handleSignUp = () => {
-    onSignUp?.();
-  };
-
-  return (
-      <View style={styles.container}>
-        <Image
-            style={styles.icon}
-            source={require('../../components/img/runboo.png')}
-            resizeMode="contain"
-        />
-
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>아이디</Text>
-            <View style={styles.inlineInputBox}>
-              <TextInput
-                  style={styles.textInput}
-                  placeholder="아이디를 입력하세요"
-                  placeholderTextColor="#aaa"
-                  value={id}
-                  onChangeText={setId}
-                  autoCapitalize="none"
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>비밀번호</Text>
-            <View style={styles.inlineInputBox}>
-              <TextInput
-                  style={styles.textInput}
-                  placeholder="비밀번호를 입력하세요"
-                  placeholderTextColor="#aaa"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-              />
-            </View>
-          </View>
-
-          <TouchableOpacity onPress={handleLogin} activeOpacity={0.8}>
-            <View style={styles.loginButton}>
-              <Text style={styles.loginButtonText}>로그인</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <View style={styles.orTextWrapper}>
-            <Text style={styles.orText}>or</Text>
-          </View>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <View style={styles.socialLoginContainer}>
-          <TouchableOpacity
-              style={[styles.socialButton, styles.googleButton]}
-              onPress={handleGoogleLogin}
-          >
+    return (
+        <KeyboardAvoidingView
+            style={{ flex: 2 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+        <View style={styles.container}>
             <Image
-                style={styles.socialIcon}
-                source={require('../../components/img/google.png')}
+                style={styles.icon}
+                source={require('@/assets/images/runboo.png')}
+                resizeMode="contain"
             />
-          </TouchableOpacity>
 
-          <TouchableOpacity
-              style={[styles.socialButton, styles.kakaoButton]}
-              onPress={handleKakaoLogin}
-          >
-            <Image
-                style={styles.socialIcon}
-                source={require('../../components/img/kakao.png')}
-            />
-          </TouchableOpacity>
-        </View>
+            <View style={styles.form}>
+                <FormField
+                    label="아이디"
+                    value={email}
+                    onChangeText={onEmailChange}
+                    placeholder="아이디를 입력하세요"
+                    autoCapitalize="none"
+                    scheme={colorScheme}
+                />
 
-        <View style={styles.signupContainer}>
-          <Text style={styles.signupText}>계정이 없으신가요?</Text>
-          <TouchableOpacity onPress={handleSignUp} style={styles.signupButton}>
-            <Text style={styles.signupButtonText}>회원가입</Text>
-          </TouchableOpacity>
+                <FormField
+                    label="비밀번호"
+                    value={password}
+                    onChangeText={onPasswordChange}
+                    placeholder="비밀번호를 입력하세요"
+                    secureTextEntry
+                    scheme={colorScheme}
+                />
+
+                <TouchableOpacity onPress={onLogin} activeOpacity={0.8}>
+                    <View style={styles.loginButton}>
+                        <Text style={styles.loginButtonText}>로그인</Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.dividerContainer}>
+                <View style={styles.dividerLine} />
+                <View style={styles.orTextWrapper}>
+                    <Text style={styles.orText}>or</Text>
+                </View>
+                <View style={styles.dividerLine} />
+            </View>
+
+            <View style={styles.socialLoginContainer}>
+                <TouchableOpacity
+                    style={[styles.socialButton, styles.googleButton]}
+                    onPress={() => onSocialLogin?.('Google')}
+                >
+                    <Image
+                        style={styles.socialIcon}
+                        source={require('@/assets/images/google.png')}
+                    />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.socialButton, styles.kakaoButton]}
+                    onPress={() => onSocialLogin?.('Kakao')}
+                >
+                    <Image
+                        style={styles.socialIcon}
+                        source={require('@/assets/images/kakao.png')}
+                    />
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.signupContainer}>
+                <Text style={styles.signupText}>계정이 없으신가요?</Text>
+                <TouchableOpacity onPress={onSignUp} style={styles.signupButton}>
+                    <Text style={styles.signupButtonText}>회원가입</Text>
+                </TouchableOpacity>
+            </View>
         </View>
-      </View>
-  );
+        </KeyboardAvoidingView>
+    );
 };
 
 export default LoginScreen;

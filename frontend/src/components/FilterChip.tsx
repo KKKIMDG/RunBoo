@@ -1,13 +1,16 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Colors } from '@/constants/theme';
 
 interface FilterChipProps {
     label: string;
     isActive: boolean;
     onPress: () => void;
+    scheme: 'light' | 'dark';
 }
 
-export default function FilterChip({ label, isActive, onPress }: FilterChipProps) {
+export default function FilterChip({ label, isActive, onPress, scheme }: FilterChipProps) {
+    const styles = getStyles(scheme);
     return (
         <TouchableOpacity
             style={[styles.filterChip, isActive && styles.filterChipActive]}
@@ -21,26 +24,26 @@ export default function FilterChip({ label, isActive, onPress }: FilterChipProps
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
     filterChip: {
-        backgroundColor: '#FFF',
+        backgroundColor: Colors[scheme].card,
         paddingVertical: 10,
         paddingHorizontal: 16,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#E9ECEF',
+        borderColor: Colors[scheme].secondaryBackground,
         marginRight: 8,
     },
     filterChipActive: {
-        backgroundColor: '#3A4A98',
-        borderColor: '#3A4A98',
+        backgroundColor: Colors[scheme].primary,
+        borderColor: Colors[scheme].primary,
     },
     filterText: {
         fontSize: 14,
-        color: '#868E96',
+        color: Colors[scheme].icon,
         fontWeight: 'bold',
     },
     filterTextActive: {
-        color: '#FFF',
+        color: Colors[scheme].background,
     },
 });

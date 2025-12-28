@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import RootNavigator from './navigation/RootNavigator';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import RootNavigator from './navigation/root/RootNavigator';
 import { setAccessToken } from '@/services/api';
+import { useColorScheme } from 'react-native';
+import { Colors } from '@/constants/theme';
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const colorScheme = useColorScheme();
 
     const handleLoginSuccess = (token: string) => {
         setAccessToken(token);
@@ -16,13 +22,19 @@ export default function App() {
         setIsLoggedIn(false);
     };
 
+    const MyTheme = {
+        ...(colorScheme === 'dark' ? DarkTheme : DefaultTheme),
+        colors: {
+            ...(colorScheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
+            primary: Colors[colorScheme === 'dark' ? 'dark' : 'light'].primary,
+            background: Colors[colorScheme === 'dark' ? 'dark' : 'light'].background,
+            card: Colors[colorScheme === 'dark' ? 'dark' : 'light'].card,
+            text: Colors[colorScheme === 'dark' ? 'dark' : 'light'].text,
+        },
+    };
+
     return (
-        <NavigationContainer>
-            {/*<RootNavigator*/}
-            {/*    isLoggedIn={isLoggedIn}*/}
-            {/*    onLogin={handleLoginSuccess}*/}
-            {/*    onLogout={handleLogout}*/}
-            {/*/>*/}
+        <NavigationContainer theme={MyTheme}>
             <RootNavigator
                 isLoggedIn={isLoggedIn}
                 onLoginSuccess={handleLoginSuccess}

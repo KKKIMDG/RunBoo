@@ -1,27 +1,37 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { KAKAO_JAVASCRIPT_KEY } from '@env';
+import { Colors } from '@/constants/theme';
 
+// ✅ [정품 설명서] 여기서 정의하고 다른 파일들은 이걸 가져다 써야 함
 export interface CourseType {
     id: number;
-    title: string;
+    name: string;        // 백엔드: name
     address: string;
-    distance: string;
+    lengthKm: number;    // 백엔드: lengthKm
     imageUrl: string | null;
-    isSaved: boolean;
+    isSaved?: boolean;
 }
 
 interface CourseCardProps {
     course: CourseType;
     onToggle: () => void;
+    onPress: () => void;
+    scheme: 'light' | 'dark';
 }
 
-export default function CourseCard({ course, onToggle }: CourseCardProps) {
+export default React.memo(function CourseCard({ course, onToggle, onPress, scheme }: CourseCardProps) {
     if (!course) return null;
 
-    const getMapHtml = () => {
-        const safeAddress = course.address ? course.address.replace(/'/g, "\\'").replace(/\n/g, " ").trim() : "";
+    const styles = getStyles(scheme);
+    const colors = Colors[scheme];
+    const isSaved = course.isSaved || false;
+
+    const getMapHtml = (backgroundColor: string) => {
+        const safeAddress = course.address
+            ? course.address.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, " ").trim()
+            : "";
 
         return `
         <!DOCTYPE html>
@@ -31,15 +41,13 @@ export default function CourseCard({ course, onToggle }: CourseCardProps) {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JAVASCRIPT_KEY}&libraries=services"></script>
             <style>
-                /* 전체 화면 꽉 채우기 */
-                body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #E9ECEF; }
+                body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: ${backgroundColor}; }
                 #map { width: 100%; height: 100%; }
             </style>
         </head>
         <body>
             <div id="map"></div>
             <script>
-                // ★ 핵심: SDK 로딩이 끝날 때까지 기다렸다가 실행
                 kakao.maps.load(function() {
                     var mapContainer = document.getElementById('map');
                     var geocoder = new kakao.maps.services.Geocoder();
@@ -49,17 +57,11 @@ export default function CourseCard({ course, onToggle }: CourseCardProps) {
                         geocoder.addressSearch(address, function(result, status) {
                             if (status === kakao.maps.services.Status.OK) {
                                 var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                                
-                                // ★ 가벼운 '이미지 지도(StaticMap)' 사용
                                 var staticMapOption = { 
                                     center: coords,
                                     level: 3,
-                                    marker: {
-                                        position: coords
-                                    }
+                                    marker: { position: coords }
                                 };
-                                
-                                // 지도 그리기
                                 var map = new kakao.maps.StaticMap(mapContainer, staticMapOption);
                             }
                         });
@@ -72,64 +74,51 @@ export default function CourseCard({ course, onToggle }: CourseCardProps) {
     };
 
     return (
-        <View style={styles.card}>
-            {/* 지도 영역 */}
+        <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.card}>
             <View style={styles.imageContainer}>
                 <WebView
                     originWhitelist={['*']}
-                    source={{
-                        html: getMapHtml(),
-                        baseUrl: 'http://localhost'
-                    }}
-                    // 안드로이드 투명도 트릭 (깜빡임/렌더링 실패 방지)
+                    source={{ html: getMapHtml(colors.secondaryBackground), baseUrl: 'http://localhost' }}
                     style={{ flex: 1, opacity: 0.99 }}
-
-                    // 리스트 성능을 위해 터치 막기
                     scrollEnabled={false}
                     pointerEvents="none"
+                    javaScriptEnabled={true}
+                    domStorageEnabled={true}
+                    androidLayerType="software"
                 />
             </View>
-
-            {/* 텍스트 영역 */}
             <View style={styles.textContainer}>
                 <View style={styles.headerRow}>
-                    <Text style={styles.title} numberOfLines={1}>{course.title}</Text>
-                    <Text style={styles.distance}>{course.distance}</Text>
+                    <Text style={styles.title} numberOfLines={1}>{course.name}</Text>
+                    <Text style={styles.distance}>{course.lengthKm}km</Text>
                 </View>
-
                 <View style={styles.infoRow}>
                     <Text style={styles.address} numberOfLines={1}>📍 {course.address}</Text>
-                    <Text onPress={onToggle} style={styles.heart}>
-                        {course.isSaved ? '♥' : '♡'}
-                    </Text>
+                    <TouchableOpacity onPress={onToggle} hitSlop={{top:10, bottom:10, left:10, right:10}}>
+                        <Text style={styles.heart}>{isSaved ? '♥' : '♡'}</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
-}
+});
 
-const styles = StyleSheet.create({
+const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
     card: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors[scheme].card,
         borderRadius: 16,
         marginBottom: 16,
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
         overflow: 'hidden',
+        borderWidth: scheme === 'dark' ? 1 : 0,
+        borderColor: Colors[scheme].secondaryBackground,
+        elevation: 3,
     },
-    imageContainer: {
-        width: '100%',
-        height: 180, // 지도 높이 고정
-        backgroundColor: '#E9ECEF',
-    },
+    imageContainer: { width: '100%', height: 180, backgroundColor: Colors[scheme].secondaryBackground },
     textContainer: { padding: 16 },
     headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-    title: { fontSize: 18, fontWeight: 'bold', color: '#111', flex: 1, marginRight: 10 },
-    distance: { fontSize: 16, fontWeight: 'bold', color: '#333' },
+    title: { fontSize: 18, fontWeight: 'bold', color: Colors[scheme].text, flex: 1, marginRight: 10 },
+    distance: { fontSize: 16, fontWeight: 'bold', color: Colors[scheme].text },
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    address: { fontSize: 14, color: '#888', flex: 1 },
-    heart: { fontSize: 24, color: '#FF6B6B', fontWeight: 'bold', padding: 5, zIndex: 10 }
+    address: { fontSize: 14, color: Colors[scheme].icon, flex: 1 },
+    heart: { fontSize: 24, color: '#FF6B6B', fontWeight: 'bold' }
 });

@@ -14,7 +14,6 @@ public class TierCreateRequest {
     private String distanceType;
     private int minPaceSecPerKm;
     private int maxPaceSecPerKm;
-    private String imageUrl;
 
     // DTO -> 엔티티
     public Tier toEntity() {
@@ -24,9 +23,7 @@ public class TierCreateRequest {
                 displayName,
                 distanceType,
                 minPaceSecPerKm,
-                maxPaceSecPerKm,
-                imageUrl
-
+                maxPaceSecPerKm
         );
     }
 }

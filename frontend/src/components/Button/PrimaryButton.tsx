@@ -3,11 +3,17 @@
 // - index.ts: 컴포넌트의 기본 re-export를 포함.
 import React, { FC } from 'react';
 import { TouchableOpacity, Text } from 'react-native';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
-const PrimaryButton: FC<{ title: string; onPress?: () => void }> = ({ title, onPress }) => (
-  <TouchableOpacity onPress={onPress} style={{ padding: 10, backgroundColor: '#007aff', borderRadius: 6 }}>
-    <Text style={{ color: 'white', fontWeight: '600' }}>{title}</Text>
-  </TouchableOpacity>
-);
+const PrimaryButton: FC<{ title: string; onPress?: () => void }> = ({ title, onPress }) => {
+  const backgroundColor = useThemeColor({}, 'primary');
+  const color = useThemeColor({}, 'primaryButtonText');
+
+  return (
+    <TouchableOpacity onPress={onPress} style={{ padding: 10, backgroundColor, borderRadius: 6 }}>
+      <Text style={{ color, fontWeight: '600' }}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
 
 export default PrimaryButton;

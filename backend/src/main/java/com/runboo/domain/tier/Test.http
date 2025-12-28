@@ -2,6 +2,5 @@ POST http://localhost:8080/api/tier/evaluate
 Content-Type: application/json
 
 {
-  "distanceType": "10k",
+  "distanceType": "5k",
   "recordId": 1
-}
