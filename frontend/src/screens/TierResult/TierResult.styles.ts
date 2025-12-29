@@ -156,17 +156,40 @@ tierImage: {
     marginBottom: 40,
   },
   button: {
-    width: '100%',
-    height: 60,
-    borderRadius: 18,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
+  width: '100%',
+  height: 60,
+  borderRadius: 18,
+  flexDirection: 'row',
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginBottom: 12,
+
+  borderWidth: 1.5,
+  borderColor: 'rgba(0,0,0,0.12)',
+
+  backgroundColor: '#FFF',
+
+  // iOS 그림자
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.15,
+  shadowRadius: 10,
+
+  // Android 그림자
+  elevation: 8,
+},
   shareButton: {
-    backgroundColor: '#000',
-  },
+  backgroundColor: '#000',
+
+  borderWidth: 0,
+
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 8 },
+  shadowOpacity: 0.3,
+  shadowRadius: 14,
+
+  elevation: 12,
+},
   homeButton: {
     backgroundColor: '#FFF',
     borderWidth: 1.5,
