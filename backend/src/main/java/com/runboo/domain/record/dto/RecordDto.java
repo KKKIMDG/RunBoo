@@ -24,7 +24,6 @@ public class RecordDto {
         this.id = record.getId();
         this.distanceM = record.getDistanceM();
 
-        // ✅ 핵심 수정: DB durationSec이 틀려도 endedAt-startedAt이 있으면 그걸 우선 사용
         this.durationSec = calcDurationSec(record);
 
         this.avgPace = record.getAvgPace();
