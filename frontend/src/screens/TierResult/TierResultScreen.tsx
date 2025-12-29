@@ -1,92 +1,234 @@
-// src/screens/TierResult/TierResultScreen.tsx
-import React, { FC } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, ActivityIndicator, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+
 import { styles } from './TierResult.styles';
-import { useTierResult } from './useTierResult';
-import { TIER_THEMES } from './TierResult.constants'; // 테마 상수 분리 권장
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import BackButton from '@/components/ui/BackButton';
+
+import { TIER_ID_MAP, TIER_THEMES, TierKey } from './TierResult.constants';
 import { TIER_IMAGES } from '@/constants/TierImages';
 
-const TierResultScreen: FC<{ navigation: any }> = ({ navigation }) => {
-  const { tierData, loading, error, handleShare, handleGoHome } = useTierResult(navigation);
+/**
+ * ======================================================
+ * 🔧 더미 티어 / 결과 데이터 (API 미연결 상태)
+ * ======================================================
+ */
 
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#6366F1" />
-      </View>
-    );
-  }
+// TODO(API): 서버에서 계산된 티어 키를 받아오도록 변경
+// TODO(API): 서버 응답
+const apiTierId = 2; // 예: 서버에서 내려온 숫자
 
-  if (error || !tierData) {
-    return (
-      <View style={[styles.container, styles.center]}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
+// 변환
+const tierKey: TierKey =
+  TIER_ID_MAP[apiTierId];
 
-  const currentTheme = TIER_THEMES[tierData.displayName] || TIER_THEMES['맨발'];
+// TODO(API): 러닝 결과를 서버에서 조회하도록 변경
+const DUMMY_RESULT = {
+  distance: '5.24',
+  time: '25:34',
+  pace: `4'52"`,
+  points: 150,
+};
+
+const TierResultScreen = ({ navigation }: any) => {
+  const colorScheme = useColorScheme() ?? 'light';
+
+  /**
+   * ======================================================
+   * 🔧 더미 데이터 사용
+   * ======================================================
+   */
+  const theme = TIER_THEMES[tierKey];
+  const tierImage = TIER_IMAGES[tierKey];
+
+  console.log('티어 키', tierKey);
+  console.log('이미지 경로', tierImage);
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={tierData.displayName === '고무신' ? 'light-content' : 'dark-content'} />
-      <LinearGradient colors={currentTheme.colors} style={styles.gradient} />
+      {/* ================= 배경 그라데이션 ================= */}
+      <LinearGradient
+        colors={theme.colors}
+        style={styles.gradient}
+      />
 
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.topSection}>
-          <View style={styles.tierLabelBox}>
-            <Text style={[styles.tierTitle, { color: tierData.displayName === '고무신' ? '#FFF' : '#333' }]}>당신의 티어</Text>
-          </View>
-          <Text style={[styles.tierName, { color: tierData.displayName === '고무신' ? '#FFF' : '#000' }]}>{tierData.displayName}</Text>
-          
-          <View style={styles.ghostContainer}>
+      <LinearGradient
+        colors={['rgba(255,255,255,0.7)', 'transparent']}
+        style={styles.shineGradient}
+      />
+
+      {/* ================= 상단 티어 영역 ================= */}
+      <View style={styles.topSection}>
+        <View
+          style={[
+            styles.tierLabelBox,
+            { backgroundColor: theme.point },
+          ]}
+        >
+          <Text style={styles.tierTitle}>
+            티어측정 결과
+          </Text>
+        </View>
+
+        <Text style={styles.tierName}>
+          {theme.label}
+        </Text>
+
+        <View style={styles.ghostContainer}>
+          <View style={styles.tierImageGlow} />
+          {tierImage && (
             <Image
-              source={TIER_IMAGES[tierData.displayName] || TIER_IMAGES['맨발']}
+              source={tierImage}
               style={styles.tierImage}
-              resizeMode="contain"
             />
+          )}
+        </View>
+      </View>
+
+      {/* ================= 하단 분석 영역 ================= */}
+      <View style={styles.bottomSheet}>
+        <View style={styles.analysisHeader}>
+          <View
+            style={[
+              styles.checkBadge,
+              { backgroundColor: theme.colors[1] },
+            ]}
+          >
+            <Text style={styles.checkText}>
+              CHECK
+            </Text>
+          </View>
+          <Text style={styles.analysisTitle}>
+            러닝 측정 분석
+          </Text>
+        </View>
+
+        <View style={styles.statsGrid}>
+          <View style={styles.statItem}>
+            <Ionicons
+              name="map-outline"
+              size={20}
+              color="#999"
+            />
+            <Text style={styles.statLabel}>
+              거리
+            </Text>
+            <Text style={styles.statValue}>
+              {DUMMY_RESULT.distance}
+              <Text style={styles.statUnit}> km</Text>
+            </Text>
+          </View>
+
+          <View style={styles.statItem}>
+            <Ionicons
+              name="time-outline"
+              size={20}
+              color="#999"
+            />
+            <Text style={styles.statLabel}>
+              시간
+            </Text>
+            <Text style={styles.statValue}>
+              {DUMMY_RESULT.time}
+            </Text>
+          </View>
+
+          <View style={styles.statItem}>
+            <Ionicons
+              name="speedometer-outline"
+              size={20}
+              color="#999"
+            />
+            <Text style={styles.statLabel}>
+              페이스
+            </Text>
+            <Text
+              style={[
+                styles.statValue,
+                styles.paceValue,
+                { color: theme.colors[1] },
+              ]}
+            >
+              {DUMMY_RESULT.pace}
+              <Text style={styles.statUnit}> /km</Text>
+            </Text>
           </View>
         </View>
 
-        <View style={styles.bottomSheet}>
-          <View style={styles.analysisHeader}>
-            <View style={[styles.checkBadge, { backgroundColor: currentTheme.point }]}>
-              <Text style={styles.checkText}>검사</Text>
-            </View>
-            <Text style={styles.analysisTitle}>러닝 분석 결과</Text>
-          </View>
+        {/* ================= 버튼 영역 ================= */}
+        <View style={styles.buttonGroup}>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              styles.shareButton,
+              { backgroundColor: theme.colors[1] },
+            ]}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name="share-social"
+              size={20}
+              color="#FFF"
+            />
+            <Text
+              style={[
+                styles.buttonText,
+                styles.whiteText,
+              ]}
+            >
+              기록 자랑하기
+            </Text>
+          </TouchableOpacity>
 
-          <View style={styles.statsGrid}>
-            <StatItem icon="location-outline" label="거리" value="5.0" unit="km" point={currentTheme.point} />
-            <StatItem icon="time-outline" label="시간" value="0:10" unit="분:초" point={currentTheme.point} />
-            <StatItem icon="speedometer-outline" label="페이스" value="4'00" unit="/km" point={currentTheme.point} isPace />
-          </View>
-
-          <View style={styles.buttonGroup}>
-            <TouchableOpacity style={[styles.button, styles.shareButton]} onPress={handleShare}>
-              <Ionicons name="share-social-outline" size={22} color="#FFF" />
-              <Text style={[styles.buttonText, { color: '#FFF' }]}>기록 공유하기</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.homeButton]} onPress={handleGoHome}>
-              <Ionicons name="home-outline" size={22} color="#000" />
-              <Text style={[styles.buttonText, { color: '#000' }]}>홈으로 돌아가기</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              styles.homeButton,
+            ]}
+            onPress={() => navigation.navigate('Home')}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name="home-outline"
+              size={20}
+              color={
+                colorScheme === 'dark'
+                  ? '#FFF'
+                  : '#000'
+              }
+            />
+            <Text
+              style={[
+                styles.buttonText,
+                styles.blackText,
+              ]}
+            >
+              홈으로 돌아가기
+            </Text>
+          </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
+
+      {/* ================= 백 버튼 ================= */}
+      <View
+        style={{
+          position: 'absolute',
+          top: 50,
+          left: 20,
+          zIndex: 100,
+        }}
+      >
+        <BackButton />
+      </View>
     </View>
   );
 };
-
-const StatItem = ({ icon, label, value, unit, point, isPace }: any) => (
-  <View style={styles.statItem}>
-    <Ionicons name={icon} size={22} color={isPace ? point : '#888'} />
-    <Text style={styles.statLabel}>{label}</Text>
-    <Text style={[styles.statValue, isPace && { color: point }]}>{value}</Text>
-    <Text style={styles.statUnit}>{unit}</Text>
-  </View>
-);
 
 export default TierResultScreen;
