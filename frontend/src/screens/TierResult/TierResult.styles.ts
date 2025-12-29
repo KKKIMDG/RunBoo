@@ -8,15 +8,33 @@ export const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   gradient: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.3,
+  ...StyleSheet.absoluteFillObject,
   },
+  shineGradient: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.25,
+  },
+  tierImageGlow: {
+  position: 'absolute',
+  width: 190,
+  height: 190,
+  borderRadius: 95,
+  backgroundColor: 'rgba(255, 255, 255, 0.4)',
+  zIndex: 1,
+},
+tierImage: {
+  width: 160,
+  height: 160,
+  resizeMode: 'contain',
+  zIndex: 2,
+},
   // 상단 섹션
   topSection: {
     height: 452,
     alignItems: 'center',
     paddingTop: 60,
     zIndex: 10,
+    marginTop: 20,
   },
   tierLabelBox: {
     backgroundColor: '#d0d0d0',

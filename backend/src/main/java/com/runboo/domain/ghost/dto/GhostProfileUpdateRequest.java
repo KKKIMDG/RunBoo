@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class GhostProfileUpdateRequest {
-    private Long userId;            // 소유자 확인용
+    private Long userId;
     private Long runRecordId;
     private String type;
     private Double targetDistanceKm;
