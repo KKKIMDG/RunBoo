@@ -21,7 +21,7 @@ public class GhostProfile {
     @Column(name = "user_id")
     private Long userId;
 
-    // run_records의 record_id를 참조한다고 보면 됨 (FK로 걸려있든 아니든 Long으로 매핑 가능)
+    // run_records의 record_id를 참조
     @Column(name = "run_record_id")
     private Long runRecordId;
 
