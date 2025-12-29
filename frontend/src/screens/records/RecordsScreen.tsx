@@ -14,6 +14,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import Segmented from "./components/Segmented";
 import RecordCard from "./components/RecordCard";
 import DateRangeFilter from "./components/DateRangeFilter";
+import ModeFilter from "./components/ModeFilter";
 
 import MonthlyChart from "../stats/components/MonthlyChart";
 import WeeklyChart from "../stats/components/WeeklyChart";
@@ -26,8 +27,8 @@ import type { RecordDto, DashboardStatsDto } from "@/types/record";
 import { styles as s } from "./RecordsScreen.style";
 
 type TopTab = "record" | "stats";
+type Mode = "NORMAL" | "GHOST" | "TIER";
 
-// 탭 네비게이터 밖에서도 안전하게 처리
 function useSafeBottomTabBarHeight() {
     try {
         return useBottomTabBarHeight();
@@ -54,18 +55,16 @@ export default function RecordsScreen() {
 
     const [activeTab, setActiveTab] = useState<TopTab>("record");
 
-    // 기록 상태
     const [recordsLoading, setRecordsLoading] = useState(true);
     const [recordsRefreshing, setRecordsRefreshing] = useState(false);
     const [records, setRecords] = useState<RecordDto[]>([]);
     const [recordsError, setRecordsError] = useState<string | null>(null);
 
-    // ✅ 기간 필터 상태(방향 A: 프론트에서 필터링)
     const [fromDate, setFromDate] = useState<Date | null>(null);
     const [toDate, setToDate] = useState<Date | null>(null);
-    const [isFilterOn, setIsFilterOn] = useState(false);
 
-    // 통계 상태
+    const [mode, setMode] = useState<Mode | null>(null);
+
     const [statsLoading, setStatsLoading] = useState(true);
     const [statsRefreshing, setStatsRefreshing] = useState(false);
     const [stats, setStats] = useState<DashboardStatsDto | null>(null);
@@ -113,28 +112,37 @@ export default function RecordsScreen() {
     const segmentedValue: "left" | "right" =
         activeTab === "record" ? "left" : "right";
 
-    const currentLoading =
-        activeTab === "record" ? recordsLoading : statsLoading;
+    const currentLoading = activeTab === "record" ? recordsLoading : statsLoading;
 
-    // ✅ 최신순 정렬 + 기간 필터 적용된 목록
+    const isDateFilterActive = !!fromDate && !!toDate;
+    const isModeFilterActive = !!mode;
+
+    const anyFilterOn = isDateFilterActive || isModeFilterActive;
+
     const filteredRecords = React.useMemo(() => {
-        // 기본: 최신순 유지(서버가 이미 최신순이어도 안전)
         const sorted = [...records].sort(
             (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
         );
 
-        if (!isFilterOn || (!fromDate && !toDate)) return sorted;
+        if (!isDateFilterActive && !isModeFilterActive) return sorted;
 
-        const from = fromDate ? startOfDay(fromDate).getTime() : null;
-        const to = toDate ? endOfDay(toDate).getTime() : null;
+        const from = isDateFilterActive && fromDate ? startOfDay(fromDate).getTime() : null;
+        const to = isDateFilterActive && toDate ? endOfDay(toDate).getTime() : null;
 
         return sorted.filter((r) => {
-            const t = new Date(r.startedAt).getTime();
-            if (from !== null && t < from) return false;
-            if (to !== null && t > to) return false;
+            if (isDateFilterActive) {
+                const t = new Date(r.startedAt).getTime();
+                if (from !== null && t < from) return false;
+                if (to !== null && t > to) return false;
+            }
+
+            if (isModeFilterActive) {
+                if (r.mode !== mode) return false;
+            }
+
             return true;
         });
-    }, [records, isFilterOn, fromDate, toDate]);
+    }, [records, isDateFilterActive, isModeFilterActive, fromDate, toDate, mode]);
 
     if (currentLoading) {
         return (
@@ -163,19 +171,21 @@ export default function RecordsScreen() {
 
                 {activeTab === "record" && (
                     <>
-                        {/* ✅ Segmented 바로 아래 + 카드 리스트 바로 위 */}
                         <DateRangeFilter
                             fromDate={fromDate}
                             toDate={toDate}
-                            isFilterOn={isFilterOn}
                             onChangeFromDate={(d) => setFromDate(d)}
                             onChangeToDate={(d) => setToDate(d)}
-                            onToggleFilter={() => setIsFilterOn((v) => !v)}
                             onReset={() => {
                                 setFromDate(null);
                                 setToDate(null);
-                                setIsFilterOn(false);
                             }}
+                        />
+
+                        <ModeFilter
+                            mode={mode}
+                            onChangeMode={setMode}
+                            onReset={() => setMode(null)}
                         />
 
                         {recordsError && <Text style={s.errorText}>{recordsError}</Text>}
@@ -200,8 +210,8 @@ export default function RecordsScreen() {
                             ListEmptyComponent={
                                 <View style={{ paddingTop: 40 }}>
                                     <Text style={s.emptyText}>
-                                        {isFilterOn
-                                            ? "해당 기간에 러닝 기록이 없어요."
+                                        {anyFilterOn
+                                            ? "조건에 맞는 러닝 기록이 없어요."
                                             : "아직 러닝 기록이 없어요."}
                                     </Text>
                                 </View>
