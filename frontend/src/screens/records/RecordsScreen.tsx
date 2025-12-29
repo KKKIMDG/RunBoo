@@ -13,6 +13,7 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 import Segmented from "./components/Segmented";
 import RecordCard from "./components/RecordCard";
+import DateRangeFilter from "./components/DateRangeFilter";
 
 import MonthlyChart from "../stats/components/MonthlyChart";
 import WeeklyChart from "../stats/components/WeeklyChart";
@@ -35,6 +36,18 @@ function useSafeBottomTabBarHeight() {
     }
 }
 
+function startOfDay(d: Date) {
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x;
+}
+
+function endOfDay(d: Date) {
+    const x = new Date(d);
+    x.setHours(23, 59, 59, 999);
+    return x;
+}
+
 export default function RecordsScreen() {
     const tabBarHeight = useSafeBottomTabBarHeight();
     const userId = DEFAULT_USER_ID;
@@ -46,6 +59,11 @@ export default function RecordsScreen() {
     const [recordsRefreshing, setRecordsRefreshing] = useState(false);
     const [records, setRecords] = useState<RecordDto[]>([]);
     const [recordsError, setRecordsError] = useState<string | null>(null);
+
+    // ✅ 기간 필터 상태(방향 A: 프론트에서 필터링)
+    const [fromDate, setFromDate] = useState<Date | null>(null);
+    const [toDate, setToDate] = useState<Date | null>(null);
+    const [isFilterOn, setIsFilterOn] = useState(false);
 
     // 통계 상태
     const [statsLoading, setStatsLoading] = useState(true);
@@ -98,6 +116,26 @@ export default function RecordsScreen() {
     const currentLoading =
         activeTab === "record" ? recordsLoading : statsLoading;
 
+    // ✅ 최신순 정렬 + 기간 필터 적용된 목록
+    const filteredRecords = React.useMemo(() => {
+        // 기본: 최신순 유지(서버가 이미 최신순이어도 안전)
+        const sorted = [...records].sort(
+            (a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+        );
+
+        if (!isFilterOn || (!fromDate && !toDate)) return sorted;
+
+        const from = fromDate ? startOfDay(fromDate).getTime() : null;
+        const to = toDate ? endOfDay(toDate).getTime() : null;
+
+        return sorted.filter((r) => {
+            const t = new Date(r.startedAt).getTime();
+            if (from !== null && t < from) return false;
+            if (to !== null && t > to) return false;
+            return true;
+        });
+    }, [records, isFilterOn, fromDate, toDate]);
+
     if (currentLoading) {
         return (
             <View style={s.center}>
@@ -109,9 +147,7 @@ export default function RecordsScreen() {
     return (
         <SafeAreaView style={s.safeArea}>
             <View style={s.container}>
-                <Text style={s.title}>
-                    {activeTab === "record" ? "기록" : "통계"}
-                </Text>
+                <Text style={s.title}>{activeTab === "record" ? "기록" : "통계"}</Text>
                 <Text style={s.subTitle}>
                     {activeTab === "record" ? "나의 러닝 기록" : "나의 러닝 통계"}
                 </Text>
@@ -127,12 +163,25 @@ export default function RecordsScreen() {
 
                 {activeTab === "record" && (
                     <>
-                        {recordsError && (
-                            <Text style={s.errorText}>{recordsError}</Text>
-                        )}
+                        {/* ✅ Segmented 바로 아래 + 카드 리스트 바로 위 */}
+                        <DateRangeFilter
+                            fromDate={fromDate}
+                            toDate={toDate}
+                            isFilterOn={isFilterOn}
+                            onChangeFromDate={(d) => setFromDate(d)}
+                            onChangeToDate={(d) => setToDate(d)}
+                            onToggleFilter={() => setIsFilterOn((v) => !v)}
+                            onReset={() => {
+                                setFromDate(null);
+                                setToDate(null);
+                                setIsFilterOn(false);
+                            }}
+                        />
+
+                        {recordsError && <Text style={s.errorText}>{recordsError}</Text>}
 
                         <FlatList
-                            data={records}
+                            data={filteredRecords}
                             keyExtractor={(it) => String(it.id)}
                             renderItem={({ item }) => <RecordCard item={item} />}
                             refreshControl={
@@ -151,7 +200,9 @@ export default function RecordsScreen() {
                             ListEmptyComponent={
                                 <View style={{ paddingTop: 40 }}>
                                     <Text style={s.emptyText}>
-                                        아직 러닝 기록이 없어요.
+                                        {isFilterOn
+                                            ? "해당 기간에 러닝 기록이 없어요."
+                                            : "아직 러닝 기록이 없어요."}
                                     </Text>
                                 </View>
                             }
@@ -164,9 +215,7 @@ export default function RecordsScreen() {
 
                 {activeTab === "stats" && (
                     <>
-                        {statsError && (
-                            <Text style={s.errorText}>{statsError}</Text>
-                        )}
+                        {statsError && <Text style={s.errorText}>{statsError}</Text>}
 
                         <FlatList
                             data={[]}
