@@ -1,3 +1,5 @@
+//frontend/src/screens/records/components/DateRangeFilter.tsx
+
 import React, { useMemo, useState } from "react";
 import {
     View,
@@ -14,11 +16,9 @@ import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/dat
 type Props = {
     fromDate: Date | null;
     toDate: Date | null;
-    isFilterOn: boolean;
 
     onChangeFromDate: (d: Date | null) => void;
     onChangeToDate: (d: Date | null) => void;
-    onToggleFilter: () => void;
     onReset: () => void;
 };
 
@@ -42,7 +42,6 @@ function endOfDay(d: Date) {
     return x;
 }
 
-// ✅ Android LayoutAnimation 활성화
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -50,10 +49,8 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 export default function DateRangeFilter({
                                             fromDate,
                                             toDate,
-                                            isFilterOn,
                                             onChangeFromDate,
                                             onChangeToDate,
-                                            onToggleFilter,
                                             onReset,
                                         }: Props) {
     const [expanded, setExpanded] = useState(false);
@@ -64,12 +61,12 @@ export default function DateRangeFilter({
         setExpanded((v) => !v);
     };
 
+    const isActive = !!fromDate && !!toDate;
+
     const summaryText = useMemo(() => {
-        if (!isFilterOn) return "전체";
-        const from = fromDate ? fmt(fromDate) : "시작";
-        const to = toDate ? fmt(toDate) : "종료";
-        return `${from} ~ ${to}`;
-    }, [isFilterOn, fromDate, toDate]);
+        if (!isActive) return "전체";
+        return `${fmt(fromDate)} ~ ${fmt(toDate)}`;
+    }, [isActive, fromDate, toDate]);
 
     const pickerValue = useMemo(() => {
         if (pickerTarget === "from") return fromDate ?? new Date();
@@ -93,7 +90,6 @@ export default function DateRangeFilter({
         if (target === "to") {
             const newTo = endOfDay(picked);
             onChangeToDate(newTo);
-
             if (fromDate && startOfDay(fromDate).getTime() > newTo.getTime()) {
                 onChangeFromDate(startOfDay(newTo));
             }
@@ -142,7 +138,6 @@ export default function DateRangeFilter({
 
     return (
         <View style={s.wrap}>
-            {/* ✅ 헤더: 왼쪽 "기간 조회" 유지, 오른쪽 아래에 summaryText(전체/기간) */}
             <TouchableOpacity style={s.bar} onPress={toggleExpanded} activeOpacity={0.85}>
                 <View style={s.barLeft}>
                     <Text style={s.title}>기간 조회</Text>
@@ -165,28 +160,16 @@ export default function DateRangeFilter({
                             <Text style={s.pickLabel}>종료일</Text>
                             <Text style={s.pickValue}>{fmt(toDate)}</Text>
                         </TouchableOpacity>
-                        <View style={s.rightStack}>
-                            <TouchableOpacity
-                                style={[s.pillBtn, isFilterOn && s.pillBtnOn]}
-                                onPress={onToggleFilter}
-                                activeOpacity={0.85}
-                            >
-                                <Text style={[s.pillText, isFilterOn && s.pillTextOn]}>
-                                    {isFilterOn ? "ON" : "OFF"}
-                                </Text>
-                            </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={[s.pillBtn, s.pillBtnDanger]}
-                                onPress={onPressReset}
-                                activeOpacity={0.85}
-                            >
-                                <Text style={[s.pillText, s.pillTextDanger]}>초기화</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity
+                            style={[s.resetBtn]}
+                            onPress={onPressReset}
+                            activeOpacity={0.85}
+                        >
+                            <Text style={s.resetText}>초기화</Text>
+                        </TouchableOpacity>
                     </View>
 
-                    {/* ✅ DatePicker */}
                     {pickerTarget && Platform.OS === "android" && (
                         <DateTimePicker
                             value={pickerValue}
@@ -232,6 +215,10 @@ export default function DateRangeFilter({
                             </View>
                         </Modal>
                     )}
+
+                    {!isActive && (fromDate || toDate) && (
+                        <Text style={s.hint}>시작일과 종료일을 모두 선택하면 기간 필터가 적용돼요.</Text>
+                    )}
                 </View>
             )}
         </View>
@@ -240,7 +227,7 @@ export default function DateRangeFilter({
 
 const s = StyleSheet.create({
     wrap: {
-        marginBottom: 12,
+        marginBottom: 0,
     },
 
     bar: {
@@ -285,37 +272,25 @@ const s = StyleSheet.create({
     pickLabel: { color: "#6B7280", fontWeight: "900", fontSize: 12 },
     pickValue: { marginTop: 4, color: "#111827", fontWeight: "900" },
 
-    rightStack: {
+    resetBtn: {
         width: 86,
-        gap: 10,
-        justifyContent: "space-between",
-    },
-
-    pillBtn: {
-        flex: 1,
         borderRadius: 14,
-        backgroundColor: "#F7F8FC",
+        backgroundColor: "#FFF1F2",
         alignItems: "center",
         justifyContent: "center",
         paddingHorizontal: 10,
     },
-    pillBtnOn: {
-        backgroundColor: "#3A4A98",
-    },
-    pillText: {
-        color: "#687076",
+    resetText: {
+        color: "#EF4444",
         fontWeight: "900",
         fontSize: 12,
     },
-    pillTextOn: {
-        color: "white",
-    },
 
-    pillBtnDanger: {
-        backgroundColor: "#FFF1F2",
-    },
-    pillTextDanger: {
-        color: "#EF4444",
+    hint: {
+        marginTop: 8,
+        color: "#6B7280",
+        fontWeight: "700",
+        fontSize: 12,
     },
 
     // iOS Modal
