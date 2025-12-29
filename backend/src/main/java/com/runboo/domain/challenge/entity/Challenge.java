@@ -17,12 +17,11 @@ public class Challenge {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "challenge_id")
-    private int challengeId;
+    private Long challengeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "badge_id")
     private Badge badge;  // badgeId 대신 Badge 엔티티로 참조
-
 
     @Column(name = "title")
     private String title;
