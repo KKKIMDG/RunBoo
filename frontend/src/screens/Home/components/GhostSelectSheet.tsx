@@ -42,7 +42,7 @@ function normalizeType(t: string): GhostType | "UNKNOWN" {
     return "UNKNOWN";
 }
 
-type SlotType = Exclude<GhostType, never>;
+type SlotType = GhostType;
 
 type IoniconName =
     | "close"
@@ -51,7 +51,6 @@ type IoniconName =
     | "trophy-outline"
     | "trending-up-outline"
     | "bar-chart-outline"
-    | "sparkles-outline"
     | "body-outline"
     | "medal-outline"
     | "location-outline";
@@ -60,7 +59,7 @@ function getTitleBySlot(slot: SlotType) {
     if (slot === "SELF_BEST") return "내 최고 기록";
     if (slot === "SELF_YESTERDAY") return "어제 기록";
     if (slot === "SELF_WEEKLY_AVG") return "이번 주 평균";
-    if (slot === "RANKING_NATIONAL") return "전국 1위(가빈시치)";
+    if (slot === "RANKING_NATIONAL") return "전국 1위(이강빈)";
     return "지역 챔피언(이동국)";
 }
 
@@ -72,11 +71,16 @@ function getIconBySlot(slot: SlotType): IoniconName {
     return "location-outline";
 }
 
-// ✅ createdAt 표시 포맷(기존 로직 유지하되, ISO가 아닐 때도 안전)
 function safeDate10(iso: string) {
+    if (!iso) return "-";
+
+    // 1) ISO 형태면 YYYY-MM-DD만 잘라서 사용 (타임존 변환 없음)
+    const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return `${m[1]}.${m[2]}.${m[3]}`;
+
+    // 2) 혹시 다른 포맷이면 최후 fallback
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "-";
-    // yyyy-mm-dd
     const yy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
@@ -86,7 +90,7 @@ function safeDate10(iso: string) {
 type TabKey = "self" | "ranking";
 
 type Row = {
-    key: SlotType; //
+    key: SlotType;
     slot: SlotType;
     title: string;
     profile: GhostProfileDto | null;
@@ -109,8 +113,7 @@ export default function GhostSelectSheet({
         primary: base?.primary ?? "#2F3A8F",
         card: base?.card ?? base?.surface ?? "#F3F4F6",
         border: base?.border ?? "#E5E7EB",
-        mutedText: base?.mutedText ?? base?.subtext ?? "#6B7280",
-        icon: base?.icon ?? base?.text ?? "#111111",
+        mutedText: base?.mutedText ?? "#6B7280",
     };
 
     const [tab, setTab] = useState<TabKey>("self");
@@ -119,91 +122,73 @@ export default function GhostSelectSheet({
         const map = new Map<GhostType, GhostProfileDto>();
         for (const gp of data ?? []) {
             const t = normalizeType((gp as any)?.type);
-            if (t !== "UNKNOWN") {
-                // 한 타입이 여러 개일 때는 "가장 최신"을 우선하고 싶으면 여기서 비교 가능
-                // 지금은 최초 1개만 사용
-                if (!map.has(t)) map.set(t, gp);
+            if (t !== "UNKNOWN" && !map.has(t)) {
+                map.set(t, gp);
             }
         }
         return map;
     }, [data]);
 
-    function pickOne(t: GhostType): GhostProfileDto | null {
+    function pickOne(t: GhostType) {
         return byType.get(t) ?? null;
     }
 
-    const selfRows: Row[] = useMemo(() => {
-        const slots: SlotType[] = ["SELF_BEST", "SELF_YESTERDAY", "SELF_WEEKLY_AVG"];
-        return slots.map((slot) => ({
-            key: slot,
-            slot,
-            title: getTitleBySlot(slot),
-            profile: pickOne(slot),
-        }));
-    }, [byType]);
+    const selfRows: Row[] = useMemo(
+        () =>
+            ["SELF_BEST", "SELF_YESTERDAY", "SELF_WEEKLY_AVG"].map((slot) => ({
+                key: slot as SlotType,
+                slot: slot as SlotType,
+                title: getTitleBySlot(slot as SlotType),
+                profile: pickOne(slot as SlotType),
+            })),
+        [byType]
+    );
 
-    const rankingRows: Row[] = useMemo(() => {
-        const slots: SlotType[] = ["RANKING_NATIONAL", "RANKING_LOCAL"];
-        return slots.map((slot) => ({
-            key: slot,
-            slot,
-            title: getTitleBySlot(slot),
-            profile: pickOne(slot),
-        }));
-    }, [byType]);
+    const rankingRows: Row[] = useMemo(
+        () =>
+            ["RANKING_NATIONAL", "RANKING_LOCAL"].map((slot) => ({
+                key: slot as SlotType,
+                slot: slot as SlotType,
+                title: getTitleBySlot(slot as SlotType),
+                profile: pickOne(slot as SlotType),
+            })),
+        [byType]
+    );
 
     const rows = tab === "self" ? selfRows : rankingRows;
 
     return (
-        <Modal
-            visible={visible}
-            animationType="slide"
-            transparent
-            onRequestClose={onClose}
-        >
+        <Modal visible={visible} transparent animationType="fade">
             <View style={s.backdrop}>
-                <TouchableOpacity
-                    style={s.backdropTouch}
-                    activeOpacity={1}
-                    onPress={onClose}
-                />
+                <TouchableOpacity style={s.backdropTouch} onPress={onClose} />
 
-                <View style={[s.sheet, { backgroundColor: c.card }]}>
+                <View style={[s.sheet, { backgroundColor: c.background }]}>
+                    {/* Header */}
                     <View style={[s.sheetHeader, { backgroundColor: c.primary }]}>
-                        <Text style={[s.sheetTitle, { color: c.background }]}>
-                            고스트 선택
-                        </Text>
-                        <TouchableOpacity onPress={onClose} hitSlop={10}>
-                            <Ionicons name={"close"} size={22} color={c.background} />
+                        <Text style={[s.sheetTitle, { color: "#fff" }]}>고스트 선택</Text>
+                        <TouchableOpacity onPress={onClose}>
+                            <Ionicons name="close" size={22} color="#fff" />
                         </TouchableOpacity>
                     </View>
 
-                    {/* ✅ 탭 */}
+                    {/* Tabs */}
                     <View style={s.tabRow}>
                         <TouchableOpacity
-                            activeOpacity={0.9}
-                            onPress={() => setTab("self")}
                             style={[
                                 s.pill,
-                                {
-                                    backgroundColor: tab === "self" ? c.primary : "transparent",
-                                    borderColor: tab === "self" ? "transparent" : c.border,
-                                    borderWidth: tab === "self" ? 0 : 1,
-                                },
+                                tab === "self" && { backgroundColor: c.primary },
                             ]}
+                            onPress={() => setTab("self")}
                         >
                             <Ionicons
-                                name={"time-outline"}
+                                name="time-outline"
                                 size={16}
-                                color={tab === "self" ? c.background : c.text}
+                                color={tab === "self" ? "#fff" : c.text}
                             />
                             <Text
                                 style={[
                                     s.pillText,
-                                    {
-                                        color: tab === "self" ? c.background : c.text,
-                                        marginLeft: 6,
-                                    },
+                                    { color: tab === "self" ? "#fff" : c.text },
                                 ]}
                             >
                                 내 기록
@@ -211,29 +196,21 @@ export default function GhostSelectSheet({
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            activeOpacity={0.9}
-                            onPress={() => setTab("ranking")}
                             style={[
                                 s.pill,
-                                {
-                                    backgroundColor: tab === "ranking" ? c.primary : "transparent",
-                                    borderColor: tab === "ranking" ? "transparent" : c.border,
-                                    borderWidth: tab === "ranking" ? 0 : 1,
-                                },
+                                tab === "ranking" && { backgroundColor: c.primary },
                             ]}
+                            onPress={() => setTab("ranking")}
                         >
                             <Ionicons
-                                name={"people-outline"}
+                                name="people-outline"
                                 size={16}
-                                color={tab === "ranking" ? c.background : c.text}
+                                color={tab === "ranking" ? "#fff" : c.text}
                             />
                             <Text
                                 style={[
                                     s.pillText,
-                                    {
-                                        color: tab === "ranking" ? c.background : c.text,
-                                        marginLeft: 6,
-                                    },
+                                    { color: tab === "ranking" ? "#fff" : c.text },
                                 ]}
                             >
                                 랭킹
@@ -244,123 +221,73 @@ export default function GhostSelectSheet({
                     {loading ? (
                         <View style={s.loadingBox}>
                             <ActivityIndicator />
-                            <Text style={[s.loadingText, { color: c.text }]}>
-                                불러오는 중...
-                            </Text>
                         </View>
                     ) : (
                         <FlatList
-                            contentContainerStyle={{ paddingBottom: 16 }}
                             data={rows}
-                            keyExtractor={(item) => item.key}
-                            onRefresh={onRefresh}
-                            refreshing={false}
+                            keyExtractor={(i) => i.key}
+                            contentContainerStyle={{ paddingBottom: 12 }}
                             renderItem={({ item }) => {
                                 const gp = item.profile;
-
-                                // ✅ 빈 슬롯(데이터 없음) 카드
                                 if (!gp) {
                                     return (
                                         <View
                                             style={[
                                                 s.item,
                                                 {
-                                                    backgroundColor: c.background,
                                                     borderColor: c.border,
+                                                    backgroundColor: c.background,
                                                     opacity: 0.75,
                                                 },
                                             ]}
                                         >
-                                            <View style={[s.iconBox, { backgroundColor: c.card }]}>
-                                                <Ionicons
-                                                    name={getIconBySlot(item.slot)}
-                                                    size={18}
-                                                    color={c.mutedText}
-                                                />
+                                            <Ionicons
+                                                name={getIconBySlot(item.slot)}
+                                                size={18}
+                                                color={c.mutedText}
+                                            />
+
+                                            <View style={{ flex: 1, marginLeft: 12 }}>
+                                                <Text style={s.itemTitle}>{item.title}</Text>
+                                                <Text style={s.itemSub}>아직 데이터가 없어요</Text>
                                             </View>
 
-                                            <View style={s.itemMid}>
-                                                <Text style={[s.itemTitle, { color: c.text }]}>
-                                                    {item.title}
-                                                </Text>
-                                                <Text style={[s.itemSub, { color: c.mutedText }]}>
-                                                    아직 데이터가 없어요.
-                                                </Text>
-                                            </View>
-
-                                            <View style={s.itemRight}>
-                                                <Text style={[s.kmText, { color: c.mutedText }]}>-</Text>
-                                                <Text style={[s.paceText, { color: c.mutedText }]}>-</Text>
+                                            <View style={{ alignItems: "flex-end" }}>
+                                                <Text style={s.itemTitle}>-</Text>
+                                                <Text style={s.itemSub}>-</Text>
                                             </View>
                                         </View>
                                     );
                                 }
 
-                                // ✅ 정상 카드(선택 가능)
+
                                 return (
                                     <TouchableOpacity
-                                        style={[
-                                            s.item,
-                                            { backgroundColor: c.background, borderColor: c.border },
-                                        ]}
+                                        style={[s.item, { borderColor: c.border }]}
                                         onPress={() => onSelect(gp)}
-                                        activeOpacity={0.9}
                                     >
-                                        <View style={[s.iconBox, { backgroundColor: c.card }]}>
-                                            <Ionicons
-                                                name={getIconBySlot(item.slot)}
-                                                size={18}
-                                                color={c.primary}
-                                            />
+                                        <Ionicons
+                                            name={getIconBySlot(item.slot)}
+                                            size={18}
+                                            color={c.primary}
+                                        />
+                                        <View style={{ flex: 1, marginLeft: 12 }}>
+                                            <Text style={s.itemTitle}>{item.title}</Text>
+                                            <Text style={s.itemSub}>{safeDate10(gp.createdAt)}</Text>
                                         </View>
-
-                                        <View style={s.itemMid}>
-                                            <Text style={[s.itemTitle, { color: c.text }]}>
-                                                {item.title}
-                                            </Text>
-                                            <Text style={[s.itemSub, { color: c.mutedText }]}>
-                                                {safeDate10(gp.createdAt)}
-                                            </Text>
-                                        </View>
-
-                                        <View style={s.itemRight}>
-                                            <Text style={[s.kmText, { color: c.text }]}>
+                                        <View style={{ alignItems: "flex-end" }}>
+                                            <Text style={s.itemTitle}>
                                                 {formatKm(gp.targetDistanceKm)}
                                             </Text>
-                                            <Text style={[s.paceText, { color: c.mutedText }]}>
+                                            <Text style={s.itemSub}>
                                                 {formatPaceSecToText(gp.avgPace)}/km
                                             </Text>
                                         </View>
                                     </TouchableOpacity>
                                 );
                             }}
-                            ListEmptyComponent={
-                                <View style={s.emptyBox}>
-                                    <Text style={{ color: c.mutedText }}>
-                                        고스트 프로필이 아직 없어요.
-                                    </Text>
-                                    <Text style={{ color: c.mutedText, marginTop: 6 }}>
-                                        일반 러닝 후에 고스트 저장을 해주세요.
-                                    </Text>
-                                </View>
-                            }
                         />
                     )}
-
-                    <TouchableOpacity
-                        style={[s.bottomButton, { backgroundColor: c.text }]}
-                        onPress={onClose}
-                    >
-                        <Ionicons name={"body-outline"} size={18} color={c.background} />
-                        <Text
-                            style={[
-                                s.bottomButtonText,
-                                { color: c.background, marginLeft: 8 },
-                            ]}
-                        >
-                            고스트 선택
-                        </Text>
-                    </TouchableOpacity>
                 </View>
             </View>
         </Modal>
@@ -370,73 +297,56 @@ export default function GhostSelectSheet({
 const s = StyleSheet.create({
     backdrop: {
         flex: 1,
-        justifyContent: "flex-end",
         backgroundColor: "rgba(0,0,0,0.35)",
-    },
-    backdropTouch: { flex: 1 },
-    sheet: { borderTopLeftRadius: 18, borderTopRightRadius: 18, overflow: "hidden" },
-
-    sheetHeader: {
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        flexDirection: "row",
+        justifyContent: "center",
         alignItems: "center",
+        paddingHorizontal: 16,
+    },
+    backdropTouch: {
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+    },
+    sheet: {
+        width: "100%",
+        maxWidth: 420,
+        maxHeight: "70%",
+        borderRadius: 18,
+        overflow: "hidden",
+    },
+    sheetHeader: {
+        padding: 16,
+        flexDirection: "row",
         justifyContent: "space-between",
+        alignItems: "center",
     },
     sheetTitle: { fontSize: 16, fontWeight: "800" },
 
-    // ✅ gap 제거
     tabRow: { flexDirection: "row", padding: 14 },
-
-    // ✅ 기존 pill/pillGhost를 통합해서 탭 상태에 따라 스타일 변경
     pill: {
         flexDirection: "row",
         alignItems: "center",
-        paddingVertical: 10,
+        paddingVertical: 8,
         paddingHorizontal: 14,
         borderRadius: 999,
-        marginRight: 10,
+        marginRight: 8,
     },
+    pillText: { marginLeft: 6, fontSize: 13, fontWeight: "700" },
 
-    loadingBox: { padding: 18, alignItems: "center" },
-    loadingText: { fontSize: 13, marginTop: 10 },
+    loadingBox: { padding: 20 },
 
     item: {
-        marginHorizontal: 14,
-        marginTop: 10,
+        flexDirection: "row",
+        alignItems: "center",
+        padding: 14,
         borderWidth: 1,
         borderRadius: 14,
-        padding: 14,
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    iconBox: {
-        width: 38,
-        height: 38,
-        borderRadius: 12,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    itemMid: { flex: 1, marginLeft: 12 },
-    itemTitle: { fontSize: 14, fontWeight: "800" },
-    itemSub: { fontSize: 12, marginTop: 4 },
-
-    itemRight: { alignItems: "flex-end" },
-    kmText: { fontSize: 14, fontWeight: "800" },
-    paceText: { fontSize: 12, marginTop: 4 },
-
-    emptyBox: { paddingHorizontal: 16, paddingVertical: 20 },
-
-    bottomButton: {
         marginHorizontal: 14,
-        marginBottom: 14,
-        marginTop: 6,
-        borderRadius: 14,
-        paddingVertical: 14,
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "row",
+        marginTop: 10,
     },
-    bottomButtonText: { fontSize: 15, fontWeight: "900" },
-    pillText: { fontWeight: "700", fontSize: 13 },
+    itemTitle: { fontSize: 14, fontWeight: "800" },
+    itemSub: { fontSize: 12, color: "#6B7280", marginTop: 4 },
+    emptyText: { fontSize: 14, color: "#9CA3AF" },
 });
