@@ -2,8 +2,10 @@ package com.runboo.domain.record.controller;
 
 import com.runboo.domain.record.dto.DashboardStatsDto;
 import com.runboo.domain.record.dto.RecordDto;
+import com.runboo.domain.record.dto.RunRecordRequestDto;
 import com.runboo.domain.record.service.RecordService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,5 +27,11 @@ public class RecordController {
     @GetMapping("/stats/dashboard")
     public DashboardStatsDto getDashboardStats(@RequestParam Long userId) {
         return recordService.getDashboardStats(userId);
+    }
+
+    @PostMapping
+    public ResponseEntity<String> createRecord(@RequestBody RunRecordRequestDto requestDto) {
+        recordService.saveRecord(requestDto);
+        return ResponseEntity.ok("기록 저장 성공");
     }
 }
