@@ -8,6 +8,8 @@ import com.runboo.domain.challenge.entity.Challenge;
 import com.runboo.domain.challenge.entity.UserChallenge;
 import com.runboo.domain.challenge.repository.UserChallengeRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -16,16 +18,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor // 추가
 public class UserChallengeService {
 
-    private  UserChallengeRepository userChallengeRepository;
+    private final UserChallengeRepository userChallengeRepository;
 
     // 도전과제 조회 서비스
     public List<UserChallengeDto> getUserChallengeListByStatus(Long userId, String status){
+//        // [로그] 입력값 확인
+//        System.out.println(">>> 서비스 호출됨 - userId: " + userId + ", status: " + status);
         List<UserChallenge> entities = userChallengeRepository.findAllByUserIdAndStatus(userId, status);
         List<UserChallengeDto> dtos = new ArrayList<>();
 
+
+//        // [로그] DB 조회 결과 확인
+//        System.out.println(">>> DB에서 조회된 엔티티 개수: " + entities.size());
         for(UserChallenge entity : entities){
+
+//            // [로그]
+//            System.out.println(">>> 변환 중인 챌린지 ID: " + entity.getId());
             // 1. 엔티티 안에 연결된 Challenge 객체를 꺼낸다.
             Challenge challenge = entity.getChallenge();
             Badge badge = challenge.getBadge(); // Challenge 엔티티에 정의된 badge를 가져옴
@@ -98,6 +109,11 @@ public class UserChallengeService {
 
                 // 2. 현재 진행도 업데이트
                 int newProgress = uc.getProgressValue() + value;
+
+                // 합산된 결과가 목표치보다 크면 목표치로 고정
+                if (newProgress > challenge.getTargetValue()) {
+                    newProgress = challenge.getTargetValue();
+                }
                 uc.setProgressValue(newProgress);
 
                 // 4. 목표 달성 시 상태 변경
