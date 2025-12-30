@@ -5,7 +5,7 @@ import { BottomNavBar } from '@/components/layout/BottomNavBar';
 import HomeScreen from '@/screens/Home/HomeScreen';
 import RecordScreen from '@/screens/records/RecordsScreen';
 import CourseScreen from '@/screens/Course/CourseScreen';
-import ChallengeScreen from '@/screens/Challange';
+import ChallengeScreen from '@/screens/Challenge';
 
 const Tab = createBottomTabNavigator();
 

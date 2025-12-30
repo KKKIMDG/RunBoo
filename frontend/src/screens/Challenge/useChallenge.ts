@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchUserChallengesByStatus } from "@/services/challenge/challengeService";
+import { fetchUserChallengesByStatus } from "@/services/challenge/ChallengeService";
 import type { UserChallengeDto } from "@/types/challenge";
 
 export interface Challenge {
