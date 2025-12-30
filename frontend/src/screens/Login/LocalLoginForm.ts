@@ -36,16 +36,23 @@ export const localLoginForm = (onLoginSuccess: (token: string) => void) => {
             return;
         }
 
-        const res = await AuthService.login({ email, password });
+        try {
+            const res = await AuthService.login({ email, password });
 
-        const decoded: any = jwtDecode(res.accessToken);
-        await AsyncStorage.setItem('accessToken', res.accessToken);
-        await AsyncStorage.setItem('userId', String(decoded.sub || decoded.id));
+            const decoded: any = jwtDecode(res.accessToken);
+            await AsyncStorage.setItem('accessToken', res.accessToken);
+            await AsyncStorage.setItem('userId', String(decoded.sub || decoded.id));
 
-        setAccessToken(res.accessToken);
-        onLoginSuccess(res.accessToken);
+            setAccessToken(res.accessToken);
+            onLoginSuccess(res.accessToken);
+
+        } catch (error: any) {
+            Alert.alert(
+                '로그인 실패',
+                error?.message ?? '이메일 또는 비밀번호가 올바르지 않습니다.'
+            );
+        }
     };
-
     /* =====================
        소셜 로그인 진입점
     ===================== */

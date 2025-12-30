@@ -2,11 +2,12 @@
 
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import type { PersonalBestsDto, RecordDto } from "../../../types/record";
+import type { PersonalBestsDto, RecordDto } from "@/types/record";
 import {
     formatDate,
     formatDuration,
     formatKm,
+    formatPace,
 } from "../../records/components/format";
 
 function Row({
@@ -60,7 +61,7 @@ export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
             <Row
                 title="최고 페이스"
                 record={bestPace}
-                valueText={bestPace ? "23.3 km/h" : "-"}
+                valueText={bestPace && bestPace.avgPace != null ? formatPace(bestPace.avgPace) : "-"}
                 accentColor="#111827"
             />
 

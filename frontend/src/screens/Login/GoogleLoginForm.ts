@@ -6,11 +6,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AuthService } from '@/services/auth/authService';
 import { setAccessToken } from '@/services/api';
-import { GOOGLE_CLIENT_ID } from '@env';
+import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID} from '@env';
 
 export const googleLoginForm = (onLoginSuccess: (token: string) => void) => {
     const [request, response, promptAsync] = Google.useAuthRequest({
-        clientId: GOOGLE_CLIENT_ID,
+        webClientId: GOOGLE_WEB_CLIENT_ID,
+        iosClientId: GOOGLE_IOS_CLIENT_ID,
+        androidClientId: GOOGLE_ANDROID_CLIENT_ID,
         scopes: ['email', 'profile'],
     });
 
@@ -35,6 +37,10 @@ export const googleLoginForm = (onLoginSuccess: (token: string) => void) => {
     }, [response]);
 
     return {
-        startGoogleLogin: () => promptAsync(),
+        // ▼▼▼ [수정] 에러 안 나게 빈 함수로 변경 ▼▼▼
+        startGoogleLogin: () => {
+            console.log("현재 구글 로그인은 테스트를 위해 비활성화 상태입니다.");
+            // promptAsync();
+        },
     };
 };

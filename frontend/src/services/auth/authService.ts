@@ -1,6 +1,7 @@
 // services/auth/authService.ts
 
-import { api } from '@/services/api';
+import {api, setAccessToken} from '@/services/api';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /** 로그인 요청 DTO */
 export interface LoginRequest {
@@ -82,5 +83,17 @@ export const AuthService = {
             provider: 'KAKAO',
             accessToken: kakaoAccessToken,
         });
+    },
+    /**
+     * 로그아웃
+     */
+    logout: async () => {
+        // 서버 로그아웃 API가 없어도 일단 클라이언트 로그아웃은 가능
+        await AsyncStorage.multiRemove([
+            'accessToken',
+            'userId',
+        ]);
+
+        setAccessToken(null); // 메모리에 들고 있던 토큰 제거
     },
 };

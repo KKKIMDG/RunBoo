@@ -119,7 +119,7 @@ const s = StyleSheet.create({
         backgroundColor: "#3A4A98",
     },
     barZero: {
-        backgroundColor: "#D1D5DB", // 연한 회색
+        backgroundColor: "#D1D5DB",
     },
     labelWrap: {
         marginTop: 8,

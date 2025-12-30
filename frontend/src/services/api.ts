@@ -1,5 +1,6 @@
 // services/api.ts
 import {API_BASE_URL} from "@env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const BASE_URL = API_BASE_URL;
 
@@ -56,27 +57,89 @@ const handleResponse = async (res: Response) => {
     return text ? JSON.parse(text) : null;
 };
 
+/**
+ * 인증토큰 재발급
+ */
+const refreshAccessToken = async (): Promise<string | null> => {
+    const refreshToken = await AsyncStorage.getItem('refreshToken');
+    if (!refreshToken) return null;
 
+    const res = await fetch(`${BASE_URL}/api/auth/token/reissue`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${refreshToken}`,
+        },
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    return data.accessToken ?? null;
+};
+
+/**
+ *
+ * @param input
+ * @param init
+ * @param retry
+ */
+const request = async (
+    input: RequestInfo,
+    init: RequestInit,
+    retry = true
+) => {
+    const res = await fetch(input, init);
+
+    // 정상 응답
+    if (res.status !== 401) {
+        return handleResponse(res);
+    }
+
+    // 재시도 불가 → 그대로 실패
+    if (!retry) {
+        throw { status: 401, message: '인증이 만료되었습니다.' };
+    }
+
+    // access token 재발급
+    const newAccessToken = await refreshAccessToken();
+    if (!newAccessToken) {
+        throw { status: 401, message: '로그인이 필요합니다.' };
+    }
+
+    await AsyncStorage.setItem('accessToken', newAccessToken);
+    setAccessToken(newAccessToken);
+
+    // 원래 요청 1회 재시도
+    return request(
+        input,
+        {
+            ...init,
+            headers: {
+                ...(init.headers || {}),
+                Authorization: `Bearer ${newAccessToken}`,
+            },
+        },
+        false
+    );
+};
 export const api = {
     /**
      * GET 요청
      */
     get: async (path: string) => {
-        const res = await fetch(`${BASE_URL}${path}`, {
+        return request(`${BASE_URL}${path}`, {
             method: 'GET',
             headers: {
                 ...getAuthHeader(),
             },
         });
-
-        return handleResponse(res);
     },
 
     /**
      * POST 요청
      */
     post: async <T>(path: string, data: T) => {
-        const res = await fetch(`${BASE_URL}${path}`, {
+        return request(`${BASE_URL}${path}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -84,15 +147,13 @@ export const api = {
             },
             body: JSON.stringify(data),
         });
-
-        return handleResponse(res);
     },
 
     /**
      * PUT 요청 (필요 시)
      */
     put: async <T>(path: string, data: T) => {
-        const res = await fetch(`${BASE_URL}${path}`, {
+        return request(`${BASE_URL}${path}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -100,21 +161,19 @@ export const api = {
             },
             body: JSON.stringify(data),
         });
-
-        return handleResponse(res);
     },
 
     /**
      * DELETE 요청 (필요 시)
      */
     delete: async (path: string) => {
-        const res = await fetch(`${BASE_URL}${path}`, {
+        return request(`${BASE_URL}${path}`, {
             method: 'DELETE',
             headers: {
                 ...getAuthHeader(),
             },
         });
 
-        return handleResponse(res);
     },
 };
+

@@ -74,4 +74,20 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 토큰 재발급(자동로그인)
+     * refresh 토큰
+     * POST /api/auth/token/reissue
+     */
+    @PostMapping("/token/reissue")
+    public ResponseEntity<TokenReissueResponse> reissue(
+            @RequestHeader("Authorization") String authorization
+    ){
+        String refreshToken = authorization.replace("Bearer ", "");
+        String newAccessToken = authService.reissueAccessToken(refreshToken);
+
+        return ResponseEntity.ok(
+                new TokenReissueResponse(newAccessToken)
+        );
+    }
 }

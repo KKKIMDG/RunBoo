@@ -1,3 +1,4 @@
+import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import BottomTabNavigator from "@/navigation/bottomTabs/BottomTabNavigator";
 
@@ -5,8 +6,8 @@ import SettingsScreen from "@/screens/Settings/SettingsScreen";
 import CourseDetailScreen from "@/screens/Course/CourseDetailScreen";
 import TierResultScreen from "@/screens/TierResult";
 import ProfileScreen from "@/screens/Profile/ProfileScreen";
-import React from "react";
-import BadgeCollectionModal from "@/screens/Badge/BadgeCollectionModal";
+import BadgeCollectionModal from "@/screens/Badge/BadgeCollectionModal"; // dabin 추가분
+import GhostRunScreen from "@/screens/ghost/GhostRunScreen"; // dev 추가분
 
 const Stack = createNativeStackNavigator();
 
@@ -17,17 +18,35 @@ export default function MainStack({ onLogout }: any) {
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
 
       {/* 탭 위로 올라오는 화면들 */}
-      <Stack.Screen name="Settings" component={SettingsScreen} />
+      
+      {/* 1. 설정 화면 (로그아웃 함수 전달 위해 render callback 사용) */}
+      <Stack.Screen name="Settings">
+        {(props) => (
+          <SettingsScreen
+            {...props}
+            onLogout={onLogout}
+          />
+        )}
+      </Stack.Screen>
+
+      {/* 2. 프로필 및 티어 결과 */}
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="TierResult" component={TierResultScreen} />
+      
+      {/* 3. 고스트 런 화면 (dev 브랜치 추가분) */}
+      <Stack.Screen name="GhostRun" component={GhostRunScreen} />
+
+      {/* 4. 뱃지 컬렉션 (dabin 브랜치 추가분 - 투명 모달) */}
       <Stack.Screen
         name="BadgeCollection"
         component={BadgeCollectionModal}
         options={{
-          presentation: "transparentModal", // 반투명 모달 설정
+          presentation: "transparentModal",
           animation: "fade_from_bottom",
         }}
       />
-      <Stack.Screen name="TierResult" component={TierResultScreen} />
+
+      {/* 5. 코스 상세 (투명 모달 설정 공통) */}
       <Stack.Screen
         name="CourseDetail"
         component={CourseDetailScreen}
