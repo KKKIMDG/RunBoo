@@ -27,6 +27,7 @@ export default function App() {
             if (token) {
                 setAccessToken(token);
                 setIsLoggedIn(true);
+                // ❗ 실제 인증은 API 호출 시 검증됨
             }
 
             setLoading(false);

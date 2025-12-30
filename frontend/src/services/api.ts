@@ -46,23 +46,33 @@ const handleResponse = async (res: Response) => {
 /**
  * 🔑 accessToken 재발급 (refreshToken 사용)
  * ⚠️ api/request 절대 사용 금지
+ *  동시 401 요청 잠금
  */
+let refreshingPromise: Promise<string | null> | null = null;
+
 const refreshAccessToken = async (): Promise<string | null> => {
-    const refreshToken = await AsyncStorage.getItem('refreshToken');
-    if (!refreshToken) return null;
+    if (refreshingPromise) return refreshingPromise;
 
-    const res = await fetch(`${BASE_URL}/api/auth/token/reissue`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${refreshToken}`,
-        },
-    });
+    refreshingPromise = (async () => {
+        const refreshToken = await AsyncStorage.getItem('refreshToken');
+        if (!refreshToken) return null;
 
-    if (!res.ok) return null;
+        const res = await fetch(`${BASE_URL}/api/auth/token/reissue`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${refreshToken}` },
+        });
 
-    const data = await res.json();
-    return data.accessToken ?? null;
+        if (!res.ok) return null;
+
+        const data = await res.json();
+        return data.accessToken ?? null;
+    })();
+
+    const token = await refreshingPromise;
+    refreshingPromise = null;
+    return token;
 };
+
 
 /**
  * 공통 request

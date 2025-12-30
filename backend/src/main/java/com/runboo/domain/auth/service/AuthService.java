@@ -1,6 +1,8 @@
 package com.runboo.domain.auth.service;
 
 import com.runboo.domain.auth.dto.*;
+import com.runboo.domain.auth.entity.RefreshToken;
+import com.runboo.domain.auth.repository.RefreshTokenRepository;
 import com.runboo.domain.user.dto.*;
 import com.runboo.domain.user.entity.User;
 import com.runboo.domain.user.enums.SocialProvider;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -23,6 +27,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailAuthService emailAuthService;
     private final SocialOAuthService socialOAuthService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     /**
      * 로컬 회원가입
@@ -53,8 +58,9 @@ public class AuthService {
     /**
      * 이메일 로그인
      */
+    @Transactional
     public LoginResponseDto loginByEmail(LocalLoginRequestDto request) {
-
+        System.out.println("LOGIN API CALLED");
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
                         new ResponseStatusException(
@@ -76,9 +82,16 @@ public class AuthService {
                     "이메일 또는 비밀번호가 올바르지 않습니다."
             );
         }
-
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+        Long userId = user.getId();
+        String accessToken = jwtTokenProvider.createAccessToken(userId);
+        String refreshToken = jwtTokenProvider.createRefreshToken(userId);
+        refreshTokenRepository.deleteByUserId(userId); //기존 refresh 토큰 삭제
+        RefreshToken entity = new RefreshToken( //refresh 토큰 재발급
+                userId,
+                refreshToken,
+                LocalDateTime.now().plusDays(14) // 만료 정책
+        );
+        refreshTokenRepository.save(entity); //refresh 토큰 저장
 
         return LoginResponseDto.from(user, accessToken, refreshToken);
     }
@@ -131,8 +144,16 @@ public class AuthService {
                         )
                 );
 
-        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+        Long userId = user.getId();
+        String accessToken = jwtTokenProvider.createAccessToken(userId);
+        String refreshToken = jwtTokenProvider.createRefreshToken(userId);
+        refreshTokenRepository.deleteByUserId(userId); //기존 refresh 토큰 삭제
+        RefreshToken entity = new RefreshToken( //refresh 토큰 재발급
+                userId,
+                refreshToken,
+                LocalDateTime.now().plusDays(14) // 만료 정책
+        );
+        refreshTokenRepository.save(entity); //refresh 토큰 저장
 
         return LoginResponseDto.from(user, accessToken, refreshToken);
     }
@@ -140,9 +161,10 @@ public class AuthService {
     /**
      * 토큰재발급
      */
+    @Transactional
     public String reissueAccessToken(String refreshToken) {
-
-        // 1. refresh token 유효성 검사
+        System.out.println("REISSUE API CALLED");
+        // 1. refresh token 서명 + 만료 검증
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
@@ -153,14 +175,24 @@ public class AuthService {
         // 2. refresh token에서 userId 추출
         Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
 
-        // 3. 사용자 존재 확인
-        userRepository.findById(userId)
+        // 3. DB에 저장된 refresh token 조회
+        RefreshToken savedToken = refreshTokenRepository
+                .findByUserId(userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED,
-                        "사용자 없음"
+                        "로그인 정보 없음"
                 ));
 
-        // 4. 새 access token 발급
+        // 4. 요청으로 온 refresh token과 DB 값 비교
+        if (!savedToken.getToken().equals(refreshToken)) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "refresh token 불일치"
+            );
+        }
+
+        // 5. 새 access token 발급
         return jwtTokenProvider.createAccessToken(userId);
     }
+
 }
