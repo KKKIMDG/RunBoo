@@ -154,8 +154,12 @@ export const styles = StyleSheet.create({
     width: "100%",
     marginTop: "auto",
     marginBottom: 40,
+    // ✅ 양옆 여백을 추가해서 버튼 넓이를 자연스럽게 줄입니다.
+    paddingHorizontal: 24,
+    alignItems: "center", // 내부 버튼들 중앙 정렬
   },
   button: {
+    // 이제 buttonGroup의 패딩을 제외한 나머지 100%를 차지하게 됩니다.
     width: "100%",
     height: 60,
     borderRadius: 18,
@@ -166,17 +170,14 @@ export const styles = StyleSheet.create({
 
     borderWidth: 1.5,
     borderColor: "rgba(0,0,0,0.12)",
-
     backgroundColor: "#FFF",
 
-    // iOS 그림자
+    // 그림자 추가 (선택 사항)
+    elevation: 2,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-
-    // Android 그림자
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   shareButton: {
     backgroundColor: "#000",
