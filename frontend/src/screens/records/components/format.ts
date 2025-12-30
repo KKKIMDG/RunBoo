@@ -1,29 +1,68 @@
-//frontend/src/screens/records/components/format.ts
+// frontend/src/screens/records/components/format.ts
 
 export function formatKm(distanceM: number) {
     const km = distanceM / 1000;
     return `${km.toFixed(1)} km`;
 }
 
+/* =========================
+   시간/날짜 유틸 (타임존 안전)
+   - Date 파싱 최소화
+   - ISO 문자열에서 필요한 부분만 추출
+ ========================= */
+
+function extractDate(iso: string) {
+    if (!iso) return null;
+    const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return null;
+    return { yyyy: m[1], mm: m[2], dd: m[3] };
+}
+
+function extractTime(iso: string) {
+    if (!iso) return null;
+    const m = String(iso).match(/T(\d{2}):(\d{2})/);
+    if (!m) return null;
+    return { hh: m[1], mm: m[2] };
+}
+
+/* =========================
+   날짜 표시 (YYYY.MM.DD)
+ ========================= */
+export function formatDate(iso: string) {
+    const d = extractDate(iso);
+    if (!d) return "-";
+    return `${d.yyyy}.${d.mm}.${d.dd}`;
+}
+
+/* =========================
+   시간 범위 (HH:mm ~ HH:mm)
+ ========================= */
+export function formatTimeRange(startIso: string, endIso: string) {
+    const s = extractTime(startIso);
+    const e = extractTime(endIso);
+    if (!s || !e) return "";
+    return `${s.hh}:${s.mm} ~ ${e.hh}:${e.mm}`;
+}
+
+/* =========================
+   실제 러닝 시간 (초 → 문자열)
+   ⚠️ 이건 "차이"이므로 Date 사용 OK
+ ========================= */
 export function formatDurationFromRange(startIso: string, endIso: string) {
+    if (!startIso || !endIso) return "-";
+
     const start = new Date(startIso);
     const end = new Date(endIso);
 
-    if (!startIso || !endIso || isNaN(start.getTime()) || isNaN(end.getTime())) return "-";
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "-";
 
     const sec = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
     return formatDuration(sec);
 }
 
-export function formatDurationSeconds(sec: number) {
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = sec % 60;
-
-    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-    return `${m}:${String(s).padStart(2, "0")}`;
-}
-
+/* =========================
+   페이스 (초/km)
+ ========================= */
 export function formatPace(avgPaceSecPerKm: number) {
     if (!Number.isFinite(avgPaceSecPerKm) || avgPaceSecPerKm <= 0) return "-";
 
@@ -34,25 +73,9 @@ export function formatPace(avgPaceSecPerKm: number) {
     return `${mm}:${String(ss).padStart(2, "0")} /km`;
 }
 
-export function formatDate(iso: string) {
-    const d = new Date(iso);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}.${mm}.${dd}`;
-}
-
-export function formatTimeRange(startIso: string, endIso: string) {
-    const start = new Date(startIso);
-    const end = new Date(endIso);
-
-    const hhmm = (x: Date) =>
-        `${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`;
-
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "";
-    return `${hhmm(start)} ~ ${hhmm(end)}`;
-}
-
+/* =========================
+   시간 포맷 (초 → 분/초 or 시간/분/초)
+ ========================= */
 export function formatDuration(durationSec: number) {
     if (!Number.isFinite(durationSec) || durationSec < 0) return "-";
 
@@ -63,4 +86,13 @@ export function formatDuration(durationSec: number) {
 
     if (h > 0) return `${h}시간 ${m}분 ${s}초`;
     return `${m}분 ${s}초`;
+}
+
+export function formatDurationSeconds(sec: number) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+
+    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return `${m}:${String(s).padStart(2, "0")}`;
 }

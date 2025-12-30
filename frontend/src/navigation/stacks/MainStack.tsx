@@ -1,11 +1,12 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabNavigator from '@/navigation/bottomTabs/BottomTabNavigator';
+import React from "react";
 
 import SettingsScreen from '@/screens/Settings/SettingsScreen';
 import CourseDetailScreen from '@/screens/Course/CourseDetailScreen';
 import TierResultScreen from '@/screens/TierResult';
 import ProfileScreen from "@/screens/Profile/ProfileScreen";
-import React from "react";
+import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +27,7 @@ export default function MainStack({ onLogout }: any) {
             </Stack.Screen>
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="TierResult" component={TierResultScreen} />
+            <Stack.Screen name="GhostRun" component={GhostRunScreen} />
             <Stack.Screen
                 name="CourseDetail"
                 component={CourseDetailScreen}
