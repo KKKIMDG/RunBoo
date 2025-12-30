@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -14,7 +15,7 @@ public class RecordDetailResponse {
     private Double distance;
     private String time;
     private String pace; // ✅ int에서 String으로 변경하여 "05:30" 형태로 반환
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
     public RecordDetailResponse(RunRecord record) {
         this.recordId = record.getId();
