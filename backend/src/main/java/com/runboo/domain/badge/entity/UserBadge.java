@@ -30,4 +30,10 @@ public class UserBadge {
 
     @Column(name = "acquired_at")
     private OffsetDateTime acquiredAt;
+
+    public UserBadge(User user, Badge badge) {
+        this.user = user;
+        this.badge = badge;
+        this.acquiredAt = OffsetDateTime.now();
+    }
 }

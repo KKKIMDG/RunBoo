@@ -17,4 +17,5 @@ public class UserChallengeDto {
     private OffsetDateTime startedAt;
     private OffsetDateTime completedAt;
     private int percentage;
+    private long remainingDays; // 남은 일수
 }

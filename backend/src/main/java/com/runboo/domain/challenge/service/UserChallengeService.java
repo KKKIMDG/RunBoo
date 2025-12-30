@@ -2,17 +2,22 @@ package com.runboo.domain.challenge.service;
 
 import com.runboo.domain.badge.dto.BadgeDto;
 import com.runboo.domain.badge.entity.Badge;
+import com.runboo.domain.badge.entity.UserBadge;
+import com.runboo.domain.badge.repository.UserBadgeRepository;
 import com.runboo.domain.challenge.dto.ChallengeDto;
 import com.runboo.domain.challenge.dto.UserChallengeDto;
 import com.runboo.domain.challenge.entity.Challenge;
 import com.runboo.domain.challenge.entity.UserChallenge;
 import com.runboo.domain.challenge.repository.UserChallengeRepository;
+import com.runboo.domain.user.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +27,7 @@ import java.util.stream.Collectors;
 public class UserChallengeService {
 
     private final UserChallengeRepository userChallengeRepository;
+    private final UserBadgeRepository userBadgeRepository; // 뱃지 부여를 위한 레포지토리 추가
 
     // 도전과제 조회 서비스
     public List<UserChallengeDto> getUserChallengeListByStatus(Long userId, String status){
@@ -78,6 +84,15 @@ public class UserChallengeService {
                 percent = 100;
             }
 
+            // 챌린지 종료일과 현재 날짜 사이의 차이 계산
+            // UserChallengeService.java 내부
+            long days = 0;
+            if (challenge != null && challenge.getEndedAt() != null) {
+                days = ChronoUnit.DAYS.between(LocalDate.now(), challenge.getEndedAt().toLocalDate());
+            }
+            // days가 음수(종료일 지남)가 나오는 것이 싫다면 아래 한 줄 추가
+                        days = Math.max(0, days);
+
             // 4. 최종적으로 UserChallengeDto를 만들어 리스트에 추가한다.
             UserChallengeDto ucDto = new UserChallengeDto(
                     entity.getId(),
@@ -87,7 +102,8 @@ public class UserChallengeService {
                     entity.getStatus(),
                     entity.getStartedAt(),
                     entity.getCompletedAt(),
-                    percent
+                    percent,
+                    days
             );
 
             dtos.add(ucDto);
@@ -95,7 +111,7 @@ public class UserChallengeService {
         return dtos;
     }
 
-    // 챌린지 타입에 따른 벨류를 받아 진행도 갱신
+    // 챌린지 타입에 따른 벨류를 받아 진행도 갱신 / 배지 부여
     @Transactional
     public void updateProgress(Long userId, String type, int value){
         // 1. 유저가 진행 중인 챌린지 중 해당 타입(TOTAL_DISTANCE 또는 STREAK_DAYS)만 가져온다.
@@ -121,7 +137,22 @@ public class UserChallengeService {
                     uc.setStatus("COMPLETED");
                     uc.setCompletedAt(OffsetDateTime.now());
                 }
+
+                // 3. 유저에게 뱃지 부여
+                Badge badge = challenge.getBadge();
+                if (badge != null) {
+                    giveBadgeToUser(uc.getUser(), badge);
+                }
             }
+        }
+    }
+    // 뱃지 부여 내부 메서드
+    private void giveBadgeToUser(User user, Badge badge) {
+        // 이미 해당 뱃지를 가지고 있는지 체크 (선택 사항)
+        if (!userBadgeRepository.existsByUserAndBadge(user, badge)) {
+            UserBadge userBadge = new UserBadge(user, badge);
+            userBadgeRepository.save(userBadge);
+            System.out.println(">>> [뱃지 획득] 유저: " + user.getNickname() + ", 뱃지: " + badge.getName());
         }
     }
 }
