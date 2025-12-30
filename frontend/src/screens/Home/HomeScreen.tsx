@@ -8,7 +8,7 @@ import { getStyles } from "./HomeScreen.styles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
 
-// ✅ Ghost 관련 임포트 (dev 버전)
+// ✅ Ghost related imports
 import GhostSelectSheet from "./components/GhostSelectSheet";
 import { fetchGhostProfiles } from "@/services/ghost/ghostService";
 import type { GhostProfileDto } from "@/types/ghost";
@@ -48,7 +48,7 @@ const ModeTab: FC<{
 };
 
 const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
-    // ✅ 1. useHomeScreen 훅에서 공통 상태와 목표 설정 로직 가져오기 (donggun 버전)
+    // ✅ 1. Get common state and target setting logic from useHomeScreen hook
     const {
         activeMode,
         handleModeChange,
@@ -63,11 +63,11 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
     const styles = getStyles(colorScheme);
     const colors = Colors[colorScheme];
-    
-    // 테마에 맞는 경계선 색상 (donggun 버전 수정 사항)
+
+    // Border color adjustment for theme
     const borderColor = colorScheme === 'dark' ? '#333333' : '#E0E0E0';
 
-    // ✅ 2. 고스트 모드 관련 로컬 상태 및 로직 (dev 버전)
+    // ✅ 2. Ghost Mode local state and logic
     const [ghostSheetOpen, setGhostSheetOpen] = useState(false);
     const [ghostLoading, setGhostLoading] = useState(false);
     const [ghostProfiles, setGhostProfiles] = useState<GhostProfileDto[]>([]);
@@ -83,7 +83,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         }
     }, [userId]);
 
-    // 고스트 모드로 변경 시 데이터 미리 로드
+    // Preload data when switching to Ghost Mode
     useEffect(() => {
         if (activeMode === "고스트") {
             loadGhostProfiles();
@@ -107,14 +107,14 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
             <TopNavBar onLeftPress={() => navigation?.navigate("Profile")} />
 
             <View style={styles.content}>
-                {/* 1. 모드 선택 탭 */}
+                {/* 1. Mode Selection Tab */}
                 <View style={styles.tabContainer}>
                     <ModeTab mode="측정" activeMode={activeMode} onPress={handleModeChange} icon="timer-outline" scheme={colorScheme} />
                     <ModeTab mode="티어" activeMode={activeMode} onPress={handleModeChange} icon="ribbon-outline" scheme={colorScheme} />
                     <ModeTab mode="고스트" activeMode={activeMode} onPress={handleModeChange} icon="body-outline" scheme={colorScheme} />
                 </View>
 
-                {/* 2. 지도 영역 */}
+                {/* 2. Map Area */}
                 <View style={styles.mapBox}>
                     <View style={styles.mapContent}>
                         <Text style={styles.mapPlaceholderText}>카카오맵 영역</Text>
@@ -133,10 +133,10 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                     </View>
                 </View>
 
-                {/* 3. 하단 버튼 섹션 (모드에 따라 분기 처리) */}
+                {/* 3. Bottom Button Section (Conditional Rendering) */}
                 <View style={styles.buttonSection}>
                     {activeMode === "고스트" ? (
-                        // ✅ A. 고스트 모드일 때: “고스트 선택” 버튼 (dev 버전)
+                        // ✅ A. Ghost Mode: "Select Ghost" Button
                         <TouchableOpacity
                             style={[styles.blackButton, styles.startBtn]}
                             onPress={openGhostSheet}
@@ -148,9 +148,9 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                             </View>
                         </TouchableOpacity>
                     ) : (
-                        // ✅ B. 측정/티어 모드일 때: “목표 설정” 및 “러닝 시작” 버튼 (donggun 버전)
+                        // ✅ B. Normal/Tier Mode: "Set Goal" & "Start Run" Buttons
                         <>
-                            {/* (1) 목표 설정 버튼 */}
+                            {/* (1) Goal Setting Button */}
                             <TouchableOpacity
                                 style={styles.blackButton}
                                 onPress={toggleGoalPicker}
@@ -167,7 +167,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                                 />
                             </TouchableOpacity>
 
-                            {/* (2) 목표 선택 드롭다운 리스트 */}
+                            {/* (2) Goal Selection Dropdown */}
                             {isGoalPickerOpen && (
                                 <View style={{
                                     backgroundColor: colors.card,
@@ -201,7 +201,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                                 </View>
                             )}
 
-                            {/* (3) 러닝 시작 버튼 */}
+                            {/* (3) Start Run Button */}
                             <TouchableOpacity
                                 style={[styles.blackButton, styles.startBtn]}
                                 onPress={handleStartRun}
@@ -217,240 +217,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                 </View>
             </View>
 
-            {/* ✅ 고스트 선택 바텀시트 (dev 버전) */}
-            <GhostSelectSheet
-                visible={ghostSheetOpen}
-                scheme={colorScheme}
-                loading={ghostLoading}
-                data={ghostProfiles}
-                onClose={() => setGhostSheetOpen(false)}
-                onSelect={handleSelectGhost}
-                onRefresh={loadGhostProfiles}
-            />
-        </SafeAreaView>
-    );
-};
-
-export default HomeScreen;import React, { FC, useEffect, useState, useCallback } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { TopNavBar } from "@/components/layout/TopNavBar";
-import { useHomeScreen, RunningMode } from "./useHomeScreen";
-import { getStyles } from "./HomeScreen.styles";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Colors } from "@/constants/theme";
-
-// ✅ Ghost 관련 임포트 (dev 버전)
-import GhostSelectSheet from "./components/GhostSelectSheet";
-import { fetchGhostProfiles } from "@/services/ghost/ghostService";
-import type { GhostProfileDto } from "@/types/ghost";
-import { DEFAULT_USER_ID } from "@/constants/env";
-
-type HomeScreenProps = {
-    navigation?: { navigate: (screen: string, params?: any) => void };
-    onLogout?: () => void;
-};
-
-const ModeTab: FC<{
-    mode: RunningMode;
-    activeMode: RunningMode;
-    onPress: (mode: RunningMode) => void;
-    icon: keyof typeof Ionicons.glyphMap;
-    scheme: "light" | "dark";
-}> = ({ mode, activeMode, onPress, icon, scheme }) => {
-    const styles = getStyles(scheme);
-    const colors = Colors[scheme];
-    return (
-        <TouchableOpacity
-            style={[styles.tabButton, activeMode === mode && styles.activeTab]}
-            onPress={() => onPress(mode)}
-        >
-            <View style={styles.tabItemContent}>
-                <Ionicons
-                    name={icon}
-                    size={18}
-                    color={activeMode === mode ? colors.background : colors.icon}
-                />
-                <Text style={[styles.tabText, activeMode === mode && styles.activeTabText]}>
-                    {mode}
-                </Text>
-            </View>
-        </TouchableOpacity>
-    );
-};
-
-const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
-    // ✅ 1. useHomeScreen 훅에서 공통 상태와 목표 설정 로직 가져오기 (donggun 버전)
-    const {
-        activeMode,
-        handleModeChange,
-        isGoalPickerOpen,
-        selectedGoal,
-        goalOptions,
-        toggleGoalPicker,
-        handleSelectGoal,
-        handleStartRun
-    } = useHomeScreen();
-
-    const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
-    const styles = getStyles(colorScheme);
-    const colors = Colors[colorScheme];
-    
-    // 테마에 맞는 경계선 색상 (donggun 버전 수정 사항)
-    const borderColor = colorScheme === 'dark' ? '#333333' : '#E0E0E0';
-
-    // ✅ 2. 고스트 모드 관련 로컬 상태 및 로직 (dev 버전)
-    const [ghostSheetOpen, setGhostSheetOpen] = useState(false);
-    const [ghostLoading, setGhostLoading] = useState(false);
-    const [ghostProfiles, setGhostProfiles] = useState<GhostProfileDto[]>([]);
-    const userId = DEFAULT_USER_ID;
-
-    const loadGhostProfiles = useCallback(async () => {
-        setGhostLoading(true);
-        try {
-            const data = await fetchGhostProfiles(userId);
-            setGhostProfiles(data);
-        } finally {
-            setGhostLoading(false);
-        }
-    }, [userId]);
-
-    // 고스트 모드로 변경 시 데이터 미리 로드
-    useEffect(() => {
-        if (activeMode === "고스트") {
-            loadGhostProfiles();
-        }
-    }, [activeMode, loadGhostProfiles]);
-
-    const openGhostSheet = async () => {
-        setGhostSheetOpen(true);
-        if (ghostProfiles.length === 0 && !ghostLoading) {
-            await loadGhostProfiles();
-        }
-    };
-
-    const handleSelectGhost = (gp: GhostProfileDto) => {
-        setGhostSheetOpen(false);
-        navigation?.navigate("GhostRun", { ghost: gp });
-    };
-
-    return (
-        <SafeAreaView style={styles.safeArea}>
-            <TopNavBar onLeftPress={() => navigation?.navigate("Profile")} />
-
-            <View style={styles.content}>
-                {/* 1. 모드 선택 탭 */}
-                <View style={styles.tabContainer}>
-                    <ModeTab mode="측정" activeMode={activeMode} onPress={handleModeChange} icon="timer-outline" scheme={colorScheme} />
-                    <ModeTab mode="티어" activeMode={activeMode} onPress={handleModeChange} icon="ribbon-outline" scheme={colorScheme} />
-                    <ModeTab mode="고스트" activeMode={activeMode} onPress={handleModeChange} icon="body-outline" scheme={colorScheme} />
-                </View>
-
-                {/* 2. 지도 영역 */}
-                <View style={styles.mapBox}>
-                    <View style={styles.mapContent}>
-                        <Text style={styles.mapPlaceholderText}>카카오맵 영역</Text>
-                    </View>
-                    <TouchableOpacity style={styles.zoomBtn}>
-                        <Ionicons name="eye-outline" size={22} color={colors.text} />
-                    </TouchableOpacity>
-                    <View style={styles.mapBottomRow}>
-                        <View style={styles.userCount}>
-                            <Ionicons name="people-outline" size={16} color={colors.primary} />
-                            <Text style={styles.countText}>5</Text>
-                        </View>
-                        <TouchableOpacity>
-                            <Text style={styles.detailText}>자세히 보기</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
-                {/* 3. 하단 버튼 섹션 (모드에 따라 분기 처리) */}
-                <View style={styles.buttonSection}>
-                    {activeMode === "고스트" ? (
-                        // ✅ A. 고스트 모드일 때: “고스트 선택” 버튼 (dev 버전)
-                        <TouchableOpacity
-                            style={[styles.blackButton, styles.startBtn]}
-                            onPress={openGhostSheet}
-                            activeOpacity={0.9}
-                        >
-                            <View style={styles.buttonContentCentered}>
-                                <Ionicons name="body-outline" size={22} color={colors.background} />
-                                <Text style={[styles.buttonTextMain, { marginLeft: 8 }]}>고스트 선택</Text>
-                            </View>
-                        </TouchableOpacity>
-                    ) : (
-                        // ✅ B. 측정/티어 모드일 때: “목표 설정” 및 “러닝 시작” 버튼 (donggun 버전)
-                        <>
-                            {/* (1) 목표 설정 버튼 */}
-                            <TouchableOpacity
-                                style={styles.blackButton}
-                                onPress={toggleGoalPicker}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.buttonTextMain}>
-                                    {selectedGoal.value === 0 ? "목표 설정" : selectedGoal.label}
-                                </Text>
-                                <Ionicons
-                                    name={isGoalPickerOpen ? "chevron-up" : "chevron-down"}
-                                    size={22}
-                                    color={colors.background}
-                                    style={styles.chevronIcon}
-                                />
-                            </TouchableOpacity>
-
-                            {/* (2) 목표 선택 드롭다운 리스트 */}
-                            {isGoalPickerOpen && (
-                                <View style={{
-                                    backgroundColor: colors.card,
-                                    borderRadius: 20,
-                                    marginBottom: 10,
-                                    overflow: 'hidden',
-                                    width: '100%',
-                                    borderWidth: 1,
-                                    borderColor: borderColor
-                                }}>
-                                    {goalOptions.map((option, index) => (
-                                        <TouchableOpacity
-                                            key={index}
-                                            onPress={() => handleSelectGoal(option)}
-                                            style={{
-                                                paddingVertical: 15,
-                                                alignItems: 'center',
-                                                borderBottomWidth: index === goalOptions.length - 1 ? 0 : 1,
-                                                borderBottomColor: borderColor
-                                            }}
-                                        >
-                                            <Text style={{
-                                                color: selectedGoal.value === option.value ? '#4A6EA9' : colors.text,
-                                                fontWeight: 'bold',
-                                                fontSize: 16
-                                            }}>
-                                                {option.label}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            )}
-
-                            {/* (3) 러닝 시작 버튼 */}
-                            <TouchableOpacity
-                                style={[styles.blackButton, styles.startBtn]}
-                                onPress={handleStartRun}
-                                activeOpacity={0.8}
-                            >
-                                <View style={styles.buttonContentCentered}>
-                                    <Ionicons name="play" size={24} color={colors.background} />
-                                    <Text style={[styles.buttonTextMain, { marginLeft: 8 }]}>러닝 시작</Text>
-                                </View>
-                            </TouchableOpacity>
-                        </>
-                    )}
-                </View>
-            </View>
-
-            {/* ✅ 고스트 선택 바텀시트 (dev 버전) */}
+            {/* ✅ Ghost Select Bottom Sheet */}
             <GhostSelectSheet
                 visible={ghostSheetOpen}
                 scheme={colorScheme}

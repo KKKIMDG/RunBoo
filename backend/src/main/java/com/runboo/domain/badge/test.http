@@ -1,0 +1,3 @@
+### 4. 완료된 챌린지 목록 조회 (목표 달성 후 확인)
+GET http://localhost:8080/api/user-badges/1
+Accept: application/json

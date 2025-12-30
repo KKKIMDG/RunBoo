@@ -1,231 +1,150 @@
-import React from 'react';
+import React, { useRef } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   Image,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+  ActivityIndicator,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import RunningStatsSummary from "@/components/RunningStatsSummary";
 
-import { styles } from './TierResult.styles';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import BackButton from '@/components/ui/BackButton';
+import { styles } from "./TierResult.styles";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { TIER_THEMES } from "./TierResult.constants";
+import { TIER_IMAGES } from "@/constants/TierImages";
+import { useTierResult } from "./useTierResult";
 
-import { TIER_ID_MAP, TIER_THEMES, TierKey } from './TierResult.constants';
-import { TIER_IMAGES } from '@/constants/TierImages';
+const TierResultScreen = ({ navigation, route }: any) => {
+  // 1. 캡처를 위한 Ref 생성
+  const viewRef = useRef<View>(null);
+  const colorScheme = useColorScheme() ?? "light";
 
-/**
- * ======================================================
- * 🔧 더미 티어 / 결과 데이터 (API 미연결 상태)
- * ======================================================
- */
+  // 2. 커스텀 훅 연결 (viewRef 전달)
+  const { tierName, tierData, recordData, loading, error, handleShare } =
+    useTierResult(navigation, route, viewRef);
 
-// TODO(API): 서버에서 계산된 티어 키를 받아오도록 변경
-// TODO(API): 서버 응답
-const apiTierId = 2; // 예: 서버에서 내려온 숫자
+  // 로딩 상태 처리
+  if (loading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#3A4A98" />
+      </View>
+    );
+  }
 
-// 변환
-const tierKey: TierKey =
-  TIER_ID_MAP[apiTierId];
+  // 데이터 로드 실패 시 예외 처리
+  if (error || !tierName) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <Text style={{ color: "#999", marginBottom: 20 }}>
+          데이터를 불러올 수 없습니다.
+        </Text>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={{ color: "#3A4A98", fontWeight: "bold" }}>뒤로가기</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
-// TODO(API): 러닝 결과를 서버에서 조회하도록 변경
-const DUMMY_RESULT = {
-  distance: '5.24',
-  time: '25:34',
-  pace: `4'52"`,
-  points: 150,
-};
-
-const TierResultScreen = ({ navigation }: any) => {
-  const colorScheme = useColorScheme() ?? 'light';
-
-  /**
-   * ======================================================
-   * 🔧 더미 데이터 사용
-   * ======================================================
-   */
-  const theme = TIER_THEMES[tierKey];
-  const tierImage = TIER_IMAGES[tierKey];
-
-  console.log('티어 키', tierKey);
-  console.log('이미지 경로', tierImage);
+  const theme = TIER_THEMES[tierName];
+  const tierImage = TIER_IMAGES[tierName];
 
   return (
     <View style={styles.container}>
-      {/* ================= 배경 그라데이션 ================= */}
-      <LinearGradient
-        colors={theme.colors}
-        style={styles.gradient}
-      />
-
-      <LinearGradient
-        colors={['rgba(255,255,255,0.7)', 'transparent']}
-        style={styles.shineGradient}
-      />
-
-      {/* ================= 상단 티어 영역 ================= */}
-      <View style={styles.topSection}>
-        <View
-          style={[
-            styles.tierLabelBox,
-            { backgroundColor: theme.point },
-          ]}
-        >
-          <Text style={styles.tierTitle}>
-            티어측정 결과
-          </Text>
-        </View>
-
-        <Text style={styles.tierName}>
-          {theme.label}
-        </Text>
-
-        <View style={styles.ghostContainer}>
-          <View style={styles.tierImageGlow} />
-          {tierImage && (
-            <Image
-              source={tierImage}
-              style={styles.tierImage}
-            />
-          )}
-        </View>
-      </View>
-
-      {/* ================= 하단 분석 영역 ================= */}
-      <View style={styles.bottomSheet}>
-        <View style={styles.analysisHeader}>
-          <View
-            style={[
-              styles.checkBadge,
-              { backgroundColor: theme.colors[1] },
-            ]}
-          >
-            <Text style={styles.checkText}>
-              CHECK
-            </Text>
-          </View>
-          <Text style={styles.analysisTitle}>
-            러닝 측정 분석
-          </Text>
-        </View>
-
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Ionicons
-              name="map-outline"
-              size={20}
-              color="#999"
-            />
-            <Text style={styles.statLabel}>
-              거리
-            </Text>
-            <Text style={styles.statValue}>
-              {DUMMY_RESULT.distance}
-              <Text style={styles.statUnit}> km</Text>
-            </Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Ionicons
-              name="time-outline"
-              size={20}
-              color="#999"
-            />
-            <Text style={styles.statLabel}>
-              시간
-            </Text>
-            <Text style={styles.statValue}>
-              {DUMMY_RESULT.time}
-            </Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Ionicons
-              name="speedometer-outline"
-              size={20}
-              color="#999"
-            />
-            <Text style={styles.statLabel}>
-              페이스
-            </Text>
-            <Text
-              style={[
-                styles.statValue,
-                styles.paceValue,
-                { color: theme.colors[1] },
-              ]}
-            >
-              {DUMMY_RESULT.pace}
-              <Text style={styles.statUnit}> /km</Text>
-            </Text>
-          </View>
-        </View>
-
-        {/* ================= 버튼 영역 ================= */}
-        <View style={styles.buttonGroup}>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.shareButton,
-              { backgroundColor: theme.colors[1] },
-            ]}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name="share-social"
-              size={20}
-              color="#FFF"
-            />
-            <Text
-              style={[
-                styles.buttonText,
-                styles.whiteText,
-              ]}
-            >
-              기록 자랑하기
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.homeButton,
-            ]}
-            onPress={() => navigation.navigate('Home')}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name="home-outline"
-              size={20}
-              color={
-                colorScheme === 'dark'
-                  ? '#FFF'
-                  : '#000'
-              }
-            />
-            <Text
-              style={[
-                styles.buttonText,
-                styles.blackText,
-              ]}
-            >
-              홈으로 돌아가기
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* ================= 백 버튼 ================= */}
+      {/* 📸 [캡처 영역 시작] viewRef가 감싸는 부분만 이미지로 저장됩니다. */}
       <View
-        style={{
-          position: 'absolute',
-          top: 50,
-          left: 20,
-          zIndex: 100,
-        }}
+        ref={viewRef}
+        collapsable={false}
+        style={{ flex: 1, backgroundColor: theme.colors[0] }}
       >
-        <BackButton />
+        {/* 배경 그라데이션 및 효과 */}
+        <LinearGradient colors={theme.colors} style={styles.gradient} />
+        <LinearGradient
+          colors={["rgba(255,255,255,0.7)", "transparent"]}
+          style={styles.shineGradient}
+          pointerEvents="none"
+        />
+
+        {/* 상단: 티어 이미지 및 결과 명칭 */}
+        <View style={styles.topSection}>
+          <View style={[styles.tierLabelBox, { backgroundColor: theme.point }]}>
+            <Text style={styles.tierTitle}>티어 측정 결과</Text>
+          </View>
+
+          <Text style={styles.tierName}>{theme.label}</Text>
+
+          <View style={styles.ghostContainer}>
+            <View style={styles.tierImageGlow} />
+            {tierImage && <Image source={tierImage} style={styles.tierImage} />}
+          </View>
+        </View>
+
+        {/* 하단: 기록 분석 대시보드 */}
+        <View style={styles.bottomSheet}>
+          <View style={styles.analysisHeader}>
+            <View
+              style={[styles.checkBadge, { backgroundColor: theme.colors[1] }]}
+            >
+              <Text style={styles.checkText}>CHECK</Text>
+            </View>
+            <Text style={styles.analysisTitle}>러닝 측정 분석</Text>
+          </View>
+
+          {/* RunningStatsSummary 데이터 연결 */}
+          <RunningStatsSummary
+            distance={
+              recordData?.distance
+                ? (recordData.distance / 1000).toFixed(2)
+                : "-"
+            }
+            time={recordData?.time ?? "-"}
+            pace={recordData?.pace ? String(recordData.pace) : "-"}
+          />
+        </View>
+      </View>
+      {/* 📸 [캡처 영역 끝] */}
+
+      {/* 🚫 [캡처 제외 영역] 버튼들은 viewRef 외부에 배치하여 이미지에 포함되지 않게 합니다. */}
+      <View style={styles.buttonGroup}>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            styles.shareButton,
+            { backgroundColor: theme.colors[1] },
+          ]}
+          onPress={handleShare}
+        >
+          <Ionicons name="share-social" size={20} color="#FFF" />
+          <Text
+            style={[styles.buttonText, styles.whiteText, { marginLeft: 8 }]}
+          >
+            기록 자랑하기
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate("MainTabs")}
+        >
+          <Ionicons
+            name="home-outline"
+            size={20}
+            color={colorScheme === "dark" ? "#FFF" : "#000"}
+          />
+          <Text style={[styles.buttonText, { marginLeft: 8 }]}>홈으로</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
