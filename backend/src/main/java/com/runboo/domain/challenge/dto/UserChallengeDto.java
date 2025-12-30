@@ -16,4 +16,5 @@ public class UserChallengeDto {
     private String status;
     private OffsetDateTime startedAt;
     private OffsetDateTime completedAt;
+    private int percentage;
 }

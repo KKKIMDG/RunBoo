@@ -33,15 +33,18 @@ public class UserChallenge {
     @JoinColumn(name = "badge_id")
     private Badge badge;
 
+    @Setter
     @Column(name = "progress_value")
     private int progressValue;
 
+    @Setter
     @Column(name = "status")
     private String status;
 
     @Column(name = "started_at")
     private OffsetDateTime startedAt;
 
+    @Setter
     @Column(name = "completed_at")
     private OffsetDateTime completedAt;
 

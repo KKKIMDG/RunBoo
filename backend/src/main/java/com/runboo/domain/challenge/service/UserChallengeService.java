@@ -10,6 +10,7 @@ import com.runboo.domain.challenge.repository.UserChallengeRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ public class UserChallengeService {
 
     private  UserChallengeRepository userChallengeRepository;
 
+    // 도전과제 조회 서비스
     public List<UserChallengeDto> getUserChallengeListByStatus(Long userId, String status){
         List<UserChallenge> entities = userChallengeRepository.findAllByUserIdAndStatus(userId, status);
         List<UserChallengeDto> dtos = new ArrayList<>();
@@ -53,6 +55,18 @@ public class UserChallengeService {
                     bDto
                     );
 
+            // 1. 퍼센트 계산 (기초 문법 버전)
+            int target = challenge.getTargetValue(); // 목표치
+            int current = entity.getProgressValue(); // 현재 진행도
+
+            // 정수 나눗셈은 0이 될 수 있으므로 double로 형변환 후 계산
+            int percent = (int) ((double) current / target * 100);
+
+            // 100%가 넘지 않도록 처리
+            if (percent > 100) {
+                percent = 100;
+            }
+
             // 4. 최종적으로 UserChallengeDto를 만들어 리스트에 추가한다.
             UserChallengeDto ucDto = new UserChallengeDto(
                     entity.getId(),
@@ -61,11 +75,37 @@ public class UserChallengeService {
                     entity.getProgressValue(),
                     entity.getStatus(),
                     entity.getStartedAt(),
-                    entity.getCompletedAt()
+                    entity.getCompletedAt(),
+                    percent
             );
 
             dtos.add(ucDto);
         }
         return dtos;
+    }
+
+    // 챌린지 타입에 따른 벨류를 받아 진행도 갱신
+    @Transactional
+    public void updateProgress(Long userId, String type, int value){
+        // 1. 유저가 진행 중인 챌린지 중 해당 타입(TOTAL_DISTANCE 또는 STREAK_DAYS)만 가져온다.
+        List<UserChallenge> ongoingList = userChallengeRepository.findAllByUserIdAndStatus(userId, "IN_PROGRESS");
+
+        for (UserChallenge uc : ongoingList) {
+            Challenge challenge = uc.getChallenge();
+
+            // 챌린지 타입이 맞는지 확인 (예: 타입이 TOTAL_DISTANCE인 것만 거리 업데이트) | 타입이 일치하는 경우에만 수치 갱신
+            if(challenge.getTargetType().equals(type)){
+
+                // 2. 현재 진행도 업데이트
+                int newProgress = uc.getProgressValue() + value;
+                uc.setProgressValue(newProgress);
+
+                // 4. 목표 달성 시 상태 변경
+                if(newProgress >= challenge.getTargetValue()){
+                    uc.setStatus("COMPLETED");
+                    uc.setCompletedAt(OffsetDateTime.now());
+                }
+            }
+        }
     }
 }
