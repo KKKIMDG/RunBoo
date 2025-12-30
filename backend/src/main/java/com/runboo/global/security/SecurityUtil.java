@@ -28,7 +28,7 @@ public class SecurityUtil {
 
         // JWT 인증에서 custom UserDetails를 사용하는 경우
         if (principal instanceof CustomUserDetails userDetails) {
-            return userDetails.getid();
+            return userDetails.getUserId();
         }
 
         // 기본 UserDetails (혹시 모를 fallback)
