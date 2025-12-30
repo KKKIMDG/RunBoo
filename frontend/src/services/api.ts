@@ -85,8 +85,8 @@ const request = async (
 ) => {
     const res = await fetch(input, init);
 
-    // ✅ 401만 특별 취급
-    if (res.status !== 401) {
+    // 401,403은 특별 취급
+    if (res.status !== 401  && res.status !== 403) {
         return handleResponse(res);
     }
 
@@ -114,15 +114,16 @@ const request = async (
         input,
         {
             ...init,
-            headers: {
-                ...(init.headers || {}),
-                Authorization: `Bearer ${newAccessToken}`,
-            },
+            headers: mergeHeaders(init.headers, newAccessToken),
         },
         false
     );
 };
-
+const mergeHeaders = (oldHeaders: RequestInit['headers'], token: string) => {
+    const headers = new Headers(oldHeaders || {});
+    headers.set('Authorization', `Bearer ${token}`);
+    return headers;
+};
 export const api = {
     get: async (path: string) => {
         return request(`${BASE_URL}${path}`, {
