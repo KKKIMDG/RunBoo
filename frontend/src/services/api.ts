@@ -1,6 +1,6 @@
 // services/api.ts
-import {API_BASE_URL} from "@env";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE_URL } from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = API_BASE_URL;
 
@@ -10,27 +10,21 @@ let accessToken: string | null = null;
  * 인증 토큰 설정 (로그인 / 로그아웃 시 호출)
  */
 export const setAccessToken = (token: string | null) => {
-    // null, undefined, 빈 문자열 방어
     accessToken = token && token.trim() !== '' ? token : null;
 };
 
 /**
  * Authorization 헤더 생성
- * - 토큰이 있을 때만 붙인다
  */
 const getAuthHeader = (): Record<string, string> => {
     if (!accessToken) return {};
-    return {
-        Authorization: `Bearer ${accessToken}`,
-    };
+    return { Authorization: `Bearer ${accessToken}` };
 };
 
 /**
  * 공통 응답 처리
- * - body 없는 200 OK 대응
  */
 const handleResponse = async (res: Response) => {
-    // 에러 응답 처리
     if (!res.ok) {
         let message = '요청에 실패했습니다.';
 
@@ -38,27 +32,20 @@ const handleResponse = async (res: Response) => {
             const text = await res.text();
             if (text) {
                 const body = JSON.parse(text);
-                if (body?.message) {
-                    message = body.message;
-                }
+                if (body?.message) message = body.message;
             }
-        } catch (_) {
-            // JSON 파싱 실패 시 기본 메시지 유지
-        }
+        } catch (_) {}
 
-        throw {
-            status: res.status,
-            message,
-        };
+        throw { status: res.status, message };
     }
 
-    // 성공 응답 처리 (body 없는 경우 대응)
     const text = await res.text();
     return text ? JSON.parse(text) : null;
 };
 
 /**
- * 인증토큰 재발급
+ * 🔑 accessToken 재발급 (refreshToken 사용)
+ * ⚠️ api/request 절대 사용 금지
  */
 const refreshAccessToken = async (): Promise<string | null> => {
     const refreshToken = await AsyncStorage.getItem('refreshToken');
@@ -78,10 +65,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
 };
 
 /**
- *
- * @param input
- * @param init
- * @param retry
+ * 공통 request
  */
 const request = async (
     input: RequestInfo,
@@ -90,17 +74,17 @@ const request = async (
 ) => {
     const res = await fetch(input, init);
 
-    // 정상 응답
+    // ✅ 401만 특별 취급
     if (res.status !== 401) {
         return handleResponse(res);
     }
 
-    // 재시도 불가 → 그대로 실패
+    // 재시도 불가
     if (!retry) {
         throw { status: 401, message: '인증이 만료되었습니다.' };
     }
 
-    // access token 재발급
+    // 🔄 토큰 재발급
     const newAccessToken = await refreshAccessToken();
     if (!newAccessToken) {
         throw { status: 401, message: '로그인이 필요합니다.' };
@@ -122,10 +106,8 @@ const request = async (
         false
     );
 };
+
 export const api = {
-    /**
-     * GET 요청
-     */
     get: async (path: string) => {
         return request(`${BASE_URL}${path}`, {
             method: 'GET',
@@ -135,9 +117,6 @@ export const api = {
         });
     },
 
-    /**
-     * POST 요청
-     */
     post: async <T>(path: string, data: T) => {
         return request(`${BASE_URL}${path}`, {
             method: 'POST',
@@ -149,9 +128,6 @@ export const api = {
         });
     },
 
-    /**
-     * PUT 요청 (필요 시)
-     */
     put: async <T>(path: string, data: T) => {
         return request(`${BASE_URL}${path}`, {
             method: 'PUT',
@@ -163,9 +139,6 @@ export const api = {
         });
     },
 
-    /**
-     * DELETE 요청 (필요 시)
-     */
     delete: async (path: string) => {
         return request(`${BASE_URL}${path}`, {
             method: 'DELETE',
@@ -173,7 +146,5 @@ export const api = {
                 ...getAuthHeader(),
             },
         });
-
     },
 };
-

@@ -2,20 +2,20 @@ package com.runboo.global.jwt;
 
 import com.runboo.domain.user.entity.User;
 import com.runboo.domain.user.repository.UserRepository;
+import com.runboo.global.security.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
-
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -43,16 +43,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                // 3. 사용자 식별
+                // 3. 토큰에서 userId 추출
                 Long userId = jwtTokenProvider.getUserIdFromToken(token);
+
                 User user = userRepository.findById(userId).orElseThrow();
 
-                // 4. SecurityContext에 인증 주입
+                // 4. 권한 (지금은 고정)
+                List<SimpleGrantedAuthority> authorities =
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"));
+
+                // 5. ★ CustomUserDetails 생성 (핵심)
+                CustomUserDetails userDetails =
+                        new CustomUserDetails(
+                                user.getId(),
+                                user.getEmail(),
+                                authorities
+                        );
+
+                // 6. ★ principal에 userDetails 주입
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                user,
+                                userDetails,
                                 null,
-                                List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                                userDetails.getAuthorities()
                         );
 
                 authentication.setDetails(
@@ -64,13 +77,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             } catch (Exception e) {
                 // 토큰 문제면 인증 없이 통과
+                SecurityContextHolder.clearContext();
             }
         }
 
         filterChain.doFilter(request, response);
     }
-
-
 
     private String resolveToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
