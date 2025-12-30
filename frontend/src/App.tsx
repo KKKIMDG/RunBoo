@@ -7,6 +7,7 @@ import { Colors } from '@/constants/theme';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {AuthService} from "@/services/auth/authService";
+import {authEventBus} from "@/services/auth/authEvents";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -16,8 +17,8 @@ export default function App() {
     const [loading, setLoading] = useState(true);
 
     const handleLogout = async () => {
+        setIsLoggedIn(false); // 화면 전환 트리거
         await AuthService.logout();
-        setIsLoggedIn(false); // ← 이 한 줄이 화면 전환 트리거
     };
 
     useEffect(() => {
@@ -34,6 +35,15 @@ export default function App() {
         };
 
         restoreLogin();
+    }, []);
+
+    //전역 자동 로그아웃
+    useEffect(() => {
+        const unsubscribe = authEventBus.subscribe(() => {
+            handleLogout();
+        });
+
+        return unsubscribe;
     }, []);
 
     const handleLoginSuccess = (token: string) => {

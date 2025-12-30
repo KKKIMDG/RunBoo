@@ -60,7 +60,7 @@ public class AuthService {
      */
     @Transactional
     public LoginResponseDto loginByEmail(LocalLoginRequestDto request) {
-        System.out.println("LOGIN API CALLED");
+
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
                         new ResponseStatusException(
@@ -85,11 +85,16 @@ public class AuthService {
         Long userId = user.getId();
         String accessToken = jwtTokenProvider.createAccessToken(userId);
         String refreshToken = jwtTokenProvider.createRefreshToken(userId);
+
+        // refresh token 해시
+        String hashedRefreshToken = passwordEncoder.encode(refreshToken);
+
         refreshTokenRepository.deleteByUserId(userId); //기존 refresh 토큰 삭제
+
         RefreshToken entity = new RefreshToken( //refresh 토큰 재발급
                 userId,
-                refreshToken,
-                LocalDateTime.now().plusDays(14) // 만료 정책
+                hashedRefreshToken,
+                LocalDateTime.now().plusMonths(3) // 만료 정책
         );
         refreshTokenRepository.save(entity); //refresh 토큰 저장
 
@@ -147,6 +152,7 @@ public class AuthService {
         Long userId = user.getId();
         String accessToken = jwtTokenProvider.createAccessToken(userId);
         String refreshToken = jwtTokenProvider.createRefreshToken(userId);
+
         refreshTokenRepository.deleteByUserId(userId); //기존 refresh 토큰 삭제
         RefreshToken entity = new RefreshToken( //refresh 토큰 재발급
                 userId,
@@ -163,7 +169,7 @@ public class AuthService {
      */
     @Transactional
     public String reissueAccessToken(String refreshToken) {
-        System.out.println("REISSUE API CALLED");
+
         // 1. refresh token 서명 + 만료 검증
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new ResponseStatusException(
@@ -183,15 +189,21 @@ public class AuthService {
                         "로그인 정보 없음"
                 ));
 
-        // 4. 요청으로 온 refresh token과 DB 값 비교
-        if (!savedToken.getToken().equals(refreshToken)) {
+        // 4. DB 만료 시간 검증 (중요)
+        if (savedToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "refresh token 만료"
+            );
+        }
+        // 5. 해시 비교
+        if (!passwordEncoder.matches(refreshToken, savedToken.getToken())) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "refresh token 불일치"
             );
         }
-
-        // 5. 새 access token 발급
+        // 6. 새 access token 발급
         return jwtTokenProvider.createAccessToken(userId);
     }
 

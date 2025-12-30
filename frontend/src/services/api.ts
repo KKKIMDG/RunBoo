@@ -1,6 +1,7 @@
 // services/api.ts
 import { API_BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {authEventBus} from "@/services/auth/authEvents";
 
 const BASE_URL = API_BASE_URL;
 
@@ -97,6 +98,11 @@ const request = async (
     // 🔄 토큰 재발급
     const newAccessToken = await refreshAccessToken();
     if (!newAccessToken) {
+        await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
+        setAccessToken(null);
+
+        authEventBus.emitLogout();
+
         throw { status: 401, message: '로그인이 필요합니다.' };
     }
 
