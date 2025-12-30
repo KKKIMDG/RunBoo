@@ -37,6 +37,10 @@ export const googleLoginForm = (onLoginSuccess: (token: string) => void) => {
     }, [response]);
 
     return {
-        startGoogleLogin: () => promptAsync(),
+        // ▼▼▼ [수정] 에러 안 나게 빈 함수로 변경 ▼▼▼
+        startGoogleLogin: () => {
+            console.log("현재 구글 로그인은 테스트를 위해 비활성화 상태입니다.");
+            // promptAsync();
+        },
     };
 };
