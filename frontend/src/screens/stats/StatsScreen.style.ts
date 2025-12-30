@@ -1,4 +1,5 @@
-// StatsScreen.style.ts
+//frontend/src/screens/stats/StatsScreen.style.ts
+
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({

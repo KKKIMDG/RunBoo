@@ -1,3 +1,5 @@
+//frontend/src/screens/records/components/RecordCard.tsx
+
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import type { RecordDto } from "@/types/record";
@@ -14,7 +16,11 @@ export default function RecordCard({ item }: { item: RecordDto }) {
         <View style={s.card}>
             <View style={s.header}>
                 <Text style={s.date}>{formatDate(item.startedAt)}</Text>
-                <Text style={s.badge}>
+                <Text style={[
+                    s.badge,
+                    item.mode === "GHOST" && s.badgeGhost,
+                    item.mode === "TIER" && s.badgeTier,
+                ]}>
                     {item.mode === "GHOST"
                         ? "고스트"
                         : item.mode === "TIER"
@@ -54,7 +60,9 @@ const s = StyleSheet.create({
     },
     header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
     date: { fontSize: 16, fontWeight: "800", color: "#111827" },
-    badge: { fontSize: 12, color: "#6B7280", fontWeight: "700" },
+    badge: { color: "#6B7280", fontSize: 12, fontWeight: "700" },
+    badgeGhost: { color: "#3A4A98" },
+    badgeTier: { color: "#fc1b1b" },
     sub: { marginTop: 4, marginBottom: 10, color: "#6B7280" },
 
     rowBox: {

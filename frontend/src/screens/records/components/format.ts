@@ -1,3 +1,5 @@
+//frontend/src/screens/records/components/format.ts
+
 export function formatKm(distanceM: number) {
     const km = distanceM / 1000;
     return `${km.toFixed(1)} km`;
@@ -7,11 +9,10 @@ export function formatDurationFromRange(startIso: string, endIso: string) {
     const start = new Date(startIso);
     const end = new Date(endIso);
 
-    // 방어: end가 없거나 파싱 실패하면 "0:00"
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "0:00";
+    if (!startIso || !endIso || isNaN(start.getTime()) || isNaN(end.getTime())) return "-";
 
-    const diffSec = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
-    return formatDurationSeconds(diffSec);
+    const sec = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
+    return formatDuration(sec);
 }
 
 export function formatDurationSeconds(sec: number) {
@@ -24,10 +25,13 @@ export function formatDurationSeconds(sec: number) {
 }
 
 export function formatPace(avgPaceSecPerKm: number) {
-    const pace = Math.max(0, Math.floor(avgPaceSecPerKm)); // 방어
-    const m = Math.floor(pace / 60);
-    const s = pace % 60;
-    return `${m}'${String(s).padStart(2, "0")}''/km`;
+    if (!Number.isFinite(avgPaceSecPerKm) || avgPaceSecPerKm <= 0) return "-";
+
+    const totalSec = Math.floor(avgPaceSecPerKm);
+    const mm = Math.floor(totalSec / 60);
+    const ss = totalSec % 60;
+
+    return `${mm}:${String(ss).padStart(2, "0")} /km`;
 }
 
 export function formatDate(iso: string) {
@@ -49,15 +53,14 @@ export function formatTimeRange(startIso: string, endIso: string) {
     return `${hhmm(start)} ~ ${hhmm(end)}`;
 }
 
-export function formatDuration(sec: number) {
-    const total = Number.isFinite(sec) ? Math.max(0, Math.floor(sec)) : 0;
+export function formatDuration(durationSec: number) {
+    if (!Number.isFinite(durationSec) || durationSec < 0) return "-";
 
+    const total = Math.floor(durationSec);
     const h = Math.floor(total / 3600);
     const m = Math.floor((total % 3600) / 60);
     const s = total % 60;
 
-    if (h > 0) {
-        return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-    }
-    return `${m}:${String(s).padStart(2, "0")}`;
+    if (h > 0) return `${h}시간 ${m}분 ${s}초`;
+    return `${m}분 ${s}초`;
 }

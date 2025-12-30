@@ -1,6 +1,6 @@
 import React from 'react';
 import LoginScreen from './LoginScreen';
-import { useLoginForm } from './useLoginForm';
+import { localLoginForm } from './LocalLoginForm';
 
 export default function LoginContainer({ onLoginSuccess }: { onLoginSuccess: (token: string) => void }) {
     const {
@@ -8,7 +8,7 @@ export default function LoginContainer({ onLoginSuccess }: { onLoginSuccess: (to
         formHandlers,
         apiHandlers,
         navigationHandlers,
-    } = useLoginForm(onLoginSuccess);
+    } = localLoginForm(onLoginSuccess);
 
     return (
         <LoginScreen
