@@ -39,9 +39,6 @@ public class SecurityConfig {
                                 "/api/auth/token/reissue",
                                 "/api/auth/email/verify",
                                 "/api/auth/email/verify/check",
-                                "/api/courses/**",
-                                "/api/tier/**",
-                                "/api/records/**",
 
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
