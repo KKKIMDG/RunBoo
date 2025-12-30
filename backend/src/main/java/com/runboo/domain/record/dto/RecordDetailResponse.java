@@ -17,7 +17,7 @@ public class RecordDetailResponse {
     private OffsetDateTime createdAt;
 
     public RecordDetailResponse(RunRecord record) {
-        this.recordId = record.getRecordId();
+        this.recordId = record.getId();
         this.distance = record.getDistanceM();
 
         // 1. 러닝 시간 계산 (HH:mm:ss)
