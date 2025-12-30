@@ -2,7 +2,12 @@ package com.runboo.domain.record.service;
 
 import com.runboo.domain.record.dto.*;
 import com.runboo.domain.record.entity.Record;
+import com.runboo.domain.record.entity.RunRecord;
 import com.runboo.domain.record.repository.RecordRepository;
+import com.runboo.domain.record.repository.RunRecordRepository;
+import com.runboo.domain.user.entity.User;
+import com.runboo.domain.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +20,8 @@ import java.util.stream.Collectors;
 public class RecordService {
 
     private final RecordRepository recordRepository;
+    private final UserRepository userRepository;
+    private final RunRecordRepository runRecordRepository;
 
     public List<RecordDto> getMyRecords(Long userId) {
         return recordRepository.findByUserIdOrderByStartedAtDesc(userId)
@@ -174,5 +181,24 @@ public class RecordService {
         }
         // fallback
         return Optional.ofNullable(r.getDurationSec()).orElse(0);
+    }
+    @Transactional
+    public void saveRecord(RunRecordRequestDto dto) {
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("유저가 없습니다."));
+
+        RunRecord runRecord = RunRecord.builder()
+                .user(user)
+                .mode(dto.getMode())
+                .distanceM(dto.getDistanceM())
+                .durationSec(dto.getDurationSec())
+                .avgPace(dto.getAvgPace())
+                .calories(dto.getCalories())
+                .routePolyLine(dto.getRoutePolyline())
+                .startedAt(dto.getStartedAt())
+                .endedAt(dto.getEndedAt())
+                .build();
+
+        runRecordRepository.save(runRecord);
     }
 }
