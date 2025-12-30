@@ -1,7 +1,7 @@
 // src/screens/TierResult/TierResult.constants.ts
 import { ColorValue } from 'react-native';
 
-export type TierKey =
+export type TierName =
   | 'barefoot'
   | 'straw'
   | 'slipper'
@@ -9,14 +9,21 @@ export type TierKey =
   | 'shoes'
   | 'crystal';
 
+export type ServerTierName =
+  | 'BAREFOOT'
+  | 'STRAW'
+  | 'SLIPPER'
+  | 'RUBBER'
+  | 'SHOES'
+  | 'CRYSTAL';
 
-export const TIER_ID_MAP: Record<number, TierKey> = {
-  1: 'barefoot',
-  2: 'straw',
-  3: 'slipper',
-  4: 'rubber',
-  5: 'shoes',
-  6: 'crystal',
+export const TIER_NAME_MAP: Record<ServerTierName, TierName> = {
+  BAREFOOT: 'barefoot',
+  STRAW: 'straw',
+  SLIPPER: 'slipper',
+  RUBBER: 'rubber',
+  SHOES: 'shoes',
+  CRYSTAL: 'crystal',
 };
 
 export type TierTheme = {
@@ -25,7 +32,7 @@ export type TierTheme = {
   point: string;
 };
 
-export const TIER_THEMES: Record<TierKey, TierTheme> = {
+export const TIER_THEMES: Record<TierName, TierTheme> = {
   barefoot: {
     label: '맨발',
     colors: ['#F3E5D8', '#E2CFC0'],

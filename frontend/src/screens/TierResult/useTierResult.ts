@@ -1,89 +1,106 @@
-import { useState, useEffect } from 'react';
-import { Share, Alert } from 'react-native';
-import { evaluateTier } from '../../services/tierService';
-import { TierData } from '../../types/tier';
-import { TierKey } from './TierResult.constants';
+import { useState, useEffect, useCallback } from "react";
+import { Share, Alert, View } from "react-native";
+import { evaluateTier } from "@/services/tierService";
+import { fetchRecordDetail } from "@/services/record/recordsService"; // ✅ 파일명 확인 (recordService)
+import { TierData } from "@/types/tier";
+import { RecordDetailDto } from "@/types/record"; // ✅ RecordDetailDto 타입 임포트 추가
+import {
+  TIER_NAME_MAP,
+  ServerTierName,
+  TierName,
+} from "./TierResult.constants";
+import { captureRef } from "react-native-view-shot";
+import * as Sharing from "expo-sharing";
 
-export const useTierResult = (navigation: any, route: any) => {
+export const useTierResult = (
+  navigation: any,
+  route: any,
+  viewRef: React.RefObject<View | null>
+) => {
+  // ✅ recordData의 타입을 RecordDetailDto | null로 정확히 지정합니다.
   const [tierData, setTierData] = useState<TierData | null>(null);
+  const [recordData, setRecordData] = useState<RecordDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const recordId = route?.params?.recordId;
-  const distanceType = route?.params?.distanceType;
+  // route.params에서 recordId를 가져오되 없으면 테스트용 1 사용
+  const recordId = route?.params?.recordId || 1;
+  const distanceType = route?.params?.distanceType || "5k";
 
-  useEffect(() => {
-    const fetchTier = async () => {
-      if (!recordId) {
-        setLoading(false);
-        setError('유효하지 않은 측정 기록입니다.');
-        return;
-      }
+  // 데이터 기반으로 티어 영문 키값 결정
+  const tierName: TierName | null = tierData
+    ? TIER_NAME_MAP[tierData.name as ServerTierName]
+    : null;
 
-      try {
-        setLoading(true);
-        const data = await evaluateTier({ distanceType, recordId });
-        console.log("받아온 티어 데이터:", data);
-        setTierData(data);
-      } catch (err) {
-        console.error("API 에러:", err);
-        setError('티어 정보를 불러오는 데 실패했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTier();
+  const fetchData = useCallback(async () => {
+    if (!recordId) {
+      setError("유효하지 않은 측정 기록입니다.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // ✅ 티어 평가와 기록 상세 정보를 병렬로 호출
+      const [tierResponse, recordResponse] = await Promise.all([
+        evaluateTier({ distanceType, recordId }),
+        fetchRecordDetail(recordId),
+      ]);
+
+      console.log("받아온 티어 데이터:", tierResponse);
+      console.log("받아온 레코드 상세:", recordResponse);
+
+      setTierData(tierResponse);
+      setRecordData(recordResponse); // ✅ 상태 저장
+    } catch (err: any) {
+      console.error("API 에러:", err);
+      setError("정보를 불러오는 데 실패했습니다.");
+    } finally {
+      setLoading(false);
+    }
   }, [recordId, distanceType]);
 
-  // tierId 숫자 값 또는 이름을 기준으로 TierKey 매핑
-  const getTierKey = (): TierKey => {
-  if (!tierData) return 'barefoot';
-
-    // 1. 숫자가 오면 숫자로 판별 (1: 맨발, 2: 짚신, 3: 슬리퍼, 4: 고무신, 5: 구두, 6: 다이아)
-    const id = (tierData as any).tierId;
-
-  if (id !== undefined) {
-    switch (Number(id)) {
-      case 1: return 'barefoot';
-      case 2: return 'straw';
-      case 3: return 'slipper';
-      case 4: return 'rubber';
-      case 5: return 'shoes';
-      case 6: return 'crystal';
-    }
-  }
-
-    // 2. 이름 문자열로 판별 (폴백)
-    const name = tierData.name?.toLowerCase() || '';
-  if (name.includes('crystal') || name.includes('다이아')) return 'crystal';
-  if (name.includes('shoes') || name.includes('구두')) return 'shoes';
-  if (name.includes('rubber') || name.includes('고무')) return 'rubber';
-  if (name.includes('slipper') || name.includes('슬리퍼')) return 'slipper';
-  if (name.includes('straw') || name.includes('짚')) return 'straw';
-
-  return 'barefoot';
-};
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleShare = async () => {
     try {
-      await Share.share({
-        message: `나의 러닝 티어는 [${tierData?.name}]입니다! 함께 달려요!`,
+      if (!viewRef.current) return;
+
+      // 1. 현재 화면(viewRef 영역)을 이미지 URI로 변환
+      const uri = await captureRef(viewRef, {
+        format: "png",
+        quality: 0.9,
       });
+
+      // 2. 기기에서 공유 기능이 사용 가능한지 확인
+      const isAvailable = await Sharing.isAvailableAsync();
+
+      if (isAvailable) {
+        // 3. 공유창 띄우기 (이미지 복사, 카톡 공유, 인스타 등 자동 포함)
+        await Sharing.shareAsync(uri, {
+          mimeType: "image/png",
+          dialogTitle: "나의 러닝 기록 자랑하기",
+          UTI: "public.png",
+        });
+      } else {
+        alert("공유 기능을 사용할 수 없는 기기입니다.");
+      }
     } catch (error) {
-      Alert.alert("공유 실패", "공유하는 도중 오류가 발생했습니다.");
+      console.error("공유 중 오류 발생:", error);
+      alert("이미지 생성 중 오류가 발생했습니다.");
     }
   };
 
-  const handleGoHome = () => {
-    navigation.navigate('Home');
-  };
-
   return {
+    tierName,
     tierData,
-    tierKey: getTierKey(),
+    recordData,
     loading,
     error,
     handleShare,
-    handleGoHome,
   };
 };
