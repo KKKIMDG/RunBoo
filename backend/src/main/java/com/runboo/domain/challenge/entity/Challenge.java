@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.OffsetDateTime;
 
@@ -43,15 +42,4 @@ public class Challenge {
 
     @Column(name = "ended_at")
     private OffsetDateTime endedAt;
-
-    // 생성자, 비즈니스 로직 메서드 추가 가능 | 엔티티는 불변성을 가지기 위해 필요시 생성자를 통해 값 초기화 가능하게 함
-    public Challenge(String title, String description, String difficulty, String targetType, int targetValue, OffsetDateTime startedAt, OffsetDateTime endedAt) {
-        this.title = title;
-        this.description = description;
-        this.difficulty = difficulty;
-        this.targetType = targetType;
-        this.targetValue = targetValue;
-        this.startedAt = startedAt;
-        this.endedAt = endedAt;
-    }
 }

@@ -14,6 +14,7 @@ public class ChallengeDto {
     private String description;
     private String difficulty;
     private String targetType;
+    private String targetValue;
     private OffsetDateTime startedAt;
     private OffsetDateTime endedAt;
     private BadgeDto badge;  // BadgeDto로 변환

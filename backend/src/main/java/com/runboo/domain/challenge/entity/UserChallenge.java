@@ -12,7 +12,6 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "user_challenge")
 public class UserChallenge {
@@ -45,9 +44,5 @@ public class UserChallenge {
 
     @Column(name = "completed_at")
     private OffsetDateTime completedAt;
-
-    @Column(name = "complete_at")
-    private OffsetDateTime completeAt;
-
 
 }

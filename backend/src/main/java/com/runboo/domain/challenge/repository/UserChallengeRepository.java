@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface UserChallengeRepository extends JpaRepository<UserChallenge, Long> {
+    List<UserChallenge> findAllByUserId(Long userId);
 }
