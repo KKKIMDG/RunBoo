@@ -1,4 +1,5 @@
-export interface BadgeDto {
+export interface Badge {
+  // BadgeDto -> Badge
   badgeId: number;
   name: string;
   description: string;
@@ -6,7 +7,7 @@ export interface BadgeDto {
   difficulty: string;
 }
 
-export interface ChallengeDto {
+export interface Challenge {
   challengeId: number;
   title: string;
   description: string;
@@ -15,17 +16,17 @@ export interface ChallengeDto {
   targetValue: string;
   startedAt: string;
   endedAt: string;
-  badgeDto: BadgeDto | null;
+  badge: Badge | null; // badgeDto -> badge
 }
 
 export interface UserChallengeDto {
   userChallengeId: number;
   userId: number;
-  challengeDto: ChallengeDto;
+  challenge: Challenge;
   progressValue: number;
   status: string;
   startedAt: string;
   completedAt: string | null;
-  percent: number; // 백엔드에서 계산해서 준 퍼센트
-  remainingDays: number; // 백엔드에서 계산해서 준 D-Day
+  percentage: number; // percent -> percentage
+  remainingDays: number;
 }
