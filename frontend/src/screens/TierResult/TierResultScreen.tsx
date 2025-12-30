@@ -1,31 +1,24 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import React from "react";
+import { View, Text, TouchableOpacity, Image } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import RunningStatsSummary from "@/components/RunningStatsSummary";
 
-import { styles } from './TierResult.styles';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import BackButton from '@/components/ui/BackButton';
+import { styles } from "./TierResult.styles";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import BackButton from "@/components/ui/BackButton";
 
-import { TIER_THEMES } from './TierResult.constants';
-import { TIER_IMAGES } from '@/constants/TierImages';
-import { useTierResult } from './useTierResult';
+import { TIER_THEMES } from "./TierResult.constants";
+import { TIER_IMAGES } from "@/constants/TierImages";
+import { useTierResult } from "./useTierResult";
 
 const TierResultScreen = ({ navigation, route }: any) => {
-  const colorScheme = useColorScheme() ?? 'light';
+  const colorScheme = useColorScheme() ?? "light";
 
-  const {
-    tierName,
-    tierData,
-    loading,
-    error,
-    handleShare,
-  } = useTierResult(navigation, route);
+  const { tierName, tierData, loading, error, handleShare } = useTierResult(
+    navigation,
+    route
+  );
 
   if (loading) return null;
   if (error || !tierName) return null;
@@ -33,16 +26,16 @@ const TierResultScreen = ({ navigation, route }: any) => {
   const theme = TIER_THEMES[tierName];
   const tierImage = TIER_IMAGES[tierName];
 
-  console.log('tierName:', tierName);
-  console.log('이미지 경로:', tierImage);
+  console.log("tierName:", tierName);
+  console.log("이미지 경로:", tierImage);
 
   return (
     <View style={styles.container}>
       {/* 배경 */}
       <LinearGradient colors={theme.colors} style={styles.gradient} />
-      
+
       <LinearGradient
-        colors={['rgba(255,255,255,0.7)', 'transparent']}
+        colors={["rgba(255,255,255,0.7)", "transparent"]}
         style={styles.shineGradient}
         pointerEvents="none"
       />
@@ -57,50 +50,34 @@ const TierResultScreen = ({ navigation, route }: any) => {
 
         <View style={styles.ghostContainer}>
           <View style={styles.tierImageGlow} />
-          {tierImage && (
-            <Image source={tierImage} style={styles.tierImage} />
-          )}
+          {tierImage && <Image source={tierImage} style={styles.tierImage} />}
         </View>
       </View>
 
       {/* 하단 */}
       <View style={styles.bottomSheet}>
         <View style={styles.analysisHeader}>
-          <View style={[styles.checkBadge, { backgroundColor: theme.colors[1] }]}>
+          <View
+            style={[styles.checkBadge, { backgroundColor: theme.colors[1] }]}
+          >
             <Text style={styles.checkText}>CHECK</Text>
           </View>
           <Text style={styles.analysisTitle}>러닝 측정 분석</Text>
         </View>
 
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <Ionicons name="map-outline" size={20} color="#999" />
-            <Text style={styles.statLabel}>거리</Text>
-            <Text style={styles.statValue}>
-              {route?.params?.distance ?? '-'} km
-            </Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Ionicons name="time-outline" size={20} color="#999" />
-            <Text style={styles.statLabel}>시간</Text>
-            <Text style={styles.statValue}>
-              {route?.params?.time ?? '-'}
-            </Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Ionicons name="speedometer-outline" size={20} color="#999" />
-            <Text style={styles.statLabel}>페이스</Text>
-            <Text style={[styles.statValue, { color: theme.colors[1] }]}>
-              {route?.params?.pace ?? '-'} /km
-            </Text>
-          </View>
-        </View>
+        <RunningStatsSummary
+          distance={route?.params?.distance}
+          time={route?.params?.time}
+          pace={route?.params?.pace}
+        />
 
         <View style={styles.buttonGroup}>
           <TouchableOpacity
-            style={[styles.button, styles.shareButton, { backgroundColor: theme.colors[1] }]}
+            style={[
+              styles.button,
+              styles.shareButton,
+              { backgroundColor: theme.colors[1] },
+            ]}
             onPress={handleShare}
           >
             <Ionicons name="share-social" size={20} color="#FFF" />
@@ -111,12 +88,12 @@ const TierResultScreen = ({ navigation, route }: any) => {
 
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate('MainTabs')}
+            onPress={() => navigation.navigate("MainTabs")}
           >
             <Ionicons
               name="home-outline"
               size={20}
-              color={colorScheme === 'dark' ? '#FFF' : '#000'}
+              color={colorScheme === "dark" ? "#FFF" : "#000"}
             />
             <Text style={styles.buttonText}>홈으로</Text>
           </TouchableOpacity>
