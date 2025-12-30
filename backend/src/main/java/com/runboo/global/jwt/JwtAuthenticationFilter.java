@@ -32,11 +32,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = resolveToken(request);
 
-        if (token != null) {
+        if (token != null && jwtTokenProvider.validateToken(token)) {
             try {
+                // 1. 토큰 타입 확인
+                String type = jwtTokenProvider.getTokenType(token);
+
+                // 2. ACCESS 토큰만 인증 처리
+                if (!"ACCESS".equals(type)) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                // 3. 사용자 식별
                 Long userId = jwtTokenProvider.getUserIdFromToken(token);
                 User user = userRepository.findById(userId).orElseThrow();
 
+                // 4. SecurityContext에 인증 주입
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 user,
@@ -52,12 +63,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .setAuthentication(authentication);
 
             } catch (Exception e) {
-                // 🔥 여기서 response 건들지 말 것
+                // 토큰 문제면 인증 없이 통과
             }
         }
 
         filterChain.doFilter(request, response);
     }
+
 
 
     private String resolveToken(HttpServletRequest request) {

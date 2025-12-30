@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
+import { styles } from './SettingsScreen.styles';
 import { View, Text, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import SettingItem from '@/components/setting/SettingItem'; // 경로 수정됨
-import { styles } from './SettingsScreen.styles';
 
-export default function SettingsScreen({ navigation }: any) {
+export default function SettingsScreen({ navigation, onLogout }: any) {
   const [pushEnabled, setPushEnabled] = useState(true);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -82,7 +82,7 @@ export default function SettingsScreen({ navigation }: any) {
         </View>
 
         {/* 로그아웃 버튼 */}
-        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.logoutButton} activeOpacity={0.8} onPress={onLogout}>
           <Ionicons name="log-out-outline" size={20} color="#FF6467" />
           <Text style={styles.logoutText}>로그아웃</Text>
         </TouchableOpacity>
