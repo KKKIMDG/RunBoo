@@ -7,7 +7,6 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthService } from '@/services/auth/authService';
 import { setAccessToken } from '@/services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { jwtDecode } from 'jwt-decode';
 
 import { googleLoginForm } from './GoogleLoginForm';
 import { kakaoLoginForm } from './KakaoLoginForm';
@@ -39,9 +38,8 @@ export const localLoginForm = (onLoginSuccess: (token: string) => void) => {
         try {
             const res = await AuthService.login({ email, password });
 
-            const decoded: any = jwtDecode(res.accessToken);
             await AsyncStorage.setItem('accessToken', res.accessToken);
-            await AsyncStorage.setItem('userId', String(decoded.sub || decoded.id));
+            await AsyncStorage.setItem('refreshToken',  res.refreshToken);
 
             setAccessToken(res.accessToken);
             onLoginSuccess(res.accessToken);

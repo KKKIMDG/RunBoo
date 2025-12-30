@@ -10,7 +10,6 @@ public class UserCourseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Request {
-        private Long userId;
         private Long courseId;
     }
 

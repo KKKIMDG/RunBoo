@@ -1,6 +1,7 @@
 // services/api.ts
 import { API_BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {authEventBus} from "@/services/auth/authEvents";
 
 const BASE_URL = API_BASE_URL;
 
@@ -46,23 +47,33 @@ const handleResponse = async (res: Response) => {
 /**
  * 🔑 accessToken 재발급 (refreshToken 사용)
  * ⚠️ api/request 절대 사용 금지
+ *  동시 401 요청 잠금
  */
+let refreshingPromise: Promise<string | null> | null = null;
+
 const refreshAccessToken = async (): Promise<string | null> => {
-    const refreshToken = await AsyncStorage.getItem('refreshToken');
-    if (!refreshToken) return null;
+    if (refreshingPromise) return refreshingPromise;
 
-    const res = await fetch(`${BASE_URL}/api/auth/token/reissue`, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${refreshToken}`,
-        },
-    });
+    refreshingPromise = (async () => {
+        const refreshToken = await AsyncStorage.getItem('refreshToken');
+        if (!refreshToken) return null;
 
-    if (!res.ok) return null;
+        const res = await fetch(`${BASE_URL}/api/auth/token/reissue`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${refreshToken}` },
+        });
 
-    const data = await res.json();
-    return data.accessToken ?? null;
+        if (!res.ok) return null;
+
+        const data = await res.json();
+        return data.accessToken ?? null;
+    })();
+
+    const token = await refreshingPromise;
+    refreshingPromise = null;
+    return token;
 };
+
 
 /**
  * 공통 request
@@ -74,8 +85,8 @@ const request = async (
 ) => {
     const res = await fetch(input, init);
 
-    // ✅ 401만 특별 취급
-    if (res.status !== 401) {
+    // 401,403은 특별 취급
+    if (res.status !== 401  && res.status !== 403) {
         return handleResponse(res);
     }
 
@@ -87,6 +98,11 @@ const request = async (
     // 🔄 토큰 재발급
     const newAccessToken = await refreshAccessToken();
     if (!newAccessToken) {
+        await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
+        setAccessToken(null);
+
+        authEventBus.emitLogout();
+
         throw { status: 401, message: '로그인이 필요합니다.' };
     }
 
@@ -98,15 +114,16 @@ const request = async (
         input,
         {
             ...init,
-            headers: {
-                ...(init.headers || {}),
-                Authorization: `Bearer ${newAccessToken}`,
-            },
+            headers: mergeHeaders(init.headers, newAccessToken),
         },
         false
     );
 };
-
+const mergeHeaders = (oldHeaders: RequestInit['headers'], token: string) => {
+    const headers = new Headers(oldHeaders || {});
+    headers.set('Authorization', `Bearer ${token}`);
+    return headers;
+};
 export const api = {
     get: async (path: string) => {
         return request(`${BASE_URL}${path}`, {
