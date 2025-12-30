@@ -78,7 +78,9 @@ public class AuthService {
         }
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getId());
-        return LoginResponseDto.from(user, accessToken);
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+
+        return LoginResponseDto.from(user, accessToken, refreshToken);
     }
 
     /**
@@ -130,6 +132,35 @@ public class AuthService {
                 );
 
         String accessToken = jwtTokenProvider.createAccessToken(user.getId());
-        return LoginResponseDto.from(user, accessToken);
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+
+        return LoginResponseDto.from(user, accessToken, refreshToken);
+    }
+
+    /**
+     * 토큰재발급
+     */
+    public String reissueAccessToken(String refreshToken) {
+
+        // 1. refresh token 유효성 검사
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "유효하지 않은 refresh token"
+            );
+        }
+
+        // 2. refresh token에서 userId 추출
+        Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+
+        // 3. 사용자 존재 확인
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "사용자 없음"
+                ));
+
+        // 4. 새 access token 발급
+        return jwtTokenProvider.createAccessToken(userId);
     }
 }

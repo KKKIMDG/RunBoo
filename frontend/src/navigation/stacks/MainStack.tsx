@@ -16,7 +16,14 @@ export default function MainStack({ onLogout }: any) {
             <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
 
             {/* 탭 위로 올라오는 화면들 */}
-            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="Settings">
+                {(props) => (
+                    <SettingsScreen
+                        {...props}
+                        onLogout={onLogout}
+                    />
+                )}
+            </Stack.Screen>
             <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="TierResult" component={TierResultScreen} />
             <Stack.Screen
