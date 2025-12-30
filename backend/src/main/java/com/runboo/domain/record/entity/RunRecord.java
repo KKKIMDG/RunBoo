@@ -49,7 +49,7 @@ public class RunRecord {
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "route_polyline", columnDefinition = "TEXT")
     private String routePolyLine;

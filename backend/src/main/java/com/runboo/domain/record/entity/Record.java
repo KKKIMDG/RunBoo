@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -32,13 +34,13 @@ public class Record {
     private Integer calories;
 
     @Column(name = "started_at")
-    private OffsetDateTime startedAt;
+    private LocalDateTime startedAt;
 
     @Column(name = "ended_at")
-    private OffsetDateTime endedAt;
+    private LocalDateTime endedAt;
 
     @Column(name = "created_at")
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "route_polyline", columnDefinition = "TEXT")
     private String routePolyline;

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -16,8 +17,8 @@ public class RecordDto {
     private Integer durationSec;
     private Integer avgPace;
     private Integer calories;
-    private OffsetDateTime startedAt;
-    private OffsetDateTime endedAt;
+    private LocalDateTime startedAt;
+    private LocalDateTime endedAt;
     private String mode;
 
     public RecordDto(Record record) {
