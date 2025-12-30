@@ -83,10 +83,11 @@ const request = async (
     init: RequestInit,
     retry = true
 ) => {
+    await ensureAccessTokenLoaded();
     const res = await fetch(input, init);
 
     // 401,403은 특별 취급
-    if (res.status !== 401  && res.status !== 403) {
+    if (res.status !== 401) {
         return handleResponse(res);
     }
 
@@ -98,11 +99,8 @@ const request = async (
     // 🔄 토큰 재발급
     const newAccessToken = await refreshAccessToken();
     if (!newAccessToken) {
-        await AsyncStorage.multiRemove(['accessToken', 'refreshToken']);
-        setAccessToken(null);
-
+        // refresh 토큰 만료일 때만 로그아웃
         authEventBus.emitLogout();
-
         throw { status: 401, message: '로그인이 필요합니다.' };
     }
 
@@ -123,6 +121,23 @@ const mergeHeaders = (oldHeaders: RequestInit['headers'], token: string) => {
     const headers = new Headers(oldHeaders || {});
     headers.set('Authorization', `Bearer ${token}`);
     return headers;
+};
+
+let bootstrappingPromise: Promise<void> | null = null;
+
+const ensureAccessTokenLoaded = async () => {
+    if (accessToken) return;
+
+    if (!bootstrappingPromise) {
+        bootstrappingPromise = (async () => {
+            const stored = await AsyncStorage.getItem('accessToken');
+            if (stored) setAccessToken(stored);
+        })().finally(() => {
+            bootstrappingPromise = null;
+        });
+    }
+
+    await bootstrappingPromise;
 };
 export const api = {
     get: async (path: string) => {
