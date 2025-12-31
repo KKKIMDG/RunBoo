@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import { useMe } from "@/hooks/useMe";
 
 export interface TopNavBarProps {
   onLeftPress?: () => void;
@@ -20,9 +22,13 @@ export function TopNavBar({
                             profileImageUrl,
                           }: TopNavBarProps) {
   const [imageLoading, setImageLoading] = useState(false);
-
+  const { me, refetch } = useMe();
   const hasImage = typeof profileImageUrl === "string";
-
+  useFocusEffect(
+      React.useCallback(() => {
+        refetch();
+      }, [refetch])
+  );
   return (
       <View style={styles.root}>
         {/* 왼쪽 프로필 버튼 */}
@@ -40,11 +46,12 @@ export function TopNavBar({
                       <ActivityIndicator size="small" color="#3A4A98" />
                   )}
                   <Image
-                      source={{ uri: profileImageUrl! }}
+                      source={{ uri: me?.profileImageUrl ?? profileImageUrl! }}
                       style={styles.profileImage}
                       onLoadStart={() => setImageLoading(true)}
                       onLoadEnd={() => setImageLoading(false)}
                   />
+
                 </>
             )}
           </View>
