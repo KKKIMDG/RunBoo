@@ -19,15 +19,12 @@ import { useBadge } from "@/screens/Badge/useBadge";
 
 import { useGrass } from "@/screens/Profile/useGrass";
 import {useMe} from "@/hooks/useMe";
-        
-export default function ProfileScreen({ navigation }: any) {
-    const { badges, badgeCount, loading } = useBadge();
-    const { data: grassData, levelMap, loading: grassLoading } = useGrass(12);
 
 export default function ProfileScreen({ navigation }: any) {
     // 로그인 유저 기준 배지 로드
     const { me, loading: meLoading, error } = useMe();
     const { badges, badgeCount, loading: badgeLoading } = useBadge();
+    const { data: grassData, levelMap, loading: grassLoading } = useGrass(12);
 
     const profileImageSource =
         typeof me?.profileImageUrl === "string"

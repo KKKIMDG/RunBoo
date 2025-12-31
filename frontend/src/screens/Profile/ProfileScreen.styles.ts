@@ -207,8 +207,8 @@ export const styles = StyleSheet.create({
   },
 
   grassCell: {
-    width: 12,
-    height: 12,
+    width: 22,
+    height: 22,
     borderRadius: 3,
   },
 
