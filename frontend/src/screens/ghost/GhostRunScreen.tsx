@@ -39,6 +39,7 @@ export default function GhostRunScreen() {
         headerBg: "#FFFFFF",
         card: "#FFFFFF",
         text: base?.text ?? "#111111",
+        text2: base?.text2 ?? "#222",
         primary: base?.primary ?? "#2F3A8F",
         border: "#E5E7EB",
         mutedText: base?.mutedText ?? base?.subtext ?? "#6B7280",
@@ -207,18 +208,18 @@ export default function GhostRunScreen() {
                 <View style={s.metricsRow}>
                     <View style={[s.metric, { backgroundColor: colors.card, borderColor: colors.border }]}>
                         <Text style={[s.metricLabel, { color: colors.mutedText }]}>시간</Text>
-                        <Text style={[s.metricValue, { color: colors.text }]}>{formatTime(time)}</Text>
+                        <Text style={[s.metricValue, { color: colors.text2 }]}>{formatTime(time)}</Text>
                     </View>
 
                     <View style={[s.metric, { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 }]}>
                         <Text style={[s.metricLabel, { color: colors.mutedText }]}>거리</Text>
-                        <Text style={[s.metricValue, { color: colors.text }]}>{youKmText}</Text>
+                        <Text style={[s.metricValue, { color: colors.text2 }]}>{youKmText}</Text>
                         <Text style={[s.metricUnit, { color: colors.mutedText }]}>km</Text>
                     </View>
 
                     <View style={[s.metric, { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 }]}>
                         <Text style={[s.metricLabel, { color: colors.mutedText }]}>페이스</Text>
-                        <Text style={[s.metricValue, { color: colors.text }]}>{formatPace(currentPaceSec)}</Text>
+                        <Text style={[s.metricValue, { color: colors.text2 }]}>{formatPace(currentPaceSec)}</Text>
                         <Text style={[s.metricUnit, { color: colors.mutedText }]}>/km</Text>
                     </View>
                 </View>
@@ -360,8 +361,8 @@ const s = StyleSheet.create({
     },
 
     metricLabel: { fontSize: 12, fontWeight: "700", textAlign: "center" },
-    metricValue: { fontSize: 18, fontWeight: "900", marginTop: 6, textAlign: "center" },
-    metricUnit: { fontSize: 12, marginTop: 2, fontWeight: "700", textAlign: "center" },
+    metricValue: { fontSize: 20, fontWeight: "900", marginTop: 6, textAlign: "center" },
+    metricUnit: { fontSize: 12, marginTop: 2, fontWeight: "600", textAlign: "center" },
 
     small: { fontSize: 11, fontWeight: "700" },
 
