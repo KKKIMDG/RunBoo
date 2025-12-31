@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-interface BottomNavBarProps {
+export interface BottomNavBarProps {
   activeTab?: string;
   onTabPress?: (tabName: string) => void;
 }

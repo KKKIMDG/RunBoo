@@ -3,17 +3,20 @@ import {
     View,
     Text,
     ScrollView,
-    SafeAreaView,
     TouchableOpacity,
     Image,
     StyleSheet,
     ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 import BackButton from "@/components/ui/BackButton";
 import { styles } from "./ProfileScreen.styles";
 import { useBadge } from "@/screens/Badge/useBadge";
+import {useMe} from "@/hooks/useMe";
+
 
 // 활동 잔디 더미 데이터
 const GRASS_DATA = Array.from({ length: 7 }, () =>
@@ -21,22 +24,38 @@ const GRASS_DATA = Array.from({ length: 7 }, () =>
 );
 
 export default function ProfileScreen({ navigation }: any) {
-    // ✅ 로그인 유저 기준 배지 로드
-    const { badges, badgeCount, loading } = useBadge();
+    // 로그인 유저 기준 배지 로드
+    const { me, loading: meLoading, error } = useMe();
+    const { badges, badgeCount, loading: badgeLoading } = useBadge();
+
+    const profileImageSource =
+        typeof me?.profileImageUrl === "string"
+            ? { uri: me.profileImageUrl }
+            : require("@/assets/images/runboo.png");
 
     return (
         <SafeAreaView style={styles.safeArea}>
             {/* ===== 헤더 ===== */}
             <View style={styles.headerContainer}>
-                <BackButton />
+                {/* 왼쪽 */}
+                <View>
+                    <BackButton />
+                </View>
+
+                {/* 가운데 */}
                 <Text style={styles.headerTitle}>프로필</Text>
-                <TouchableOpacity
-                    style={styles.headerRightIcon}
-                    onPress={() => navigation.navigate("Settings")}
-                >
-                    <Ionicons name="settings-outline" size={24} color="#333" />
-                </TouchableOpacity>
+
+                {/* 오른쪽 */}
+                <View>
+                    <TouchableOpacity
+                        style={styles.headerRightIcon}
+                        onPress={() => navigation.navigate("Settings")}
+                    >
+                        <Ionicons name="settings-outline" size={24} color="#333" />
+                    </TouchableOpacity>
+                </View>
             </View>
+
 
             <ScrollView
                 style={styles.container}
@@ -47,10 +66,7 @@ export default function ProfileScreen({ navigation }: any) {
                 <TouchableOpacity
                     style={tempStyles.tierButton}
                     onPress={() =>
-                        navigation.navigate("TierResult", {
-                            recordId: 1,
-                            distanceType: "5k",
-                        })
+                        navigation.navigate("TierResult")
                     }
                 >
                     <Ionicons name="analytics-outline" size={14} color="#FFF" />
@@ -62,22 +78,34 @@ export default function ProfileScreen({ navigation }: any) {
                 {/* ===== 유저 카드 ===== */}
                 <View style={styles.card}>
                     <View style={styles.userHeaderRow}>
-                        <View style={styles.profileImagePlaceholder}>
-                            <Image
-                                source={require("@/assets/images/runboo.png")}
-                                style={{ width: 45, height: 45 }}
-                                resizeMode="contain"
-                            />
-                        </View>
-                        <Text style={styles.userName}>러너</Text>
+                        {meLoading ? (
+                            <>
+                                <View style={styles.profileImagePlaceholder}>
+                                    <ActivityIndicator size="small" color="#3A4A98" />
+                                </View>
+                                <View style={{ width: 80, height: 18, backgroundColor: "#EEE", borderRadius: 4 }} />
+                            </>
+                        ) : (
+                            <>
+                                <View style={styles.profileImagePlaceholder}>
+                                    <Image
+                                        source={profileImageSource}
+                                        style={styles.profileImage}
+                                        resizeMode="contain"
+                                    />
+                                </View>
+                                <Text style={styles.userName}>{me?.nickname}</Text>
+                            </>
+                        )}
                     </View>
+
 
                     {/* ===== 주요 지표 ===== */}
                     <View style={styles.metricsRow}>
                         <View style={styles.metricBox}>
                             <View
                                 style={[
-                                    styles.metricIconPlaceholder,
+                                    styles.metricIconPlaceholder, //티어 이미지 들어가야함
                                     { backgroundColor: "#F3E5D8" },
                                 ]}
                             />
@@ -87,7 +115,7 @@ export default function ProfileScreen({ navigation }: any) {
                         <View style={styles.metricBox}>
                             <View
                                 style={[
-                                    styles.metricIconPlaceholder,
+                                    styles.metricIconPlaceholder,//티어 이미지 들어가야함
                                     { backgroundColor: "#B3E5FC" },
                                 ]}
                             />
@@ -95,7 +123,7 @@ export default function ProfileScreen({ navigation }: any) {
                         </View>
 
                         <View style={styles.metricBox}>
-                            <Text style={styles.metricValue}>342</Text>
+                            <Text style={styles.metricValue}>임시데이터</Text>
                             <Text style={styles.metricSubLabel}>총 KM</Text>
                         </View>
                     </View>
@@ -116,7 +144,7 @@ export default function ProfileScreen({ navigation }: any) {
                     </View>
 
                     <View style={styles.badgeList}>
-                        {loading ? (
+                        {badgeLoading ? (
                             <ActivityIndicator size="small" color="#3A4A98" />
                         ) : badges.length > 0 ? (
                             badges.map((userBadge) => (
