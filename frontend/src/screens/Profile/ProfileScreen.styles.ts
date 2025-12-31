@@ -130,6 +130,7 @@ export const styles = StyleSheet.create({
     borderColor: '#E9ECEF',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight:5,
   },
   statsSummaryRow: {
     flexDirection: 'row',

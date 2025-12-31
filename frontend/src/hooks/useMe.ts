@@ -1,5 +1,5 @@
 // src/hooks/useMe.ts
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "@env";
 
@@ -22,31 +22,36 @@ export function useMe() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
-    useEffect(() => {
-        let mounted = true;
+    const fetchMe = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
 
-        (async () => {
-            try {
-                const headers = await getAuthHeaders();
-                const res = await fetch(`${API_BASE_URL}/api/users/me`, { headers });
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${API_BASE_URL}/api/users/me`, { headers });
 
-                if (!res.ok) {
-                    throw new Error(`useMe failed: ${res.status}`);
-                }
-
-                const data = (await res.json()) as UserMeResponseDto;
-                if (mounted) setMe(data);
-            } catch (e) {
-                if (mounted) setError(e as Error);
-            } finally {
-                if (mounted) setLoading(false);
+            if (!res.ok) {
+                throw new Error(`useMe failed: ${res.status}`);
             }
-        })();
 
-        return () => {
-            mounted = false;
-        };
+            const data = (await res.json()) as UserMeResponseDto;
+            setMe(data);
+        } catch (e) {
+            setError(e as Error);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
-    return { me, loading, error };
+    // 최초 1회 로딩
+    useEffect(() => {
+        fetchMe();
+    }, [fetchMe]);
+
+    return {
+        me,
+        loading,
+        error,
+        refetch: fetchMe, // ⭐️ 이게 이제 진짜로 동작함
+    };
 }
