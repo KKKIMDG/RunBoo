@@ -12,7 +12,6 @@ import { Colors } from "@/constants/theme";
 import GhostSelectSheet from "./components/GhostSelectSheet";
 import { fetchGhostProfiles } from "@/services/ghost/ghostService";
 import type { GhostProfileDto } from "@/types/ghost";
-import { DEFAULT_USER_ID } from "@/constants/env";
 
 type HomeScreenProps = {
     navigation?: { navigate: (screen: string, params?: any) => void };
@@ -71,17 +70,16 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     const [ghostSheetOpen, setGhostSheetOpen] = useState(false);
     const [ghostLoading, setGhostLoading] = useState(false);
     const [ghostProfiles, setGhostProfiles] = useState<GhostProfileDto[]>([]);
-    const userId = DEFAULT_USER_ID;
 
     const loadGhostProfiles = useCallback(async () => {
         setGhostLoading(true);
         try {
-            const data = await fetchGhostProfiles(userId);
+            const data = await fetchGhostProfiles();
             setGhostProfiles(data);
         } finally {
             setGhostLoading(false);
         }
-    }, [userId]);
+    }, []);
 
     // Preload data when switching to Ghost Mode
     useEffect(() => {

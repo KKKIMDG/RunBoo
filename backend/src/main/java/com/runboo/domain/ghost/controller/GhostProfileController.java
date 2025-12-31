@@ -4,7 +4,9 @@ import com.runboo.domain.ghost.dto.GhostProfileCreateRequest;
 import com.runboo.domain.ghost.dto.GhostProfileDto;
 import com.runboo.domain.ghost.dto.GhostProfileUpdateRequest;
 import com.runboo.domain.ghost.service.GhostProfileService;
+import com.runboo.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,14 +20,14 @@ public class GhostProfileController {
 
     // 유저 고스트 프로필 목록
     @GetMapping
-    public List<GhostProfileDto> getProfiles(@RequestParam Long userId) {
-        return ghostProfileService.getProfiles(userId);
+    public List<GhostProfileDto> getProfiles(@AuthenticationPrincipal CustomUserDetails user) {
+        return ghostProfileService.getProfiles(user.getUserId());
     }
 
     // 고스트 프로필 단건
     @GetMapping("/{ghostProfileId}")
-    public GhostProfileDto getProfile(@RequestParam Long userId, @PathVariable Long ghostProfileId) {
-        return ghostProfileService.getProfile(userId, ghostProfileId);
+    public GhostProfileDto getProfile(@AuthenticationPrincipal CustomUserDetails user, @PathVariable Long ghostProfileId) {
+        return ghostProfileService.getProfile(user.getUserId(), ghostProfileId);
     }
 
     // 고스트 프로필 생성
