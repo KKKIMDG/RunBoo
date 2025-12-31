@@ -1,15 +1,11 @@
 // frontend/src/screens/records/components/format.ts
 
 export function formatKm(distanceM: number) {
+    if (!Number.isFinite(distanceM) || distanceM <= 0) return "-";
+
     const km = distanceM / 1000;
     return `${km.toFixed(1)} km`;
 }
-
-/* =========================
-   시간/날짜 유틸 (타임존 안전)
-   - Date 파싱 최소화
-   - ISO 문자열에서 필요한 부분만 추출
- ========================= */
 
 function extractDate(iso: string) {
     if (!iso) return null;
@@ -77,7 +73,7 @@ export function formatPace(avgPaceSecPerKm: number) {
    시간 포맷 (초 → 분/초 or 시간/분/초)
  ========================= */
 export function formatDuration(durationSec: number) {
-    if (!Number.isFinite(durationSec) || durationSec < 0) return "-";
+    if (!Number.isFinite(durationSec) || durationSec <= 0) return "-";
 
     const total = Math.floor(durationSec);
     const h = Math.floor(total / 3600);
@@ -85,10 +81,12 @@ export function formatDuration(durationSec: number) {
     const s = total % 60;
 
     if (h > 0) return `${h}시간 ${m}분 ${s}초`;
-    return `${m}분 ${s}초`;
+    if (m > 0) return `${m}분 ${s}초`;
+    return `${s}초`;
 }
 
 export function formatDurationSeconds(sec: number) {
+    if (!Number.isFinite(sec) || sec <= 0) return "-";
     const h = Math.floor(sec / 3600);
     const m = Math.floor((sec % 3600) / 60);
     const s = sec % 60;
