@@ -22,13 +22,10 @@ export const useChallenge = (navigation: any) => {
   );
   const [loading, setLoading] = useState(true);
 
-  const FIXED_USER_ID = 1;
-
   const loadChallenges = useCallback(async () => {
     setLoading(true);
     try {
       const data: UserChallengeDto[] = await fetchUserChallengesByStatus(
-        FIXED_USER_ID,
         status
       );
 
