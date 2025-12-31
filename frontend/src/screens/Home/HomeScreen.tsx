@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState, useCallback } from "react";
+import React, { FC, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,14 +8,13 @@ import { getStyles } from "./HomeScreen.styles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
 
-// ✅ Ghost related imports
+// Ghost
 import GhostSelectSheet from "./components/GhostSelectSheet";
 import { fetchGhostProfiles } from "@/services/ghost/ghostService";
 import type { GhostProfileDto } from "@/types/ghost";
 
 type HomeScreenProps = {
     navigation?: { navigate: (screen: string, params?: any) => void };
-    onLogout?: () => void;
 };
 
 const ModeTab: FC<{
@@ -47,7 +46,6 @@ const ModeTab: FC<{
 };
 
 const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
-    // ✅ 1. Get common state and target setting logic from useHomeScreen hook
     const {
         activeMode,
         handleModeChange,
@@ -56,22 +54,32 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         goalOptions,
         toggleGoalPicker,
         handleSelectGoal,
-        handleStartRun
+        handleStartRun,
     } = useHomeScreen();
 
     const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
     const styles = getStyles(colorScheme);
     const colors = Colors[colorScheme];
+    const borderColor = colorScheme === "dark" ? "#333333" : "#E0E0E0";
 
-    // Border color adjustment for theme
-    const borderColor = colorScheme === 'dark' ? '#333333' : '#E0E0E0';
+    /** 티어 모드 상태 */
+    const [isTierPickerOpen, setIsTierPickerOpen] = useState(false);
+    const [tierDistance, setTierDistance] = useState<"5km" | "10km">("5km");
+    const toggleTierPicker = () => setIsTierPickerOpen(prev => !prev);
+    const handleSelectTierDistance = (distance: "5km" | "10km") => {
+        setTierDistance(distance);
+        setIsTierPickerOpen(false);
+    };
+    const handleStartTierRun = () => {
+        console.log("티어 러닝 시작!", tierDistance);
+    };
 
-    // ✅ 2. Ghost Mode local state and logic
+    /** 고스트 모드 상태 */
     const [ghostSheetOpen, setGhostSheetOpen] = useState(false);
     const [ghostLoading, setGhostLoading] = useState(false);
     const [ghostProfiles, setGhostProfiles] = useState<GhostProfileDto[]>([]);
 
-    const loadGhostProfiles = useCallback(async () => {
+    const loadGhostProfiles = async () => {
         setGhostLoading(true);
         try {
             const data = await fetchGhostProfiles();
@@ -79,18 +87,11 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         } finally {
             setGhostLoading(false);
         }
-    }, []);
-
-    // Preload data when switching to Ghost Mode
-    useEffect(() => {
-        if (activeMode === "고스트") {
-            loadGhostProfiles();
-        }
-    }, [activeMode, loadGhostProfiles]);
+    };
 
     const openGhostSheet = async () => {
         setGhostSheetOpen(true);
-        if (ghostProfiles.length === 0 && !ghostLoading) {
+        if (!ghostLoading && ghostProfiles.length === 0) {
             await loadGhostProfiles();
         }
     };
@@ -105,14 +106,14 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
             <TopNavBar onLeftPress={() => navigation?.navigate("Profile")} />
 
             <View style={styles.content}>
-                {/* 1. Mode Selection Tab */}
+                {/* 모드 탭 */}
                 <View style={styles.tabContainer}>
                     <ModeTab mode="측정" activeMode={activeMode} onPress={handleModeChange} icon="timer-outline" scheme={colorScheme} />
                     <ModeTab mode="티어" activeMode={activeMode} onPress={handleModeChange} icon="ribbon-outline" scheme={colorScheme} />
                     <ModeTab mode="고스트" activeMode={activeMode} onPress={handleModeChange} icon="body-outline" scheme={colorScheme} />
                 </View>
 
-                {/* 2. Map Area */}
+                {/* 지도 영역 */}
                 <View style={styles.mapBox}>
                     <View style={styles.mapContent}>
                         <Text style={styles.mapPlaceholderText}>카카오맵 영역</Text>
@@ -129,31 +130,15 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                             <Text style={styles.detailText}>자세히 보기</Text>
                         </TouchableOpacity>
                     </View>
+
                 </View>
 
-                {/* 3. Bottom Button Section (Conditional Rendering) */}
+                {/* 하단 버튼 영역 */}
                 <View style={styles.buttonSection}>
-                    {activeMode === "고스트" ? (
-                        // ✅ A. Ghost Mode: "Select Ghost" Button
-                        <TouchableOpacity
-                            style={[styles.blackButton, styles.startBtn]}
-                            onPress={openGhostSheet}
-                            activeOpacity={0.9}
-                        >
-                            <View style={styles.buttonContentCentered}>
-                                <Ionicons name="body-outline" size={22} color={colors.background} />
-                                <Text style={[styles.buttonTextMain, { marginLeft: 8 }]}>고스트 선택</Text>
-                            </View>
-                        </TouchableOpacity>
-                    ) : (
-                        // ✅ B. Normal/Tier Mode: "Set Goal" & "Start Run" Buttons
+                    {/* ===================== 측정 모드 ===================== */}
+                    {activeMode === "측정" && (
                         <>
-                            {/* (1) Goal Setting Button */}
-                            <TouchableOpacity
-                                style={styles.blackButton}
-                                onPress={toggleGoalPicker}
-                                activeOpacity={0.8}
-                            >
+                            <TouchableOpacity style={styles.blackButton} onPress={toggleGoalPicker}>
                                 <Text style={styles.buttonTextMain}>
                                     {selectedGoal.value === 0 ? "목표 설정" : selectedGoal.label}
                                 </Text>
@@ -161,37 +146,39 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                                     name={isGoalPickerOpen ? "chevron-up" : "chevron-down"}
                                     size={22}
                                     color={colors.background}
-                                    style={styles.chevronIcon}
                                 />
                             </TouchableOpacity>
 
-                            {/* (2) Goal Selection Dropdown */}
                             {isGoalPickerOpen && (
-                                <View style={{
-                                    backgroundColor: colors.card,
-                                    borderRadius: 20,
-                                    marginBottom: 10,
-                                    overflow: 'hidden',
-                                    width: '100%',
-                                    borderWidth: 1,
-                                    borderColor: borderColor
-                                }}>
+                                <View
+                                    style={{
+                                        backgroundColor: colors.card,
+                                        borderRadius: 20,
+                                        marginBottom: 10,
+                                        overflow: "hidden",
+                                        width: "100%",
+                                        borderWidth: 1,
+                                        borderColor,
+                                    }}
+                                >
                                     {goalOptions.map((option, index) => (
                                         <TouchableOpacity
                                             key={index}
                                             onPress={() => handleSelectGoal(option)}
                                             style={{
                                                 paddingVertical: 15,
-                                                alignItems: 'center',
+                                                alignItems: "center",
                                                 borderBottomWidth: index === goalOptions.length - 1 ? 0 : 1,
-                                                borderBottomColor: borderColor
+                                                borderBottomColor: borderColor,
                                             }}
                                         >
-                                            <Text style={{
-                                                color: selectedGoal.value === option.value ? '#4A6EA9' : colors.text,
-                                                fontWeight: 'bold',
-                                                fontSize: 16
-                                            }}>
+                                            <Text
+                                                style={{
+                                                    fontSize: 16,
+                                                    fontWeight: "bold",
+                                                    color: selectedGoal.value === option.value ? "#4A6EA9" : colors.text,
+                                                }}
+                                            >
                                                 {option.label}
                                             </Text>
                                         </TouchableOpacity>
@@ -199,12 +186,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                                 </View>
                             )}
 
-                            {/* (3) Start Run Button */}
-                            <TouchableOpacity
-                                style={[styles.blackButton, styles.startBtn]}
-                                onPress={handleStartRun}
-                                activeOpacity={0.8}
-                            >
+                            <TouchableOpacity style={[styles.blackButton, styles.startBtn]} onPress={handleStartRun}>
                                 <View style={styles.buttonContentCentered}>
                                     <Ionicons name="play" size={24} color={colors.background} />
                                     <Text style={[styles.buttonTextMain, { marginLeft: 8 }]}>러닝 시작</Text>
@@ -212,10 +194,78 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                             </TouchableOpacity>
                         </>
                     )}
+
+                    {/* ===================== 티어 모드 ===================== */}
+                    {activeMode === "티어" && (
+                        <>
+                            <TouchableOpacity style={styles.blackButton} onPress={toggleTierPicker}>
+                                <Text style={styles.buttonTextMain}>{tierDistance}</Text>
+                                <Ionicons
+                                    name={isTierPickerOpen ? "chevron-up" : "chevron-down"}
+                                    size={22}
+                                    color={colors.background}
+                                />
+                            </TouchableOpacity>
+
+                            {isTierPickerOpen && (
+                                <View
+                                    style={{
+                                        backgroundColor: colors.card,
+                                        borderRadius: 20,
+                                        marginBottom: 10,
+                                        overflow: "hidden",
+                                        width: "100%",
+                                        borderWidth: 1,
+                                        borderColor,
+                                    }}
+                                >
+                                    {(["5km", "10km"] as const).map((dist) => (
+                                        <TouchableOpacity
+                                            key={dist}
+                                            onPress={() => handleSelectTierDistance(dist)}
+                                            style={{
+                                                paddingVertical: 15,
+                                                alignItems: "center",
+                                                borderBottomWidth: dist === "10km" ? 0 : 1,
+                                                borderBottomColor: borderColor,
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    fontSize: 16,
+                                                    fontWeight: "bold",
+                                                    color: tierDistance === dist ? "#4A6EA9" : colors.text,
+                                                }}
+                                            >
+                                                {dist}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+
+                            <TouchableOpacity style={[styles.blackButton, styles.startBtn]} onPress={handleStartTierRun}>
+                                <View style={styles.buttonContentCentered}>
+                                    <Ionicons name="ribbon-outline" size={22} color={colors.background} />
+                                    <Text style={[styles.buttonTextMain, { marginLeft: 8 }]}>티어 측정 시작</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </>
+                    )}
+
+                    {/* ===================== 고스트 모드 ===================== */}
+                    {activeMode === "고스트" && (
+                        <TouchableOpacity style={[styles.blackButton, styles.startBtn]} onPress={openGhostSheet}>
+                            <View style={styles.buttonContentCentered}>
+                                <Ionicons name="body-outline" size={22} color={colors.background} />
+                                <Text style={[styles.buttonTextMain, { marginLeft: 8 }]}>고스트 선택</Text>
+                            </View>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
 
-            {/* ✅ Ghost Select Bottom Sheet */}
+            {/* Ghost Select Sheet */}
             <GhostSelectSheet
                 visible={ghostSheetOpen}
                 scheme={colorScheme}

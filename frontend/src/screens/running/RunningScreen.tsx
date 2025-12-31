@@ -1,5 +1,15 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, ScrollView, useColorScheme, Dimensions, Alert} from 'react-native';
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    ScrollView,
+    useColorScheme,
+    Dimensions,
+    Alert,
+    ToastAndroid, // ✅ 안드로이드 토스트 메시지용
+    Platform
+} from 'react-native';
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { LineChart } from 'react-native-chart-kit';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
@@ -14,6 +24,8 @@ const RunningScreen = () => {
     const styles = getStyles(isDarkMode);
 
     const { state, actions, utils } = useRunningScreen();
+
+    // 상태 값들 구조 분해 할당
     const {
         isRunning, isPaused, time, distance, currentPace,
         routeCoordinates, paceHistory,
@@ -22,6 +34,16 @@ const RunningScreen = () => {
 
     const { pauseRun, resumeRun, stopRun } = actions;
     const { formatTime, formatPace } = utils;
+
+    // ✅ [추가] 정지 버튼 탭 핸들러 (짧게 눌렀을 때)
+    const handleStopPress = () => {
+        if (Platform.OS === 'android') {
+            ToastAndroid.show("종료하려면 버튼을 1초간 길게 누르세요", ToastAndroid.SHORT);
+        } else {
+            // iOS는 Toast가 없으므로 Alert로 대체 (혹은 별도 라이브러리 사용)
+            Alert.alert("알림", "종료하려면 버튼을 길게 눌러주세요.");
+        }
+    };
 
     // 그래프 설정
     const chartConfig = {
@@ -46,7 +68,7 @@ const RunningScreen = () => {
 
     return (
         <View style={styles.container}>
-            {/* 2. [추가] 카운트다운 오버레이 (화면 덮기) */}
+            {/* 1. 카운트다운 오버레이 (준비 화면) */}
             {isReady && (
                 <View style={styles.countdownOverlay}>
                     <Text style={styles.countdownText}>
@@ -57,7 +79,7 @@ const RunningScreen = () => {
             )}
 
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-                {/* 1. 상단 헤더 */}
+                {/* 2. 상단 헤더 */}
                 <View style={styles.header}>
                     <View style={styles.statusTag}>
                         <View style={styles.statusDot} />
@@ -68,7 +90,7 @@ const RunningScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* 2. 정보 카드 영역 */}
+                {/* 3. 정보 카드 영역 */}
                 <View style={styles.statsContainer}>
                     {/* 시간 카드 */}
                     <View style={styles.statCard}>
@@ -98,7 +120,7 @@ const RunningScreen = () => {
                     </View>
                 </View>
 
-                {/* 3. 그래프 영역 */}
+                {/* 4. 그래프 영역 */}
                 <View style={styles.chartCard}>
                     <View style={styles.chartTitleContainer}>
                         <Ionicons name="analytics-outline" size={20} color="#4A6EA9" />
@@ -122,7 +144,7 @@ const RunningScreen = () => {
                     </View>
                 </View>
 
-                {/* 4. 지도 영역 */}
+                {/* 5. 지도 영역 */}
                 <View style={styles.mapContainer}>
                     <MapView
                         style={styles.map}
@@ -144,12 +166,12 @@ const RunningScreen = () => {
                         />
                     </MapView>
                     <View style={styles.mapOverlay}>
-                        <Text style={styles.mapOverlayText}>Google Maps 영역</Text>
+                        <Text style={styles.mapOverlayText}>실시간 경로</Text>
                     </View>
                 </View>
             </ScrollView>
 
-            {/* 5. 하단 컨트롤 버튼 */}
+            {/* 6. 하단 컨트롤 버튼 (일시정지 / 종료) */}
             <View style={styles.controlContainer}>
                 {isPaused ? (
                     <TouchableOpacity style={styles.pauseButton} onPress={resumeRun}>
@@ -160,7 +182,16 @@ const RunningScreen = () => {
                         <Ionicons name="pause" size={36} color="#4A6EA9" />
                     </TouchableOpacity>
                 )}
-                <TouchableOpacity style={styles.stopButton} onPress={stopRun} onLongPress={() => Alert.alert("길게 눌러서 종료")}>
+
+                {/* 🔥 [수정됨] 길게 눌러야 종료되는 버튼 */}
+                <TouchableOpacity
+                    style={styles.stopButton}
+                    onPress={handleStopPress}        // 1. 짧게 누르면 -> 안내 메시지
+                    onLongPress={stopRun}            // 2. 길게 누르면 -> 진짜 종료
+                    delayLongPress={1000}            // 3. 1초(1000ms) 이상 눌러야 인식됨
+                    activeOpacity={0.6}
+                >
+                    {/* 종료 아이콘 (흰색 네모) */}
                     <View style={{ width: 24, height: 24, backgroundColor: 'white', borderRadius: 4 }} />
                 </TouchableOpacity>
             </View>

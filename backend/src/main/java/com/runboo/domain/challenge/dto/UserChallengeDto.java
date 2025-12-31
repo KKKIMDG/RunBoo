@@ -4,6 +4,7 @@ import com.runboo.domain.badge.dto.BadgeDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -14,8 +15,8 @@ public class UserChallengeDto {
     private ChallengeDto challenge;
     private int progressValue;
     private String status;
-    private OffsetDateTime startedAt;
-    private OffsetDateTime completedAt;
+    private LocalDateTime startedAt;
+    private LocalDateTime completedAt;
     private int percentage;
     private long remainingDays; // 남은 일수
 }
