@@ -1,14 +1,12 @@
 package com.runboo.domain.user.controller;
 
-import com.runboo.domain.user.dto.PasswordChangeRequestDto;
+import com.runboo.domain.user.dto.NicknameUpdateRequest;
 import com.runboo.domain.user.dto.UserMeResponseDto;
-import com.runboo.domain.user.dto.UserProfileUpdateRequestDto;
+import com.runboo.domain.user.dto.ProfileImgUpdateRequest;
 import com.runboo.domain.user.service.UserService;
-import com.runboo.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,22 +21,31 @@ public class UserController {
      * GET /api/users/me
      */
     @GetMapping("/me")
-    public ResponseEntity<UserMeResponseDto> getMyInfo(@AuthenticationPrincipal CustomUserDetails user) {
-        return ResponseEntity.ok(userService.getMyInfo(user.getUserId()));
+    public ResponseEntity<UserMeResponseDto> getMyInfo() {
+        return ResponseEntity.ok(userService.getMyInfo());
     }
 
-//    /**
-//     * 프로필 수정
-//     * PUT /api/users/me
-//     */
-//    @PutMapping("/me")
-//    public ResponseEntity<Void> updateProfile(
-//            @Valid @RequestBody UserProfileUpdateRequestDto request
-//    ) {
-//        userService.updateProfile(request);
-//        return ResponseEntity.ok().build();
-//    }
-//
+    /**
+     * 내 닉네임 수정
+     * PUT /api/users/me/nickname
+     */
+    @PatchMapping("/me/nickname")
+    public ResponseEntity<Void> updateNickname(
+            @RequestBody @Valid NicknameUpdateRequest request
+    ) {
+        userService.updateMyNickname(request.getNickname());
+        return ResponseEntity.ok().build();
+    }
+    /**
+     * 내 프로필 사진 수정
+     */
+    @PatchMapping("/me/profile-image")
+    public ResponseEntity<Void> updateProfileImage(
+            @RequestBody @Valid ProfileImgUpdateRequest request
+    ) {
+        userService.updateMyProfileImage(request.getProfileImageUrl());
+        return ResponseEntity.ok().build();
+    }
 //    /**
 //     * 비밀번호 변경
 //     * PUT /api/users/password
