@@ -89,7 +89,7 @@ const RunResultScreen = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
 
                 {/* ✅ 캡처하고 싶은 영역을 View로 감싸고 ref 연결 */}
