@@ -9,6 +9,7 @@ import RunningScreen from "@/screens/running";
 import RunResultScreen from "@/screens/RunResult";
 import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
 import MapFullScreen from "@/screens/Home/MapFullScreen"; // ✅ [추가 2] 파일 import
+import TierResultScreen from "@/screens/TierResult/TierResultScreen";
 
 import { Coordinate } from "@/utils/runUtils";
 import type { GhostProfileDto } from "@/types/ghost";
@@ -17,13 +18,32 @@ export type RootStackParamList = {
     MainStack: undefined;
 
     // 일반 러닝
-    Running: { targetDistance: number };
+    Running: {
+        targetDistance: number;
+        mode?: "NORMAL" | "TIER" | "GHOST"; // 추가된 부분
+    };
 
     // 고스트 러닝
     GhostRun: { ghost: GhostProfileDto };
 
     // 러닝 결과
     RunResult: {
+        distanceM: number;
+        durationSec: number;
+        avgPaceSec: number;
+        calories: number;
+        routeCoordinates: Coordinate[];
+    };
+
+    TierResult: {
+        // 화면 표시용 (문자열)
+        stats: {
+            distance: string;
+            time: string;
+            pace: string;
+        };
+        // 로직용 (원본 데이터)
+        achievedTier: string;
         distanceM: number;
         durationSec: number;
         avgPaceSec: number;
@@ -74,6 +94,12 @@ export default function RootNavigator({ isLoggedIn, onLoginSuccess, onLogout }: 
                     headerShown: false,
                     presentation: 'card',
                 }}
+            />
+
+            <Stack.Screen
+                name="TierResult"
+                component={TierResultScreen}
+                options={{ gestureEnabled: false }}
             />
         </Stack.Navigator>
     );

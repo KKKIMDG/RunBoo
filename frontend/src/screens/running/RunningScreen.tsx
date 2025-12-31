@@ -7,7 +7,7 @@ import {
     useColorScheme,
     Dimensions,
     Alert,
-    ToastAndroid, // ✅ 안드로이드 토스트 메시지용
+    ToastAndroid,
     Platform
 } from 'react-native';
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -16,6 +16,8 @@ import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-ico
 
 import { useRunningScreen } from './useRunningScreen';
 import { getStyles } from './RunningScreen.styles';
+// ✅ [추가] 새로 만든 StatBox 컴포넌트 임포트 (경로 확인해주세요!)
+import { StatBox } from '@/components/StatBox';
 
 const { width } = Dimensions.get('window');
 
@@ -25,7 +27,6 @@ const RunningScreen = () => {
 
     const { state, actions, utils } = useRunningScreen();
 
-    // 상태 값들 구조 분해 할당
     const {
         isRunning, isPaused, time, distance, currentPace,
         routeCoordinates, paceHistory,
@@ -35,12 +36,10 @@ const RunningScreen = () => {
     const { pauseRun, resumeRun, stopRun } = actions;
     const { formatTime, formatPace } = utils;
 
-    // ✅ [추가] 정지 버튼 탭 핸들러 (짧게 눌렀을 때)
     const handleStopPress = () => {
         if (Platform.OS === 'android') {
             ToastAndroid.show("종료하려면 버튼을 1초간 길게 누르세요", ToastAndroid.SHORT);
         } else {
-            // iOS는 Toast가 없으므로 Alert로 대체 (혹은 별도 라이브러리 사용)
             Alert.alert("알림", "종료하려면 버튼을 길게 눌러주세요.");
         }
     };
@@ -68,7 +67,7 @@ const RunningScreen = () => {
 
     return (
         <View style={styles.container}>
-            {/* 1. 카운트다운 오버레이 (준비 화면) */}
+            {/* 1. 카운트다운 오버레이 */}
             {isReady && (
                 <View style={styles.countdownOverlay}>
                     <Text style={styles.countdownText}>
@@ -90,40 +89,37 @@ const RunningScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* 3. 정보 카드 영역 */}
+                {/* 3. 정보 카드 영역 (✅ StatBox 컴포넌트로 교체하여 에러 해결!) */}
                 <View style={styles.statsContainer}>
-                    {/* 시간 카드 */}
-                    <View style={styles.statCard}>
-                        <View style={styles.statIconContainer}>
-                            <Ionicons name="time-outline" size={24} color="#4A6EA9" />
-                        </View>
-                        <Text style={styles.statLabel}>시간</Text>
-                        <Text style={styles.statValueSmall}>{formatTime(time)}</Text>
-                    </View>
-                    {/* 거리 카드 */}
-                    <View style={styles.statCard}>
-                        <View style={styles.statIconContainer}>
-                            <MaterialCommunityIcons name="map-marker-distance" size={24} color="#4A6EA9" />
-                        </View>
-                        <Text style={styles.statLabel}>거리</Text>
-                        <Text style={styles.statValueLarge}>{(distance / 1000).toFixed(2)}</Text>
-                        <Text style={styles.statUnit}>km</Text>
-                    </View>
-                    {/* 페이스 카드 */}
-                    <View style={styles.statCard}>
-                        <View style={styles.statIconContainer}>
-                            <FontAwesome5 name="running" size={24} color="#4A6EA9" />
-                        </View>
-                        <Text style={styles.statLabel}>페이스</Text>
-                        <Text style={styles.statValueLarge}>{formatPace(currentPace)}</Text>
-                        <Text style={styles.statUnit}>/km</Text>
-                    </View>
+                    {/* 시간 */}
+                    <StatBox
+                        icon={<Ionicons name="time-outline" size={24} color="#4A6EA9" />}
+                        label="시간"
+                        value={formatTime(time)}
+                    />
+
+                    {/* 거리 (강조 표시) */}
+                    <StatBox
+                        icon={<MaterialCommunityIcons name="map-marker-distance" size={24} color="#4A6EA9" />}
+                        label="거리"
+                        value={(distance / 1000).toFixed(2)}
+                        unit="km"
+                        highlight={true}
+                    />
+
+                    {/* 페이스 */}
+                    <StatBox
+                        icon={<FontAwesome5 name="running" size={22} color="#4A6EA9" />}
+                        label="페이스"
+                        value={formatPace(currentPace)}
+                        unit="/km"
+                    />
                 </View>
 
                 {/* 4. 그래프 영역 */}
                 <View style={styles.chartCard}>
                     <View style={styles.chartTitleContainer}>
-                        <Ionicons name="analytics-outline" size={20} color="#4A6EA9" />
+                        <Ionicons name="analytics-outline" size={20} color={isDarkMode ? '#FFF' : '#333'} />
                         <Text style={styles.chartTitle}>페이스 변화</Text>
                     </View>
                     <LineChart
@@ -171,7 +167,7 @@ const RunningScreen = () => {
                 </View>
             </ScrollView>
 
-            {/* 6. 하단 컨트롤 버튼 (일시정지 / 종료) */}
+            {/* 6. 하단 컨트롤 버튼 */}
             <View style={styles.controlContainer}>
                 {isPaused ? (
                     <TouchableOpacity style={styles.pauseButton} onPress={resumeRun}>
@@ -183,15 +179,13 @@ const RunningScreen = () => {
                     </TouchableOpacity>
                 )}
 
-                {/* 🔥 [수정됨] 길게 눌러야 종료되는 버튼 */}
                 <TouchableOpacity
                     style={styles.stopButton}
-                    onPress={handleStopPress}        // 1. 짧게 누르면 -> 안내 메시지
-                    onLongPress={stopRun}            // 2. 길게 누르면 -> 진짜 종료
-                    delayLongPress={1000}            // 3. 1초(1000ms) 이상 눌러야 인식됨
+                    onPress={handleStopPress}
+                    onLongPress={stopRun}
+                    delayLongPress={1000}
                     activeOpacity={0.6}
                 >
-                    {/* 종료 아이콘 (흰색 네모) */}
                     <View style={{ width: 24, height: 24, backgroundColor: 'white', borderRadius: 4 }} />
                 </TouchableOpacity>
             </View>
