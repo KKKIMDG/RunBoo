@@ -3,7 +3,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as Location from 'expo-location'; // ✅ 위치 서비스 추가
 import { Alert } from 'react-native';
 
-import { CourseService } from '@/services/CourseService';
+import { CourseService } from '@/services/course/CourseService';
 import { CourseType } from '@/components/CourseCard';
 
 export type FilterType = 'UNDER_5K' | 'OVER_5K' | 'SAVED';

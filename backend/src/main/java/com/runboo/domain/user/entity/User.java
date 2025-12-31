@@ -81,4 +81,13 @@ public class User {
     public boolean isSocialUser() {
         return this.socialProvider != SocialProvider.LOCAL;
     }
+
+    public void changeNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void changeProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
 }
