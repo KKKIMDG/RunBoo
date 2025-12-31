@@ -1,15 +1,14 @@
-// frontend/src/navigation/root/RootNavigator.tsx
-
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
+import * as Location from 'expo-location'; // ✅ [추가 1] 타입 정의용 import
 
 import AuthStack from "../auth/AuthStack";
 import MainStack from "@/navigation/stacks/MainStack";
 
 import RunningScreen from "@/screens/running";
 import RunResultScreen from "@/screens/RunResult";
-
 import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
+import MapFullScreen from "@/screens/Home/MapFullScreen"; // ✅ [추가 2] 파일 import
 
 import { Coordinate } from "@/utils/runUtils";
 import type { GhostProfileDto } from "@/types/ghost";
@@ -20,10 +19,10 @@ export type RootStackParamList = {
     // 일반 러닝
     Running: { targetDistance: number };
 
-    // ✅ 고스트 러닝 (고스트 선택 화면에서 { ghost } 넘겨줘야 함)
+    // 고스트 러닝
     GhostRun: { ghost: GhostProfileDto };
 
-    // 러닝 결과 (일반/고스트 공용 재사용)
+    // 러닝 결과
     RunResult: {
         distanceM: number;
         durationSec: number;
@@ -31,6 +30,9 @@ export type RootStackParamList = {
         calories: number;
         routeCoordinates: Coordinate[];
     };
+
+    // ✅ [추가 3] 전체 화면 지도 (파라미터 타입 정의)
+    MapFull: { location: Location.LocationObject | null };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -62,6 +64,16 @@ export default function RootNavigator({ isLoggedIn, onLoginSuccess, onLogout }: 
                 name="RunResult"
                 component={RunResultScreen}
                 options={{ gestureEnabled: false }}
+            />
+
+
+            <Stack.Screen
+                name="MapFull"
+                component={MapFullScreen}
+                options={{
+                    headerShown: false,
+                    presentation: 'card',
+                }}
             />
         </Stack.Navigator>
     );
