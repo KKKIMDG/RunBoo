@@ -30,7 +30,13 @@
       "favicon": "./src/assets/favicon.png"
     },
     "plugins": [
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "내 주변 러닝 코스를 찾기 위해 위치 정보 권한이 필요합니다."
+        }
+      ]
     ],
     "extra": {
       "eas": {
