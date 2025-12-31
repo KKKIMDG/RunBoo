@@ -1,8 +1,7 @@
 import { api } from "@/services/api";
 import type {
   RecordDto,
-  DashboardStatsDto,
-  RecordDetailDto,
+  DashboardStatsDto
 } from "@/types/record";
 
 /** 내 기록 목록 조회 */
