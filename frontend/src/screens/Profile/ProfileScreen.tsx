@@ -55,6 +55,9 @@ export default function ProfileScreen({ navigation }: any) {
         }
     };
     const pickImage = async () => {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) return;
+
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
@@ -63,13 +66,13 @@ export default function ProfileScreen({ navigation }: any) {
         });
 
         if (result.canceled) return;
-
         return result.assets[0];
     };
+
     const uploadProfileImage = async (image: ImagePicker.ImagePickerAsset) => {
         if (!me?.userId) throw new Error("사용자 정보가 없습니다");
 
-        const filePath = `${me.userId}.jpg`;
+        const filePath = `${me.userId}_${Date.now()}.jpg`;
 
         const fileResponse = await fetch(image.uri);
         const arrayBuffer = await fileResponse.arrayBuffer();
