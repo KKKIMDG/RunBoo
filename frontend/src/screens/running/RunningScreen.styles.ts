@@ -17,7 +17,7 @@ export const getStyles = (isDarkMode: boolean = false) => {
         },
         scrollContainer: {
             padding: 20,
-            paddingBottom: 100, // 하단 버튼 공간 확보
+            paddingBottom: 100,
         },
         // --- 상단 헤더 ---
         header: {

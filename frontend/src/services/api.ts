@@ -87,7 +87,7 @@ const request = async (
     const res = await fetch(input, init);
 
     // 401,403은 특별 취급
-    if (res.status !== 401) {
+    if (res.status !== 401 && res.status !== 403) {
         return handleResponse(res);
     }
 
@@ -107,7 +107,6 @@ const request = async (
     await AsyncStorage.setItem('accessToken', newAccessToken);
     setAccessToken(newAccessToken);
 
-    // 원래 요청 1회 재시도
     return request(
         input,
         {

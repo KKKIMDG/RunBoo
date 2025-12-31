@@ -112,7 +112,6 @@ export const getStyles = (isDarkMode: boolean = false) => {
             resizeMode: 'contain',
         },
 
-        // --- 버튼 영역 ---
         buttonContainer: {
             width: '100%',
             marginBottom: 30,
@@ -149,7 +148,6 @@ export const getStyles = (isDarkMode: boolean = false) => {
             marginLeft: 10,
         },
 
-        // --- 하단 추가 정보 영역 (칼로리, 속도) ---
         bottomInfoContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',

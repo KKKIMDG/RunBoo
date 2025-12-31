@@ -1,16 +1,30 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack'; // 1. 스택 네비게이터 임포트
-import AuthStack from '../auth/AuthStack';
-import MainStack from '@/navigation/stacks/MainStack';
-import RunningScreen from '@/screens/running';
-import RunResultScreen from '@/screens/RunResult';
-import { Coordinate } from '@/utils/runUtils'
+// frontend/src/navigation/root/RootNavigator.tsx
 
-// 3. 네비게이션 타입 정의 (이게 있어야 빨간 줄이 사라집니다)
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+
+import AuthStack from "../auth/AuthStack";
+import MainStack from "@/navigation/stacks/MainStack";
+
+import RunningScreen from "@/screens/running";
+import RunResultScreen from "@/screens/RunResult";
+
+// ✅ 고스트 런 스크린 추가 (경로는 네 프로젝트 구조에 맞게)
+import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
+
+import { Coordinate } from "@/utils/runUtils";
+import type { GhostProfileDto } from "@/types/ghost";
+
 export type RootStackParamList = {
     MainStack: undefined;
+
+    // 일반 러닝
     Running: { targetDistance: number };
-    // ▼▼▼ 결과 화면 및 파라미터 타입 정의 ▼▼▼
+
+    // ✅ 고스트 러닝 (고스트 선택 화면에서 { ghost } 넘겨줘야 함)
+    GhostRun: { ghost: GhostProfileDto };
+
+    // 러닝 결과 (일반/고스트 공용 재사용)
     RunResult: {
         distanceM: number;
         durationSec: number;
@@ -22,17 +36,11 @@ export type RootStackParamList = {
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-export default function RootNavigator({
-                                          isLoggedIn,
-                                          onLoginSuccess,
-                                          onLogout,
-                                      }: any) {
-    // 1) 로그인 안 했을 때 -> 로그인 화면(AuthStack) 보여줌
+export default function RootNavigator({ isLoggedIn, onLoginSuccess, onLogout }: any) {
     if (!isLoggedIn) {
         return <AuthStack onLoginSuccess={onLoginSuccess} />;
     }
 
-    // 2) 로그인 했을 때 -> MainStack과 Running을 포함하는 '새로운 스택'을 반환
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="MainStack">
@@ -45,11 +53,15 @@ export default function RootNavigator({
                 options={{ gestureEnabled: false }}
             />
 
-            {/* 3. 스택에 화면 등록 */}
+            <Stack.Screen
+                name="GhostRun"
+                component={GhostRunScreen}
+                options={{ gestureEnabled: false }}
+            />
+
             <Stack.Screen
                 name="RunResult"
                 component={RunResultScreen}
-                // 결과 화면에서도 뒤로가기 제스처 막는 게 좋음 (홈 버튼으로만 이동)
                 options={{ gestureEnabled: false }}
             />
         </Stack.Navigator>

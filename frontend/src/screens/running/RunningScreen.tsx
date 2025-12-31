@@ -14,11 +14,10 @@ const RunningScreen = () => {
     const styles = getStyles(isDarkMode);
 
     const { state, actions, utils } = useRunningScreen();
-    // 1. [변경] isReady, countdown 상태 추가로 받아오기
     const {
         isRunning, isPaused, time, distance, currentPace,
         routeCoordinates, paceHistory,
-        isReady, countdown // <--- 여기 추가됨
+        isReady, countdown
     } = state;
 
     const { pauseRun, resumeRun, stopRun } = actions;
