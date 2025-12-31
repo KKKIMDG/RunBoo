@@ -11,7 +11,6 @@ import java.time.OffsetDateTime;
 public class GhostProfileDto {
 
     private Long id;
-    private Long userId;
     private Long runRecordId;
     private String type;
     private Double targetDistanceKm;
@@ -20,7 +19,6 @@ public class GhostProfileDto {
 
     public GhostProfileDto(GhostProfile gp) {
         this.id = gp.getId();
-        this.userId = gp.getUserId();
         this.runRecordId = gp.getRunRecordId();
         this.type = gp.getType();
         this.targetDistanceKm = gp.getTargetDistanceKm();

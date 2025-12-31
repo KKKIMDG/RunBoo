@@ -21,7 +21,6 @@ import WeeklyChart from "../stats/components/WeeklyChart";
 import PersonalBestList from "../stats/components/PersonalBestList";
 
 import { fetchMyRecords, fetchDashboardStats } from "@/services/record/recordsService";
-import { DEFAULT_USER_ID } from "@/constants/env";
 import type { RecordDto, DashboardStatsDto } from "@/types/record";
 
 import { styles as s } from "./RecordsScreen.style";
@@ -51,7 +50,6 @@ function endOfDay(d: Date) {
 
 export default function RecordsScreen() {
     const tabBarHeight = useSafeBottomTabBarHeight();
-    const userId = DEFAULT_USER_ID;
 
     const [activeTab, setActiveTab] = useState<TopTab>("record");
 
@@ -73,26 +71,26 @@ export default function RecordsScreen() {
     const loadRecords = useCallback(async () => {
         try {
             setRecordsError(null);
-            const res = await fetchMyRecords(userId);
+            const res = await fetchMyRecords();
             setRecords(res);
         } catch (e) {
             console.log("❌ records api error:", e);
             setRecordsError("기록을 불러오지 못했어요.");
             setRecords([]);
         }
-    }, [userId]);
+    }, []);
 
     const loadStats = useCallback(async () => {
         try {
             setStatsError(null);
-            const res = await fetchDashboardStats(userId);
+            const res = await fetchDashboardStats();
             setStats(res);
         } catch (e) {
             console.log("❌ stats api error:", e);
             setStatsError("통계를 불러오지 못했어요.");
             setStats(null);
         }
-    }, [userId]);
+    }, []);
 
     useEffect(() => {
         (async () => {

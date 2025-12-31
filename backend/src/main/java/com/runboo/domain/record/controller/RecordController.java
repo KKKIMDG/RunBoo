@@ -4,8 +4,10 @@ import com.runboo.domain.record.dto.DashboardStatsDto;
 import com.runboo.domain.record.dto.RecordDto;
 import com.runboo.domain.record.dto.RunRecordRequestDto;
 import com.runboo.domain.record.service.RecordService;
+import com.runboo.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,14 +21,15 @@ public class RecordController {
 
     // 1) 내 기록 조회
     @GetMapping
-    public List<RecordDto> getMyRecords(@RequestParam Long userId) {
-        return recordService.getMyRecords(userId);
+    public List<RecordDto> getMyRecords(@AuthenticationPrincipal CustomUserDetails user) {
+        System.out.println(user.getUserId());
+        return recordService.getMyRecords(user.getUserId());
     }
 
     // 2) 통계 화면 전체(이번달 + 주간 + 개인최고기록)
     @GetMapping("/stats/dashboard")
-    public DashboardStatsDto getDashboardStats(@RequestParam Long userId) {
-        return recordService.getDashboardStats(userId);
+    public DashboardStatsDto getDashboardStats(@AuthenticationPrincipal CustomUserDetails user) {
+        return recordService.getDashboardStats(user.getUserId());
     }
 
     @PostMapping

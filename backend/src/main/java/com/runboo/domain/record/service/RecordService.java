@@ -48,9 +48,8 @@ public class RecordService {
         LocalDate monthStart = today.withDayOfMonth(1);
         LocalDate monthEnd = monthStart.plusMonths(1);
 
-        OffsetDateTime start = monthStart.atStartOfDay(zone).toOffsetDateTime();
-        OffsetDateTime end = monthEnd.atStartOfDay(zone).toOffsetDateTime();
-
+        LocalDateTime start = monthStart.atStartOfDay(zone).toLocalDateTime();
+        LocalDateTime end = monthEnd.atStartOfDay(zone).toLocalDateTime();
         List<Record> records =
                 recordRepository.findByUserIdAndStartedAtBetween(userId, start, end);
 
@@ -87,8 +86,8 @@ public class RecordService {
         LocalDate monday = today.with(DayOfWeek.MONDAY);
         LocalDate nextMonday = monday.plusWeeks(1);
 
-        OffsetDateTime start = monday.atStartOfDay(zone).toOffsetDateTime();
-        OffsetDateTime end = nextMonday.atStartOfDay(zone).toOffsetDateTime();
+        LocalDateTime start = monday.atStartOfDay(zone).toLocalDateTime();
+        LocalDateTime end = nextMonday.atStartOfDay(zone).toLocalDateTime();
 
         List<Record> records =
                 recordRepository.findByUserIdAndStartedAtBetween(userId, start, end);

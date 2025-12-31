@@ -12,7 +12,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 import { fetchDashboardStats } from "@/services/record/recordsService";
-import { DEFAULT_USER_ID } from "@/constants/env";
 import type { DashboardStatsDto } from "@/types/record";
 
 import MonthlyChart from "./components/MonthlyChart";
@@ -23,7 +22,6 @@ import { styles as s } from "./StatsScreen.style";
 
 export default function StatsScreen() {
     const tabBarHeight = useBottomTabBarHeight();
-    const userId = DEFAULT_USER_ID;
 
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -33,14 +31,14 @@ export default function StatsScreen() {
     const load = useCallback(async () => {
         try {
             setErrorMsg(null);
-            const res = await fetchDashboardStats(userId);
+            const res = await fetchDashboardStats();
             setStats(res);
         } catch (e) {
             console.log("❌ stats api error:", e);
             setErrorMsg("통계를 불러오지 못했어요.");
             setStats(null);
         }
-    }, [userId]);
+    }, []);
 
     useEffect(() => {
         (async () => {
