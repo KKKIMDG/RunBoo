@@ -58,19 +58,20 @@ type IoniconName =
     | "bar-chart-outline"
     | "body-outline"
     | "medal-outline"
+    | "today-outline"
     | "location-outline";
 
 function getTitleBySlot(slot: SlotType) {
     if (slot === "SELF_BEST") return "내 최고 기록";
     if (slot === "SELF_YESTERDAY") return "어제 기록";
     if (slot === "SELF_WEEKLY_AVG") return "이번 주 평균";
-    if (slot === "RANKING_NATIONAL") return "전국 1위(이강빈)";
-    return "지역 챔피언(이동국)";
+    if (slot === "RANKING_NATIONAL") return "전국 1위";
+    return "지역 챔피언";
 }
 
 function getIconBySlot(slot: SlotType): IoniconName {
     if (slot === "SELF_BEST") return "trophy-outline";
-    if (slot === "SELF_YESTERDAY") return "trending-up-outline";
+    if (slot === "SELF_YESTERDAY") return "today-outline";
     if (slot === "SELF_WEEKLY_AVG") return "bar-chart-outline";
     if (slot === "RANKING_NATIONAL") return "medal-outline";
     return "location-outline";
