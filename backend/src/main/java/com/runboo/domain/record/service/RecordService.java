@@ -39,6 +39,63 @@ public class RecordService {
     }
 
     /* =========================
+   프로필 활동 잔디 (최근 12주)
+ ========================= */
+    public GrassResponseDto getGrass(Long userId, int weeks) {
+        ZoneId zone = ZoneId.systemDefault(); // 필요하면 ZoneId.of("Asia/Seoul")로 고정
+        LocalDate today = LocalDate.now(zone);
+
+        // ✅ 이번 주 시작(일요일 고정)
+        LocalDate thisWeekSunday = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+
+        // ✅ 이번 주 포함 weeks주 -> (weeks-1)주 전 일요일부터
+        int w = Math.max(weeks, 1);
+        LocalDate startDate = thisWeekSunday.minusWeeks(w - 1);
+
+        // ✅ endDate는 오늘 (오늘 이후 날짜는 생성 안 함)
+        LocalDate endDate = today;
+
+        // ✅ DB 조회 범위: startDate 00:00 ~ (endDate+1) 00:00 (exclusive)
+        LocalDateTime start = startDate.atStartOfDay(zone).toLocalDateTime();
+        LocalDateTime endExclusive = endDate.plusDays(1).atStartOfDay(zone).toLocalDateTime();
+
+        List<Record> records =
+                recordRepository.findByUserIdAndStartedAtBetween(userId, start, endExclusive);
+
+        // ✅ 날짜별 거리 합산
+        Map<LocalDate, Double> distanceByDate = records.stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getStartedAt().toLocalDate(),
+                        Collectors.summingDouble(r -> Optional.ofNullable(r.getDistanceM()).orElse(0.0))
+                ));
+
+        // ✅ startDate ~ endDate까지 하루씩 응답 생성
+        List<GrassDayDto> days = new ArrayList<>();
+        for (LocalDate d = startDate; !d.isAfter(endDate); d = d.plusDays(1)) {
+            double dist = distanceByDate.getOrDefault(d, 0.0);
+
+            int level;
+            if (dist >= 5000.0) level = 2;
+            else if (dist > 0.0) level = 1;
+            else level = 0;
+
+            days.add(new GrassDayDto(
+                    d.toString(), // "YYYY-MM-DD"
+                    dist,
+                    level
+            ));
+        }
+
+        return new GrassResponseDto(
+                w,
+                startDate.toString(),
+                endDate.toString(),
+                days
+        );
+    }
+
+
+    /* =========================
        월간 통계
      ========================= */
     private MonthlySummaryDto getThisMonthSummary(Long userId) {
