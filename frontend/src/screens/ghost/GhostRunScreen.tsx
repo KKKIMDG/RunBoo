@@ -120,7 +120,7 @@ export default function GhostRunScreen() {
 
             <View style={[s.header, { backgroundColor: colors.headerBg, borderColor: colors.border }]}>
                 <View style={[s.headerPill, { backgroundColor: colors.headerBg, borderColor: colors.border }]}>
-                    <Ionicons name={"glasses-sharp" as IoniconName} size={16} color={colors.text} />
+                    <View style={s.statusDot} />
                     <Text style={[s.headerPillText, { color: colors.text }]}>고스트 모드</Text>
                 </View>
 
@@ -162,7 +162,7 @@ export default function GhostRunScreen() {
 
                     <View style={{ marginTop: 14 }}>
                         <View style={s.rankRow}>
-                            <Text style={[s.rankLabel, { color: colors.mutedText }]}>🏆 고스트</Text>
+                            <Text style={[s.rankLabel, { color: colors.mutedText }]}>👻 고스트</Text>
                             <Text style={[s.rankValue, { color: colors.mutedText }]}>{ghostKmText} km</Text>
                         </View>
 
@@ -180,7 +180,7 @@ export default function GhostRunScreen() {
                         </View>
 
                         <View style={[s.rankRow, { marginTop: 14 }]}>
-                            <Text style={[s.rankLabel, { color: colors.mutedText }]}>👻 YOU</Text>
+                            <Text style={[s.rankLabel, { color: colors.mutedText }]}>👣 YOU</Text>
                             <Text style={[s.rankValue, { color: colors.mutedText }]}>{youKmText} km</Text>
                         </View>
 
@@ -299,7 +299,7 @@ const s = StyleSheet.create({
     safe: { flex: 1 },
 
     header: {
-        paddingHorizontal: 14,
+        paddingHorizontal: 18,
         paddingVertical: 10,
         borderBottomWidth: 2,
         flexDirection: "row",
@@ -316,7 +316,7 @@ const s = StyleSheet.create({
         borderWidth: 1,
         ...shadow,
     },
-    headerPillText: { fontWeight: "800", fontSize: 13, marginLeft: 6 },
+    headerPillText: { fontWeight: "800", fontSize: 13, marginLeft: 6, marginRight: 6 },
 
     headerIconBtn: {
         width: 44,
@@ -326,6 +326,14 @@ const s = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         ...shadow,
+    },
+
+    statusDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 999,
+        backgroundColor: "gray",
+        marginRight: 8,
     },
 
     card: { borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 12, ...shadow2 },
