@@ -1,7 +1,7 @@
 package com.runboo.domain.auth.service;
 
-import com.runboo.domain.user.dto.GoogleUserResponse;
-import com.runboo.domain.user.dto.KakaoUserResponse;
+import com.runboo.domain.user.dto.GoogleUserInfo;
+import com.runboo.domain.user.dto.KakaoUserInfo;
 import com.runboo.domain.user.dto.SocialUserInfo;
 import com.runboo.domain.user.enums.SocialProvider;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class SocialOAuthService {
      * - nickname: profile 우선, 없으면 properties fallback
      * - email: 동의하지 않은 경우 null 가능
      */
-    private SocialUserInfo toSocialUserInfo(KakaoUserResponse body) {
+    private SocialUserInfo toSocialUserInfo(KakaoUserInfo body) {
 
         // 닉네임은 카카오 정책상 필수 동의 항목
         String nickname = body.getKakaoAccount().getProfile().getNickname();
@@ -72,7 +72,7 @@ public class SocialOAuthService {
      * 구글 사용자 응답 DTO를 공통 SocialUserInfo로 변환한다.
      * - providerId: sub (구글 사용자 고유 식별자)
      */
-    private SocialUserInfo toSocialUserInfo(GoogleUserResponse body) {
+    private SocialUserInfo toSocialUserInfo(GoogleUserInfo body) {
         return new SocialUserInfo(
                 SocialProvider.GOOGLE,
                 body.getSub(),      // 구글 사용자 고유 ID

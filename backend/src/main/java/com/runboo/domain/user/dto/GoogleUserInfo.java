@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 @Getter
-public class GoogleUserResponse {
+public class GoogleUserInfo {
 
     private String sub;     // 구글 유저 고유값 (providerId)
     private String email;
