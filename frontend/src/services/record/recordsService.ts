@@ -19,11 +19,3 @@ export async function fetchDashboardStats(
   const res = await api.get(`/api/records/stats/dashboard`);
   return res as DashboardStatsDto;
 }
-/** * 기록 상세 정보 조회 (티어 결과 화면용)*/
-export async function fetchRecordDetail(
-): Promise<RecordDetailDto> {
-  // 백엔드 RunRecordController의 @GetMapping("/{recordId}")와 연결됩니다.
-  // 경로: GET /api/records/1
-  const res = await api.get(`/api/run-records`);
-  return res as RecordDetailDto;
-}
