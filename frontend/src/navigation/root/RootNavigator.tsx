@@ -9,7 +9,6 @@ import MainStack from "@/navigation/stacks/MainStack";
 import RunningScreen from "@/screens/running";
 import RunResultScreen from "@/screens/RunResult";
 
-// ✅ 고스트 런 스크린 추가 (경로는 네 프로젝트 구조에 맞게)
 import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
 
 import { Coordinate } from "@/utils/runUtils";
