@@ -87,7 +87,7 @@ const request = async (
     const res = await fetch(input, init);
 
     // 401,403은 특별 취급
-    if (res.status !== 401) {
+    if (res.status !== 401 && res.status !== 403) {
         return handleResponse(res);
     }
 
