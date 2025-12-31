@@ -17,7 +17,10 @@ export type RootStackParamList = {
     MainStack: undefined;
 
     // 일반 러닝
-    Running: { targetDistance: number };
+    Running: {
+        targetDistance: number;
+        mode?: "NORMAL" | "TIER" | "GHOST"; // 추가된 부분
+    };
 
     // 고스트 러닝
     GhostRun: { ghost: GhostProfileDto };

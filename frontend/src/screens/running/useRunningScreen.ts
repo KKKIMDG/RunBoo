@@ -20,6 +20,7 @@ export const useRunningScreen = () => {
     const navigation = useNavigation<RunningScreenNavigationProp>();
     const route = useRoute<RunningScreenRouteProp>();
     const targetDistance = route.params?.targetDistance || 0;
+    const currentMode = route.params?.mode || "NORMAL";
 
     // --- 상태 관리 ---
     const [isReady, setIsReady] = useState(true);
@@ -153,7 +154,7 @@ export const useRunningScreen = () => {
 
         const requestData = {
             userId: userIdStr ? parseInt(userIdStr) : 0,
-            mode: "NORMAL",
+            mode: currentMode, // 🔥 여기가 핵심입니다! (NORMAL, TIER, GHOST 등)
             distanceM: distance,
             durationSec: time,
             avgPace: Math.floor(avgPaceSec),
