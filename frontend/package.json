@@ -46,7 +46,8 @@
     "react-native-unistyles": "^3.0.20",
     "react-native-view-shot": "4.0.3",
     "react-native-web": "^0.21.0",
-    "react-native-webview": "^13.16.0"
+    "react-native-webview": "^13.16.0",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@react-native-community/cli": "^20.0.2",

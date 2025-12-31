@@ -10,12 +10,30 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class CourseService {
 
     private final CourseRepository courseRepository;
+
+    public List<CourseDto> findCoursesByLocation(double lat, double lon, String type) {
+        double minLen = 0;
+        double maxLen = 1000;
+
+        // 프론트에서 보낸 타입에 따라 길이 범위 설정
+        if ("SHORT".equalsIgnoreCase(type)) { // 5km 미만
+            minLen = 0;
+            maxLen = 5.0;
+        } else if ("LONG".equalsIgnoreCase(type)) { // 5km 이상
+            minLen = 5.0;
+            maxLen = 1000;
+        }
+
+        return courseRepository.findCoursesByLocationAndLength(lat, lon, minLen, maxLen)
+                .stream().map(CourseDto::new).collect(Collectors.toList());
+    }
 
     public List<CourseDto> findCoursesByCategory(CourseCategory courseCategory) {
         List<Course> courses = courseRepository.findByCourseCategory(courseCategory);

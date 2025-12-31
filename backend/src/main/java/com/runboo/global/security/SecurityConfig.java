@@ -32,6 +32,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/records").permitAll()
+                        .requestMatchers("/api/courses/**").permitAll()
                         .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/signup",
@@ -39,7 +40,7 @@ public class SecurityConfig {
                                 "/api/auth/token/reissue",
                                 "/api/auth/email/verify",
                                 "/api/auth/email/verify/check",
-
+                                "/api/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",

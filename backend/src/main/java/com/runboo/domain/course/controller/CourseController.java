@@ -28,4 +28,12 @@ public class CourseController {
         return courseService.findCourseDetail(id);
     }
 
+    @GetMapping("/list")
+    public List<CourseDto> getCourses(
+            @RequestParam double latitude,
+            @RequestParam double longitude,
+            @RequestParam(defaultValue = "SHORT") String type
+    ) {
+        return courseService.findCoursesByLocation(latitude, longitude, type);
+    }
 }

@@ -1,6 +1,6 @@
 package com.runboo.domain.auth.service;
 
-import com.runboo.domain.user.dto.KakaoUserResponse;
+import com.runboo.domain.user.dto.KakaoUserInfo;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -24,7 +24,7 @@ public class KakaoOAuthService {
      * - SocialUserInfo 변환
      * - 회원 가입/로그인 판단
      */
-    public KakaoUserResponse getUserInfo(String accessToken) {
+    public KakaoUserInfo getUserInfo(String accessToken) {
 
         // Authorization: Bearer {accessToken} 헤더 구성
         HttpHeaders headers = new HttpHeaders();
@@ -34,12 +34,12 @@ public class KakaoOAuthService {
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         // 카카오 사용자 정보 조회 API 호출
-        ResponseEntity<KakaoUserResponse> response =
+        ResponseEntity<KakaoUserInfo> response =
                 restTemplate.exchange(
                         "https://kapi.kakao.com/v2/user/me",
                         HttpMethod.GET,
                         entity,
-                        KakaoUserResponse.class
+                        KakaoUserInfo.class
                 );
 
         // 응답 DTO 그대로 반환
