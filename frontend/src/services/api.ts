@@ -107,7 +107,6 @@ const request = async (
     await AsyncStorage.setItem('accessToken', newAccessToken);
     setAccessToken(newAccessToken);
 
-    // 원래 요청 1회 재시도
     return request(
         input,
         {
