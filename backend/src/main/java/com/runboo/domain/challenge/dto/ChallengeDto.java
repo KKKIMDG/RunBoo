@@ -4,6 +4,7 @@ import com.runboo.domain.badge.dto.BadgeDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Getter
@@ -15,7 +16,7 @@ public class ChallengeDto {
     private String difficulty;
     private String targetType;
     private String targetValue;
-    private OffsetDateTime startedAt;
-    private OffsetDateTime endedAt;
+    private LocalDateTime startedAt;
+    private LocalDateTime endedAt;
     private BadgeDto badge;  // BadgeDto로 변환
 }

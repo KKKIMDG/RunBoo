@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -135,7 +136,7 @@ public class UserChallengeService {
                 // 4. 목표 달성 시 상태 변경
                 if(newProgress >= challenge.getTargetValue()){
                     uc.setStatus("COMPLETED");
-                    uc.setCompletedAt(OffsetDateTime.now());
+                    uc.setCompletedAt(LocalDateTime.now());
                 }
 
                 // 3. 유저에게 뱃지 부여

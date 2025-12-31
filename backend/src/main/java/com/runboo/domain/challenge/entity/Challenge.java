@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -38,8 +39,8 @@ public class Challenge {
     private int targetValue;
 
     @Column(name = "started_at")
-    private OffsetDateTime startedAt;
+    private LocalDateTime startedAt;
 
     @Column(name = "ended_at")
-    private OffsetDateTime endedAt;
+    private LocalDateTime endedAt;
 }
