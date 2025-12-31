@@ -12,6 +12,7 @@ import { Colors } from "@/constants/theme";
 import GhostSelectSheet from "./components/GhostSelectSheet";
 import { fetchGhostProfiles } from "@/services/ghost/ghostService";
 import type { GhostProfileDto } from "@/types/ghost";
+import {useMe} from "@/hooks/useMe";
 
 type HomeScreenProps = {
     navigation?: { navigate: (screen: string, params?: any) => void };
@@ -46,6 +47,7 @@ const ModeTab: FC<{
 };
 
 const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
+    const { me, loading } = useMe();
     const {
         activeMode,
         handleModeChange,
@@ -103,7 +105,10 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <TopNavBar onLeftPress={() => navigation?.navigate("Profile")} />
+            <TopNavBar
+                onLeftPress={() => navigation?.navigate("Profile")}
+                profileImageUrl={me?.profileImageUrl}
+            />
 
             <View style={styles.content}>
                 {/* 모드 탭 */}

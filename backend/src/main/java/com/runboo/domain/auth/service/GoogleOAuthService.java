@@ -1,6 +1,6 @@
 package com.runboo.domain.auth.service;
 
-import com.runboo.domain.user.dto.GoogleUserResponse;
+import com.runboo.domain.user.dto.GoogleUserInfo;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -24,7 +24,7 @@ public class GoogleOAuthService {
      * - SocialUserInfo 변환
      * - 회원 가입/로그인 판단
      */
-    public GoogleUserResponse getUserInfo(String accessToken) {
+    public GoogleUserInfo getUserInfo(String accessToken) {
 
         // Authorization: Bearer {accessToken} 헤더 구성
         HttpHeaders headers = new HttpHeaders();
@@ -34,12 +34,12 @@ public class GoogleOAuthService {
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         // 구글 사용자 정보 조회 API 호출
-        ResponseEntity<GoogleUserResponse> response =
+        ResponseEntity<GoogleUserInfo> response =
                 restTemplate.exchange(
                         "https://www.googleapis.com/oauth2/v3/userinfo",
                         HttpMethod.GET,
                         entity,
-                        GoogleUserResponse.class
+                        GoogleUserInfo.class
                 );
 
         // 응답 DTO 그대로 반환

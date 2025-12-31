@@ -47,11 +47,18 @@ export const styles = StyleSheet.create({
   profileImagePlaceholder: {
     width: 60,
     height: 60,
-    borderRadius: 12,
-    backgroundColor: '#E9ECEF',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: 15,
+    overflow: "hidden",
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#E9ECEF",
+    zIndex: 10,
+  },
+  profileImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   userName: {
     fontSize: 22,

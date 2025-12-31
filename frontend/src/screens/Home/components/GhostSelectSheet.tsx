@@ -11,6 +11,8 @@ import {
     ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+
 import type { GhostProfileDto } from "@/types/ghost";
 import { Colors } from "@/constants/theme";
 import { formatPaceSecToText, formatKm } from "@/screens/ghost/format";
@@ -21,7 +23,10 @@ type Props = {
     loading: boolean;
     data: GhostProfileDto[];
     onClose: () => void;
-    onSelect: (gp: GhostProfileDto) => void;
+
+    // ✅ 남겨두되, 내부에서 navigate 이후에도 호출해줌(부모가 추가 동작 원하면 사용 가능)
+    onSelect?: (gp: GhostProfileDto) => void;
+
     onRefresh?: () => void;
 };
 
@@ -53,19 +58,20 @@ type IoniconName =
     | "bar-chart-outline"
     | "body-outline"
     | "medal-outline"
+    | "today-outline"
     | "location-outline";
 
 function getTitleBySlot(slot: SlotType) {
     if (slot === "SELF_BEST") return "내 최고 기록";
     if (slot === "SELF_YESTERDAY") return "어제 기록";
     if (slot === "SELF_WEEKLY_AVG") return "이번 주 평균";
-    if (slot === "RANKING_NATIONAL") return "전국 1위(이강빈)";
-    return "지역 챔피언(이동국)";
+    if (slot === "RANKING_NATIONAL") return "전국 1위";
+    return "지역 챔피언";
 }
 
 function getIconBySlot(slot: SlotType): IoniconName {
     if (slot === "SELF_BEST") return "trophy-outline";
-    if (slot === "SELF_YESTERDAY") return "trending-up-outline";
+    if (slot === "SELF_YESTERDAY") return "today-outline";
     if (slot === "SELF_WEEKLY_AVG") return "bar-chart-outline";
     if (slot === "RANKING_NATIONAL") return "medal-outline";
     return "location-outline";
@@ -73,12 +79,9 @@ function getIconBySlot(slot: SlotType): IoniconName {
 
 function safeDate10(iso: string) {
     if (!iso) return "-";
-
-    // 1) ISO 형태면 YYYY-MM-DD만 잘라서 사용 (타임존 변환 없음)
     const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (m) return `${m[1]}.${m[2]}.${m[3]}`;
 
-    // 2) 혹시 다른 포맷이면 최후 fallback
     const d = new Date(iso);
     if (isNaN(d.getTime())) return "-";
     const yy = d.getFullYear();
@@ -103,10 +106,10 @@ export default function GhostSelectSheet({
                                              data,
                                              onClose,
                                              onSelect,
-                                             onRefresh,
                                          }: Props) {
-    const base = Colors[scheme] as any;
+    const navigation = useNavigation<any>(); // ✅ 빠르게 동작시키기 위해 any
 
+    const base = Colors[scheme] as any;
     const c = {
         background: base?.background ?? "#ffffff",
         text: base?.text ?? "#111111",
@@ -157,6 +160,17 @@ export default function GhostSelectSheet({
 
     const rows = tab === "self" ? selfRows : rankingRows;
 
+    const handleSelect = (gp: GhostProfileDto) => {
+        // 1) 시트 닫기
+        onClose?.();
+
+        // 2) 부모 콜백도 필요하면 호출
+        onSelect?.(gp);
+
+        // 3) ✅ 고스트 런 화면으로 이동 + params 전달
+        navigation.navigate("GhostRun", { ghost: gp });
+    };
+
     return (
         <Modal visible={visible} transparent animationType="fade">
             <View style={s.backdrop}>
@@ -174,10 +188,7 @@ export default function GhostSelectSheet({
                     {/* Tabs */}
                     <View style={s.tabRow}>
                         <TouchableOpacity
-                            style={[
-                                s.pill,
-                                tab === "self" && { backgroundColor: c.primary },
-                            ]}
+                            style={[s.pill, tab === "self" && { backgroundColor: c.primary }]}
                             onPress={() => setTab("self")}
                         >
                             <Ionicons
@@ -185,21 +196,13 @@ export default function GhostSelectSheet({
                                 size={16}
                                 color={tab === "self" ? "#fff" : c.text}
                             />
-                            <Text
-                                style={[
-                                    s.pillText,
-                                    { color: tab === "self" ? "#fff" : c.text },
-                                ]}
-                            >
+                            <Text style={[s.pillText, { color: tab === "self" ? "#fff" : c.text }]}>
                                 내 기록
                             </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={[
-                                s.pill,
-                                tab === "ranking" && { backgroundColor: c.primary },
-                            ]}
+                            style={[s.pill, tab === "ranking" && { backgroundColor: c.primary }]}
                             onPress={() => setTab("ranking")}
                         >
                             <Ionicons
@@ -208,10 +211,7 @@ export default function GhostSelectSheet({
                                 color={tab === "ranking" ? "#fff" : c.text}
                             />
                             <Text
-                                style={[
-                                    s.pillText,
-                                    { color: tab === "ranking" ? "#fff" : c.text },
-                                ]}
+                                style={[s.pillText, { color: tab === "ranking" ? "#fff" : c.text }]}
                             >
                                 랭킹
                             </Text>
@@ -229,6 +229,7 @@ export default function GhostSelectSheet({
                             contentContainerStyle={{ paddingBottom: 12 }}
                             renderItem={({ item }) => {
                                 const gp = item.profile;
+
                                 if (!gp) {
                                     return (
                                         <View
@@ -260,11 +261,11 @@ export default function GhostSelectSheet({
                                     );
                                 }
 
-
                                 return (
                                     <TouchableOpacity
                                         style={[s.item, { borderColor: c.border }]}
-                                        onPress={() => onSelect(gp)}
+                                        onPress={() => handleSelect(gp)}
+                                        activeOpacity={0.85}
                                     >
                                         <Ionicons
                                             name={getIconBySlot(item.slot)}
@@ -276,12 +277,8 @@ export default function GhostSelectSheet({
                                             <Text style={s.itemSub}>{safeDate10(gp.createdAt)}</Text>
                                         </View>
                                         <View style={{ alignItems: "flex-end" }}>
-                                            <Text style={s.itemTitle}>
-                                                {formatKm(gp.targetDistanceKm)}
-                                            </Text>
-                                            <Text style={s.itemSub}>
-                                                {formatPaceSecToText(gp.avgPace)}/km
-                                            </Text>
+                                            <Text style={s.itemTitle}>{formatKm(gp.targetDistanceKm)}</Text>
+                                            <Text style={s.itemSub}>{formatPaceSecToText(gp.avgPace)}/km</Text>
                                         </View>
                                     </TouchableOpacity>
                                 );
@@ -348,5 +345,4 @@ const s = StyleSheet.create({
     },
     itemTitle: { fontSize: 14, fontWeight: "800" },
     itemSub: { fontSize: 12, color: "#6B7280", marginTop: 4 },
-    emptyText: { fontSize: 14, color: "#9CA3AF" },
 });
