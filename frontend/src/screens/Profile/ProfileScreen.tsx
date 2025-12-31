@@ -1,5 +1,5 @@
 // ProfileScreen.tsx
-import React from "react";
+import React, {useState} from "react";
 import {
     View,
     Text,
@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     Image,
     StyleSheet,
-    ActivityIndicator,
+    ActivityIndicator, TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,20 +16,43 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import BackButton from "@/components/ui/BackButton";
 import { styles } from "./ProfileScreen.styles";
 import { useBadge } from "@/screens/Badge/useBadge";
+import { updateMyNickname } from "@/services/user/userService";
 
 import { useGrass } from "@/screens/Profile/useGrass";
 import {useMe} from "@/hooks/useMe";
 
 export default function ProfileScreen({ navigation }: any) {
     // 로그인 유저 기준 배지 로드
-    const { me, loading: meLoading, error } = useMe();
+    const { me, loading: meLoading, refetch  } = useMe();
     const { badges, badgeCount, loading: badgeLoading } = useBadge();
     const { data: grassData, levelMap, loading: grassLoading } = useGrass(12);
+    const [isEditingNickname, setIsEditingNickname] = useState(false);
+    const [nicknameInput, setNicknameInput] = useState("");
+    const [saving, setSaving] = useState(false);
 
     const profileImageSource =
         typeof me?.profileImageUrl === "string"
             ? { uri: me.profileImageUrl }
             : require("@/assets/images/runboo.png");
+    React.useEffect(() => {
+        if (me?.nickname) {
+            setNicknameInput(me.nickname);
+        }
+    }, [me?.nickname]);
+    const handleSaveNickname = async () => {
+        if (!nicknameInput.trim()) return;
+
+        try {
+            setSaving(true);
+            await updateMyNickname(nicknameInput.trim());
+            await refetch();
+            setIsEditingNickname(false);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -90,7 +113,55 @@ export default function ProfileScreen({ navigation }: any) {
                                         resizeMode="contain"
                                     />
                                 </View>
-                                <Text style={styles.userName}>{me?.nickname}</Text>
+                                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                    {isEditingNickname ? (
+                                        <>
+                                            <TextInput
+                                                value={nicknameInput}
+                                                onChangeText={setNicknameInput}
+                                                style={[
+                                                    styles.userName,
+                                                    {
+                                                        borderBottomWidth: 1,
+                                                        borderColor: "#DDD",
+                                                        paddingVertical: 2,
+                                                        minWidth: 80,
+                                                    },
+                                                ]}
+                                                maxLength={12}
+                                                autoFocus
+                                            />
+
+                                            <TouchableOpacity
+                                                onPress={handleSaveNickname}
+                                                disabled={saving}
+                                                style={{ marginLeft: 6 }}
+                                            >
+                                                <Ionicons
+                                                    name="checkmark-circle"
+                                                    size={25}
+                                                    color={saving ? "#AAA" : "#3A4A98"}
+                                                />
+                                            </TouchableOpacity>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Text style={styles.userName}>{me?.nickname}</Text>
+
+                                            <TouchableOpacity
+                                                onPress={() => setIsEditingNickname(true)}
+                                                style={{ marginLeft: 6 }}
+                                            >
+                                                <Ionicons
+                                                    name="create-outline"
+                                                    size={25}
+                                                    color="#666"
+                                                />
+                                            </TouchableOpacity>
+                                        </>
+                                    )}
+                                </View>
+
                             </>
                         )}
                     </View>

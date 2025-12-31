@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Alert, View } from "react-native";
-import { evaluateTier } from "@/services/tierService";
+import { evaluateTier } from "@/services/tier/tierService";
 import { TierData } from "@/types/tier";
 import {
     TIER_NAME_MAP,

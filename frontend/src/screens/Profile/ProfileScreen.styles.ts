@@ -129,11 +129,12 @@ export const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: '#F8F9FA',
     borderWidth: 1,
-    borderColor: "#E9ECEF",
-    justifyContent: "center",
-    alignItems: "center",
+    borderColor: '#E9ECEF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 6,
   },
   statsSummaryRow: {
     flexDirection: "row",
@@ -194,7 +195,7 @@ export const styles = StyleSheet.create({
   grassGrid: {
     marginTop: 4,
   },
-  
+
   grassColumns: {
     flexDirection: "row",
     alignItems: "flex-start",

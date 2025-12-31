@@ -11,7 +11,6 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 60,
     paddingHorizontal: 20,
-    backgroundColor: '#FFF',
     borderBottomWidth: 1,
     borderBottomColor: '#F1F3F5',
   },
