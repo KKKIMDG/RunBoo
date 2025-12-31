@@ -137,12 +137,11 @@ public class UserChallengeService {
                 if(newProgress >= challenge.getTargetValue()){
                     uc.setStatus("COMPLETED");
                     uc.setCompletedAt(LocalDateTime.now());
-                }
 
-                // 3. 유저에게 뱃지 부여
-                Badge badge = challenge.getBadge();
-                if (badge != null) {
-                    giveBadgeToUser(uc.getUser(), badge);
+                    Badge badge = challenge.getBadge();
+                    if (badge != null) {
+                        giveBadgeToUser(uc.getUser(), badge);
+                    }
                 }
             }
         }
