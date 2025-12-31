@@ -1,3 +1,4 @@
+// ProfileScreen.tsx
 import React from "react";
 import {
     View,
@@ -15,13 +16,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import BackButton from "@/components/ui/BackButton";
 import { styles } from "./ProfileScreen.styles";
 import { useBadge } from "@/screens/Badge/useBadge";
+
+import { useGrass } from "@/screens/Profile/useGrass";
 import {useMe} from "@/hooks/useMe";
-
-
-// 활동 잔디 더미 데이터
-const GRASS_DATA = Array.from({ length: 7 }, () =>
-    Array.from({ length: 12 }, () => Math.floor(Math.random() * 3))
-);
+        
+export default function ProfileScreen({ navigation }: any) {
+    const { badges, badgeCount, loading } = useBadge();
+    const { data: grassData, levelMap, loading: grassLoading } = useGrass(12);
 
 export default function ProfileScreen({ navigation }: any) {
     // 로그인 유저 기준 배지 로드
@@ -70,9 +71,7 @@ export default function ProfileScreen({ navigation }: any) {
                     }
                 >
                     <Ionicons name="analytics-outline" size={14} color="#FFF" />
-                    <Text style={tempStyles.tierButtonText}>
-                        티어 결과 확인
-                    </Text>
+                    <Text style={tempStyles.tierButtonText}>티어 결과 확인</Text>
                 </TouchableOpacity>
 
                 {/* ===== 유저 카드 ===== */}
@@ -128,7 +127,7 @@ export default function ProfileScreen({ navigation }: any) {
                         </View>
                     </View>
 
-                    {/* ===== 배지 섹션 (수정 핵심) ===== */}
+                    {/* ===== 배지 섹션 ===== */}
                     <View style={styles.badgeSectionHeader}>
                         <Text style={styles.badgeSectionTitle}>획득한 배지</Text>
                         <TouchableOpacity
@@ -193,9 +192,7 @@ export default function ProfileScreen({ navigation }: any) {
                 {/* ===== 활동 잔디 ===== */}
                 <View style={styles.card}>
                     <View style={headerRowStyle}>
-                        <Text style={[styles.headerTitle, { fontSize: 16 }]}>
-                            활동 잔디
-                        </Text>
+                        <Text style={[styles.headerTitle, { fontSize: 16 }]}>활동 잔디</Text>
 
                         <View style={styles.legendContainer}>
                             <View style={styles.legendItem}>
@@ -223,31 +220,54 @@ export default function ProfileScreen({ navigation }: any) {
                     </View>
 
                     <View style={styles.grassGrid}>
-                        {GRASS_DATA.map((row, rowIndex) => (
-                            <View key={`row-${rowIndex}`} style={styles.grassRow}>
-                                {row.map((cell, cellIndex) => (
-                                    <View
-                                        key={`cell-${cellIndex}`}
-                                        style={[
-                                            styles.grassCell,
-                                            {
-                                                backgroundColor:
-                                                    cell === 2
-                                                        ? "#3A4A98"
-                                                        : cell === 1
-                                                            ? "rgba(58, 74, 152, 0.3)"
-                                                            : "#F1F3F5",
-                                            },
-                                        ]}
-                                    />
+                        {grassLoading ? (
+                            <ActivityIndicator size="small" color="#3A4A98" />
+                        ) : grassData ? (
+                            <View style={styles.grassColumns}>
+                                {buildGrassColumns12Weeks(
+                                    grassData.startDate,
+                                    grassData.endDate
+                                ).map((weekCol, weekIndex) => (
+                                    <View key={`w-${weekIndex}`} style={styles.grassColumn}>
+                                        {weekCol.map((dateStrOrNull, dayIndex) => {
+                                            // ✅ 미래(오늘 이후)는 '칸 자체를 숨김' (테두리/배경 없음)
+                                            if (!dateStrOrNull) {
+                                                return (
+                                                    <View
+                                                        key={`future-${weekIndex}-${dayIndex}`}
+                                                        style={styles.grassCellInvisible}
+                                                    />
+                                                );
+                                            }
+
+                                            const level = levelMap.get(dateStrOrNull) ?? 0;
+                                            const bg =
+                                                level === 2
+                                                    ? "#3A4A98"
+                                                    : level === 1
+                                                        ? "#9ba4d8"
+                                                        : "#efefef";
+
+                                            return (
+                                                <View
+                                                    key={dateStrOrNull}
+                                                    style={[styles.grassCell, { backgroundColor: bg }]}
+                                                />
+                                            );
+                                        })}
+                                    </View>
                                 ))}
                             </View>
-                        ))}
+                        ) : (
+                            <Text style={{ color: "#999", fontSize: 12 }}>
+                                잔디 데이터를 불러오지 못했습니다.
+                            </Text>
+                        )}
                     </View>
 
                     <View style={styles.grassFooter}>
-                        <Text style={styles.grassFooterText}>3개월 전</Text>
-                        <Text style={styles.grassFooterText}>오늘</Text>
+                        <Text style={styles.grassFooterText}>12주 전</Text>
+                        <Text style={styles.grassFooterText}>이번 주</Text>
                     </View>
                 </View>
             </ScrollView>
@@ -283,3 +303,27 @@ const tempStyles = StyleSheet.create({
         marginLeft: 6,
     },
 });
+
+/**
+활동 잔디
+ */
+function buildGrassColumns12Weeks(startDate: string, endDate: string) {
+    const start = new Date(startDate + "T00:00:00");
+    const end = new Date(endDate + "T00:00:00");
+
+    const columns: (string | null)[][] = [];
+
+    for (let w = 0; w < 12; w++) {
+        const col: (string | null)[] = [];
+        for (let d = 0; d < 7; d++) {
+            const cur = new Date(start);
+            cur.setDate(start.getDate() + w * 7 + d);
+
+            if (cur > end) col.push(null);
+            else col.push(cur.toISOString().slice(0, 10));
+        }
+        columns.push(col);
+    }
+
+    return columns;
+}
