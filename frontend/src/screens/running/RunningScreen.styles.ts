@@ -3,12 +3,12 @@ import { StyleSheet, Platform, Dimensions } from 'react-native';
 const { width } = Dimensions.get('window');
 
 export const getStyles = (isDarkMode: boolean = false) => {
-    const bgColor = isDarkMode ? '#121212' : '#F5F6F8'; // 전체 배경 (연한 회색)
-    const cardColor = isDarkMode ? '#1E1E1E' : '#FFFFFF'; // 카드 배경 (흰색)
+    const bgColor = isDarkMode ? '#121212' : '#F5F6F8';
+    const cardColor = isDarkMode ? '#1E1E1E' : '#FFFFFF';
     const textColor = isDarkMode ? '#FFFFFF' : '#333333';
     const subTextColor = isDarkMode ? '#AAAAAA' : '#888888';
-    const pointColorBlue = '#4A6EA9'; // 파란색 포인트
-    const pointColorRed = '#FF3B30'; // 빨간색 포인트
+    const pointColorBlue = '#4A6EA9';
+    const pointColorRed = '#FF3B30';
 
     return StyleSheet.create({
         container: {
@@ -17,8 +17,30 @@ export const getStyles = (isDarkMode: boolean = false) => {
         },
         scrollContainer: {
             padding: 20,
-            paddingBottom: 100, // 하단 버튼 공간 확보
+            paddingBottom: 150, // 하단 버튼 공간 확보
         },
+
+        // --- [필수] 카운트다운 오버레이 ---
+        countdownOverlay: {
+            ...StyleSheet.absoluteFillObject,
+            backgroundColor: bgColor,
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+        },
+        countdownText: {
+            fontSize: 120,
+            fontWeight: 'bold',
+            color: pointColorBlue,
+            fontVariant: ['tabular-nums'],
+        },
+        countdownLabel: {
+            fontSize: 24,
+            fontWeight: '600',
+            color: textColor,
+            marginTop: 20,
+        },
+
         // --- 상단 헤더 ---
         header: {
             flexDirection: 'row',
@@ -34,7 +56,7 @@ export const getStyles = (isDarkMode: boolean = false) => {
             paddingHorizontal: 16,
             borderRadius: 20,
             ...Platform.select({
-                ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, shadowOffset: { width: 0, height: 2 } },
+                ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5 },
                 android: { elevation: 3 },
             }),
         },
@@ -55,12 +77,12 @@ export const getStyles = (isDarkMode: boolean = false) => {
             padding: 8,
             borderRadius: 20,
             ...Platform.select({
-                ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, shadowOffset: { width: 0, height: 2 } },
+                ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5 },
                 android: { elevation: 3 },
             }),
         },
 
-        // --- 정보 카드 영역 (시간, 거리, 페이스) ---
+        // --- 정보 카드 ---
         statsContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
@@ -68,75 +90,42 @@ export const getStyles = (isDarkMode: boolean = false) => {
         },
         statCard: {
             backgroundColor: cardColor,
-            width: (width - 60) / 3, // 3등분
+            width: (width - 60) / 3,
             paddingVertical: 20,
             alignItems: 'center',
             borderRadius: 15,
             ...Platform.select({
-                ios: { shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, shadowOffset: { width: 0, height: 5 } },
+                ios: { shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10 },
                 android: { elevation: 5 },
             }),
         },
-        statIconContainer: {
-            marginBottom: 10,
-        },
-        statLabel: {
-            fontSize: 14,
-            color: subTextColor,
-            marginBottom: 5,
-        },
+        statIconContainer: { marginBottom: 10 },
+        statLabel: { fontSize: 14, color: subTextColor, marginBottom: 5 },
         statValueSmall: {
             fontSize: 20,
             fontWeight: 'bold',
             color: textColor,
             fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
         },
-        statValueLarge: {
-            fontSize: 28,
-            fontWeight: 'bold',
-            color: pointColorBlue,
-        },
-        statUnit: {
-            fontSize: 12,
-            color: subTextColor,
-            marginTop: 5,
-        },
+        statValueLarge: { fontSize: 26, fontWeight: 'bold', color: pointColorBlue },
+        statUnit: { fontSize: 12, color: subTextColor, marginTop: 5 },
 
-        // --- 그래프 카드 영역 ---
+        // --- 차트 영역 ---
         chartCard: {
             backgroundColor: cardColor,
             borderRadius: 15,
             padding: 20,
             marginBottom: 20,
             ...Platform.select({
-                ios: { shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, shadowOffset: { width: 0, height: 5 } },
+                ios: { shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10 },
                 android: { elevation: 5 },
             }),
         },
-        chartTitleContainer: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 20,
-        },
-        chartTitle: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: textColor,
-            marginLeft: 10,
-        },
-        chart: {
-            marginVertical: 8,
-            borderRadius: 16,
-        },
-        chartLabels: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginTop: 10,
-        },
-        chartLabelText: {
-            fontSize: 12,
-            color: subTextColor,
-        },
+        chartTitleContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
+        chartTitle: { fontSize: 18, fontWeight: 'bold', color: textColor, marginLeft: 10 },
+        chart: { marginVertical: 8, borderRadius: 16 },
+        chartLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+        chartLabelText: { fontSize: 12, color: subTextColor },
 
         // --- 지도 영역 ---
         mapContainer: {
@@ -144,29 +133,26 @@ export const getStyles = (isDarkMode: boolean = false) => {
             borderRadius: 15,
             overflow: 'hidden',
             marginBottom: 20,
+            backgroundColor: '#E0E0E0',
             ...Platform.select({
-                ios: { shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, shadowOffset: { width: 0, height: 5 } },
+                ios: { shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10 },
                 android: { elevation: 5 },
             }),
         },
-        map: {
-            ...StyleSheet.absoluteFillObject,
-        },
+        map: { ...StyleSheet.absoluteFillObject },
         mapOverlay: {
             position: 'absolute',
             bottom: 20,
             alignSelf: 'center',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            paddingVertical: 5,
-            paddingHorizontal: 10,
-            borderRadius: 10,
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            paddingVertical: 6,
+            paddingHorizontal: 12,
+            borderRadius: 20,
+            elevation: 2,
         },
-        mapOverlayText: {
-            fontSize: 12,
-            color: subTextColor,
-        },
+        mapOverlayText: { fontSize: 12, fontWeight: '600', color: '#333' },
 
-        // --- 하단 컨트롤 버튼 ---
+        // --- 🔥 [에러 원인 해결] 하단 컨트롤 버튼 영역 ---
         controlContainer: {
             position: 'absolute',
             bottom: 0,
@@ -176,12 +162,12 @@ export const getStyles = (isDarkMode: boolean = false) => {
             flexDirection: 'row',
             justifyContent: 'center',
             alignItems: 'center',
-            paddingVertical: 20,
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
+            paddingVertical: 30, // 터치 영역 넉넉하게
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
             ...Platform.select({
-                ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10, shadowOffset: { width: 0, height: -5 } },
-                android: { elevation: 10 },
+                ios: { shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 15, shadowOffset: { width: 0, height: -5 } },
+                android: { elevation: 20 },
             }),
         },
         pauseButton: {
@@ -191,39 +177,25 @@ export const getStyles = (isDarkMode: boolean = false) => {
             borderRadius: 35,
             justifyContent: 'center',
             alignItems: 'center',
-            marginRight: 20,
-            borderWidth: 2,
+            marginRight: 24,
+            borderWidth: 1,
             borderColor: '#E0E0E0',
+            ...Platform.select({
+                ios: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5 },
+                android: { elevation: 3 },
+            }),
         },
         stopButton: {
             backgroundColor: pointColorRed,
             width: 80,
             height: 80,
-            borderRadius: 25, // 네모난 모양
+            borderRadius: 28, // 둥근 사각형
             justifyContent: 'center',
             alignItems: 'center',
             ...Platform.select({
-                ios: { shadowColor: pointColorRed, shadowOpacity: 0.3, shadowRadius: 10, shadowOffset: { width: 0, height: 5 } },
-                android: { elevation: 5 },
+                ios: { shadowColor: pointColorRed, shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+                android: { elevation: 8 },
             }),
         },
-        countdownOverlay: {
-            ...StyleSheet.absoluteFillObject, // 화면 전체 덮기
-            backgroundColor: bgColor, // 배경색과 동일하게
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 100, // 가장 위에 표시
-        },
-        countdownText: {
-            fontSize: 120, // 아주 크게!
-            fontWeight: 'bold',
-            color: pointColorBlue,
-        },
-        countdownLabel: {
-            fontSize: 24,
-            color: textColor,
-            marginTop: 20,
-        }
     });
-
 };
