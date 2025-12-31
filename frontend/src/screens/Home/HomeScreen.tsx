@@ -118,6 +118,19 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                     <View style={styles.mapContent}>
                         <Text style={styles.mapPlaceholderText}>카카오맵 영역</Text>
                     </View>
+                    <TouchableOpacity style={styles.zoomBtn}>
+                        <Ionicons name="eye-outline" size={22} color={colors.text} />
+                    </TouchableOpacity>
+                    <View style={styles.mapBottomRow}>
+                        <View style={styles.userCount}>
+                            <Ionicons name="people-outline" size={16} color={colors.primary} />
+                            <Text style={styles.countText}>5</Text>
+                        </View>
+                        <TouchableOpacity>
+                            <Text style={styles.detailText}>자세히 보기</Text>
+                        </TouchableOpacity>
+                    </View>
+
                 </View>
 
                 {/* 하단 버튼 영역 */}
