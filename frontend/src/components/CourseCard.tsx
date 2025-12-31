@@ -1,17 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { KAKAO_JAVASCRIPT_KEY } from '@env';
+// ✅ WebView 제거, 구글 맵 추가
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Colors } from '@/constants/theme';
 
-// ✅ [정품 설명서] 여기서 정의하고 다른 파일들은 이걸 가져다 써야 함
+// ✅ [정품 설명서] 좌표(latitude, longitude)가 꼭 있어야 합니다!
 export interface CourseType {
     id: number;
-    name: string;        // 백엔드: name
+    name: string;
     address: string;
-    lengthKm: number;    // 백엔드: lengthKm
+    lengthKm: number;
     imageUrl: string | null;
     isSaved?: boolean;
+    // ⚠️ 구글 맵을 위해 좌표 필수 추가
+    latitude: number;
+    longitude: number;
 }
 
 interface CourseCardProps {
@@ -28,65 +31,36 @@ export default React.memo(function CourseCard({ course, onToggle, onPress, schem
     const colors = Colors[scheme];
     const isSaved = course.isSaved || false;
 
-    const getMapHtml = (backgroundColor: string) => {
-        const safeAddress = course.address
-            ? course.address.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, " ").trim()
-            : "";
-
-        return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JAVASCRIPT_KEY}&libraries=services"></script>
-            <style>
-                body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: ${backgroundColor}; }
-                #map { width: 100%; height: 100%; }
-            </style>
-        </head>
-        <body>
-            <div id="map"></div>
-            <script>
-                kakao.maps.load(function() {
-                    var mapContainer = document.getElementById('map');
-                    var geocoder = new kakao.maps.services.Geocoder();
-                    var address = '${safeAddress}';
-
-                    if (address) {
-                        geocoder.addressSearch(address, function(result, status) {
-                            if (status === kakao.maps.services.Status.OK) {
-                                var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                                var staticMapOption = { 
-                                    center: coords,
-                                    level: 3,
-                                    marker: { position: coords }
-                                };
-                                var map = new kakao.maps.StaticMap(mapContainer, staticMapOption);
-                            }
-                        });
-                    }
-                });
-            </script>
-        </body>
-        </html>
-        `;
-    };
-
     return (
         <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.card}>
-            <View style={styles.imageContainer}>
-                <WebView
-                    originWhitelist={['*']}
-                    source={{ html: getMapHtml(colors.secondaryBackground), baseUrl: 'http://localhost' }}
-                    style={{ flex: 1, opacity: 0.99 }}
+            {/* ✅ 지도 영역 (터치 무시하고 보기 전용으로 설정) */}
+            <View style={styles.imageContainer} pointerEvents="none">
+                <MapView
+                    provider={PROVIDER_GOOGLE}
+                    style={{ flex: 1 }}
+                    // ✅ [중요] 리스트 성능 최적화 (안드로이드에서 특히 중요)
+                    liteMode={true}
+                    initialRegion={{
+                        latitude: course.latitude || 37.5665,
+                        longitude: course.longitude || 126.9780,
+                        latitudeDelta: 0.01,
+                        longitudeDelta: 0.01,
+                    }}
+                    // ✅ 리스트 스크롤 방해 금지 (지도 조작 불가)
+                    pitchEnabled={false}
+                    rotateEnabled={false}
                     scrollEnabled={false}
-                    pointerEvents="none"
-                    javaScriptEnabled={true}
-                    domStorageEnabled={true}
-                    androidLayerType="software"
-                />
+                    zoomEnabled={false}
+                >
+                    <Marker
+                        coordinate={{
+                            latitude: course.latitude || 37.5665,
+                            longitude: course.longitude || 126.9780,
+                        }}
+                    />
+                </MapView>
             </View>
+
             <View style={styles.textContainer}>
                 <View style={styles.headerRow}>
                     <Text style={styles.title} numberOfLines={1}>{course.name}</Text>
@@ -94,8 +68,11 @@ export default React.memo(function CourseCard({ course, onToggle, onPress, schem
                 </View>
                 <View style={styles.infoRow}>
                     <Text style={styles.address} numberOfLines={1}>📍 {course.address}</Text>
-                    <TouchableOpacity onPress={onToggle} hitSlop={{top:10, bottom:10, left:10, right:10}}>
-                        <Text style={styles.heart}>{isSaved ? '♥' : '♡'}</Text>
+                    <TouchableOpacity onPress={onToggle} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                        {/* 터치 이벤트가 겹치지 않게 pointerEvents="auto" 명시 */}
+                        <View pointerEvents="auto">
+                            <Text style={styles.heart}>{isSaved ? '♥' : '♡'}</Text>
+                        </View>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -113,7 +90,11 @@ const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         borderColor: Colors[scheme].secondaryBackground,
         elevation: 3,
     },
-    imageContainer: { width: '100%', height: 180, backgroundColor: Colors[scheme].secondaryBackground },
+    imageContainer: {
+        width: '100%',
+        height: 180,
+        backgroundColor: Colors[scheme].secondaryBackground
+    },
     textContainer: { padding: 16 },
     headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
     title: { fontSize: 18, fontWeight: 'bold', color: Colors[scheme].text, flex: 1, marginRight: 10 },
