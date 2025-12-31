@@ -2,6 +2,7 @@ package com.runboo.domain.record.controller;
 
 import com.runboo.domain.challenge.service.UserChallengeService;
 import com.runboo.domain.record.dto.DashboardStatsDto;
+import com.runboo.domain.record.dto.GrassResponseDto;
 import com.runboo.domain.record.dto.RecordDto;
 import com.runboo.domain.record.dto.RunRecordRequestDto;
 import com.runboo.domain.record.service.RecordService;
@@ -33,6 +34,16 @@ public class RecordController {
     public DashboardStatsDto getDashboardStats(@AuthenticationPrincipal CustomUserDetails user) {
         return recordService.getDashboardStats(user.getUserId());
     }
+
+    // 3) 프로필 활동 잔디 (최근 12주)
+    @GetMapping("/grass")
+    public GrassResponseDto getGrass(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestParam(defaultValue = "12") int weeks
+    ) {
+        return recordService.getGrass(user.getUserId(), weeks);
+    }
+
 
     @PostMapping
     public ResponseEntity<String> createRecord(@AuthenticationPrincipal CustomUserDetails user, @RequestBody RunRecordRequestDto requestDto) {
