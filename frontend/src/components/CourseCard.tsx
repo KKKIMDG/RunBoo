@@ -86,20 +86,64 @@ const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         borderRadius: 16,
         marginBottom: 16,
         overflow: 'hidden',
-        borderWidth: scheme === 'dark' ? 1 : 0,
-        borderColor: Colors[scheme].secondaryBackground,
-        elevation: 3,
+
+        // ✅ [수정 1] 테두리(Border) 추가
+        // 다크모드일 땐 0.5, 라이트모드일 땐 1 정도가 적당합니다.
+        borderWidth: 1,
+        // 테두리 색상: 다크모드는 어둡게, 라이트모드는 연한 회색(#E0E0E0) 추천
+        borderColor: scheme === 'dark' ? '#333333' : '#E0E0E0',
+
+        // ✅ [수정 2] 그림자(Shadow) 강화 (iOS + Android)
+        // 안드로이드 그림자
+        elevation: 4,
+        // iOS 그림자 (이게 없으면 아이폰에서 납작해 보임)
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1, // 그림자 진하기 (0 ~ 1)
+        shadowRadius: 4,    // 그림자 퍼짐 정도
     },
     imageContainer: {
         width: '100%',
         height: 180,
-        backgroundColor: Colors[scheme].secondaryBackground
+        backgroundColor: Colors[scheme].secondaryBackground,
+        // 이미지(지도) 아래쪽에 구분선 추가 (선택사항)
+        borderBottomWidth: 1,
+        borderBottomColor: scheme === 'dark' ? '#333333' : '#F0F0F0',
     },
-    textContainer: { padding: 16 },
-    headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-    title: { fontSize: 18, fontWeight: 'bold', color: Colors[scheme].text, flex: 1, marginRight: 10 },
-    distance: { fontSize: 16, fontWeight: 'bold', color: Colors[scheme].text },
-    infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    address: { fontSize: 14, color: Colors[scheme].icon, flex: 1 },
-    heart: { fontSize: 24, color: '#FF6B6B', fontWeight: 'bold' }
+    textContainer: {
+        padding: 16,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: Colors[scheme].text,
+        flex: 1,
+        marginRight: 10
+    },
+    distance: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: Colors[scheme].primary // 거리 강조를 위해 primary 색상 추천 (기존 text 유지 가능)
+    },
+    infoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
+    address: {
+        fontSize: 14,
+        color: Colors[scheme].icon,
+        flex: 1
+    },
+    heart: {
+        fontSize: 24,
+        color: '#FF6B6B',
+        fontWeight: 'bold'
+    }
 });
