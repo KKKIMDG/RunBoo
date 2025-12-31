@@ -40,10 +40,3 @@ export type DashboardStatsDto = {
   weekly: WeeklySummaryDto;
   personalBests: PersonalBestsDto;
 };
-export interface RecordDetailDto {
-  recordId: number;
-  distance: number; // 미터(m) 단위
-  time: string; // "00:25:30" 형식
-  pace: number; // 평균 페이스
-  createdAt: string;
-}
