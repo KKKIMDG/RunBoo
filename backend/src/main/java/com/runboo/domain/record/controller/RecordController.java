@@ -1,5 +1,6 @@
 package com.runboo.domain.record.controller;
 
+import com.runboo.domain.challenge.service.UserChallengeService;
 import com.runboo.domain.record.dto.DashboardStatsDto;
 import com.runboo.domain.record.dto.RecordDto;
 import com.runboo.domain.record.dto.RunRecordRequestDto;
@@ -18,6 +19,7 @@ import java.util.List;
 public class RecordController {
 
     private final RecordService recordService;
+    private final UserChallengeService userChallengeService;
 
     // 1) 내 기록 조회
     @GetMapping
@@ -33,8 +35,13 @@ public class RecordController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createRecord(@RequestBody RunRecordRequestDto requestDto) {
+    public ResponseEntity<String> createRecord(@AuthenticationPrincipal CustomUserDetails user, @RequestBody RunRecordRequestDto requestDto) {
+
+        String type = "TOTAL_DISTANCE";
+        Long userId = requestDto.getUserId();
         recordService.saveRecord(requestDto);
+        double value = requestDto.getDistanceM();
+        userChallengeService.updateProgress(userId, type, (int) value);
         return ResponseEntity.ok("기록 저장 성공");
     }
 }
