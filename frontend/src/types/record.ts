@@ -40,3 +40,16 @@ export type DashboardStatsDto = {
   weekly: WeeklySummaryDto;
   personalBests: PersonalBestsDto;
 };
+
+export type GrassDayDto = {
+    date: string;       // "YYYY-MM-DD"
+    distanceM: number;
+    level: 0 | 1 | 2;
+};
+
+export type GrassResponseDto = {
+    weeks: number;
+    startDate: string;  // "YYYY-MM-DD"
+    endDate: string;    // "YYYY-MM-DD" (오늘)
+    days: GrassDayDto[];
+};
