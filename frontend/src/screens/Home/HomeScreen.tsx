@@ -11,8 +11,9 @@ import { Colors } from "@/constants/theme";
 // Ghost
 import GhostSelectSheet from "./components/GhostSelectSheet";
 import { fetchGhostProfiles } from "@/services/ghost/ghostService";
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import type { GhostProfileDto } from "@/types/ghost";
-import {useMe} from "@/hooks/useMe";
+import { useMe } from "@/hooks/useMe";
 
 type HomeScreenProps = {
     navigation?: { navigate: (screen: string, params?: any) => void };
@@ -57,6 +58,8 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         toggleGoalPicker,
         handleSelectGoal,
         handleStartRun,
+        location,
+        handleOpenFullMap,
     } = useHomeScreen();
 
     const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
@@ -120,18 +123,45 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
 
                 {/* 지도 영역 */}
                 <View style={styles.mapBox}>
-                    <View style={styles.mapContent}>
-                        <Text style={styles.mapPlaceholderText}>카카오맵 영역</Text>
-                    </View>
+                    {location ? (
+                        <MapView
+                            provider={PROVIDER_GOOGLE} // 구글맵 사용
+                            style={styles.map}
+                            region={{
+                                latitude: location.coords.latitude,
+                                longitude: location.coords.longitude,
+                                latitudeDelta: 0.01, // 줌 레벨 (작을수록 확대)
+                                longitudeDelta: 0.01,
+                            }}
+                            showsUserLocation={true} // 파란 점 표시
+                            showsMyLocationButton={false} // 기본 버튼 숨김
+                        >
+                            {/* 필요하다면 마커 추가 가능 */}
+                        </MapView>
+                    ) : (
+                        <View style={styles.mapContent}>
+                            <Text style={styles.mapPlaceholderText}>위치를 불러오는 중...</Text>
+                        </View>
+                    )}
+
+                    {/* 줌 버튼 */}
                     <TouchableOpacity style={styles.zoomBtn}>
                         <Ionicons name="eye-outline" size={22} color={colors.text} />
                     </TouchableOpacity>
+
+                    {/* 지도 하단 정보 (사용자 수, 자세히 보기) */}
                     <View style={styles.mapBottomRow}>
-                        <View style={styles.userCount}>
+                        {/* 왼쪽: 사용자 수 */}
+                        <View style={styles.mapBottomButton}>
                             <Ionicons name="people-outline" size={16} color={colors.primary} />
                             <Text style={styles.countText}>5</Text>
                         </View>
-                        <TouchableOpacity>
+
+                        {/* 오른쪽: 자세히 보기 (스타일 통일) */}
+                        <TouchableOpacity
+                            style={styles.mapBottomButton}
+                            onPress={handleOpenFullMap}
+                        >
                             <Text style={styles.detailText}>자세히 보기</Text>
                         </TouchableOpacity>
                     </View>
