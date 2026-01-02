@@ -1,6 +1,6 @@
 // frontend/src/screens/ghost/GhostRunScreen.tsx
 
-import React, { useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -46,7 +46,6 @@ export default function GhostRunScreen() {
         danger: "#ff3b30",
     };
 
-    // ✅ 음성 지원 ON/OFF 상태
     const [isSoundOn, setIsSoundOn] = useState(true);
 
     const { state, actions, utils } = useGhostRunScreen();
@@ -81,28 +80,143 @@ export default function GhostRunScreen() {
     const markRight = totalKm > 0 ? `${totalKm.toFixed(1)}km` : "-";
     const markMid = totalKm > 0 ? `${midKm.toFixed(1)}km` : "-";
 
+    /**
+     * ✅ "처음~현재" 전 구간 누적 그래프
+     * - paceHistoryMin이 제자리 push로 바뀌어도 상관없이
+     * - 우리가 rtPaceData를 누적 append로 직접 관리
+     *
+     * 전략:
+     * 1) time이 0(또는 매우 작음)으로 리셋되면 새 러닝 시작으로 판단하고 rtPaceData 초기화
+     * 2) 매 틱마다 "현재 페이스(currentPaceSec)"를 그래프 배열 끝에 추가
+     *    (단, 같은 값이 너무 잦은 틱으로 중복되면 계단처럼 길어지므로, 직전 값과 같으면 스킵)
+     * 3) 최소 2포인트 보장 (chart-kit용)
+     */
+    const [rtPaceData, setRtPaceData] = useState<number[]>([0, 0]);
+    const lastAddedRef = useRef<number | null>(null);
+    const startedRef = useRef(false);
+
+    // ✅ 러닝 "새로 시작" 감지: time이 0 근처로 내려가면 초기화
+    useEffect(() => {
+        // time이 초 단위라고 가정. (formatTime(time) 쓰는 걸 보면 보통 초)
+        if (time <= 0) {
+            startedRef.current = false;
+            lastAddedRef.current = null;
+            setRtPaceData([0, 0]);
+        }
+    }, [time]);
+
+    // ✅ 실시간 누적 append
+    useEffect(() => {
+        // 카운트다운/준비 중에는 append 하지 않게
+        if (isReady) return;
+
+        // 러닝이 "처음 시작"되는 순간 한 번만 상태 전환
+        if (!startedRef.current && time > 0) {
+            startedRef.current = true;
+        }
+
+        // 일시정지면 그래프를 멈춘다(원하면 이 if 제거하면, 멈춘 동안에도 같은 값이 계속 쌓일 수 있음)
+        if (isPaused) return;
+
+        // 현재 페이스 유효성 체크
+        const pace = typeof currentPaceSec === "number" ? currentPaceSec : Number(currentPaceSec);
+        if (!Number.isFinite(pace) || pace <= 0) return;
+
+        // 너무 촘촘한 중복 방지: 직전 값과 완전히 같으면 스킵
+        if (lastAddedRef.current !== null && lastAddedRef.current === pace) return;
+
+        lastAddedRef.current = pace;
+
+        setRtPaceData((prev) => {
+            // 초기 [0,0] 상태면 2포인트로 시작
+            if (prev.length <= 2 && prev[0] === 0 && prev[1] === 0) {
+                return [pace, pace];
+            }
+            return [...prev, pace];
+        });
+    }, [isReady, isPaused, time, currentPaceSec]);
+
+    /**
+     * ✅ 만약 paceHistoryMin이 “진짜 기록 배열”이라면,
+     * 러닝 종료 후(또는 중간)에도 거기 값이 더 신뢰할만할 수 있어서
+     * paceHistoryMin이 더 길어졌을 때는 rtPaceData를 그걸로 "동기화"해주는 옵션을 넣어둠.
+     * (제자리 push여도 길이만 늘어나면 감지 가능)
+     */
+    const lastLenRef = useRef<number>(0);
+    useEffect(() => {
+        if (!Array.isArray(paceHistoryMin)) return;
+
+        const len = paceHistoryMin.length;
+        if (len <= 0) return;
+
+        // 길이가 늘었을 때만 반영 (제자리 push라도 length는 늘어나니까 감지됨)
+        if (len > lastLenRef.current) {
+            lastLenRef.current = len;
+
+            const cleaned = [...paceHistoryMin]
+                .map((v) => (typeof v === "number" ? v : Number(v)))
+                .filter((v) => Number.isFinite(v) && v > 0);
+
+            if (cleaned.length >= 2) {
+                setRtPaceData(cleaned);
+                lastAddedRef.current = cleaned[cleaned.length - 1] ?? lastAddedRef.current;
+            } else if (cleaned.length === 1) {
+                setRtPaceData([cleaned[0], cleaned[0]]);
+                lastAddedRef.current = cleaned[0];
+            }
+        }
+    }, [paceHistoryMin, time]);
+
+    // ✅ chart-kit 캐시 깨기 (누적 그래프라 key는 길이 기반으로 충분)
+    const chartKey = useMemo(() => {
+        const last = rtPaceData.length ? rtPaceData[rtPaceData.length - 1] : 0;
+        return `pace-${rtPaceData.length}-${last}`;
+    }, [rtPaceData]);
+
     const chartConfig = {
         backgroundColor: colors.card,
         backgroundGradientFrom: colors.card,
         backgroundGradientTo: colors.card,
         decimalPlaces: 1,
-        color: (opacity = 1) => `rgba(74, 110, 169, ${opacity})`,
+        color: (opacity = 1) => `rgba(44, 63, 110, ${opacity})`,
         labelColor: (opacity = 1) =>
             scheme === "dark" ? `rgba(255,255,255,${opacity})` : `rgba(0,0,0,${opacity})`,
         style: { borderRadius: 16 },
         propsForDots: { r: "0" },
+        propsForBackgroundLines: { stroke: "rgba(0,0,0,0.08)" },
     };
 
-    const chartData = {
-        labels: [],
-        datasets: [
-            {
-                data: paceHistoryMin.length > 0 ? paceHistoryMin : [0],
-                color: (opacity = 1) => `rgba(74, 110, 169, ${opacity})`,
-                strokeWidth: 2,
-            },
-        ],
-    };
+    const chartData = useMemo(
+        () => ({
+            // ✅ "시작~현재"를 가로축 전체로 쓰므로 라벨은 숨김 처리(빈 값)
+            labels: rtPaceData.map(() => ""),
+            datasets: [
+                {
+                    data: rtPaceData,
+                    color: (opacity = 1) => `rgba(44, 63, 110, ${opacity})`,
+                    strokeWidth: 3,
+                },
+            ],
+        }),
+        [rtPaceData]
+    );
+
+    /**
+     * ✅ 목표 거리 도달 시 자동 정지 (딱 1번만)
+     */
+    const stoppedRef = useRef(false);
+
+    useEffect(() => {
+        if (stoppedRef.current) return;
+        if (!ghostTotalDistanceM || ghostTotalDistanceM <= 0) return;
+
+        if (!isPaused && distanceM >= ghostTotalDistanceM) {
+            stoppedRef.current = true;
+            stopRun();
+        }
+    }, [distanceM, ghostTotalDistanceM, isPaused, stopRun]);
+
+    const isFinished = ghostTotalDistanceM > 0 && distanceM >= ghostTotalDistanceM;
 
     return (
         <SafeAreaView style={[s.safe, { backgroundColor: colors.background }]}>
@@ -124,7 +238,6 @@ export default function GhostRunScreen() {
                     <Text style={[s.headerPillText, { color: colors.text }]}>고스트 모드</Text>
                 </View>
 
-                {/* ✅ 볼륨 토글 버튼 */}
                 <TouchableOpacity
                     hitSlop={10}
                     activeOpacity={0.85}
@@ -155,7 +268,7 @@ export default function GhostRunScreen() {
 
                         <View style={[s.badge, { backgroundColor: colors.primary }]}>
                             <Text style={[s.badgeText, { color: "#fff" }]}>
-                                {formatDiffBadge(ghostDistanceM - distanceM)}
+                                {isFinished ? "완주!" : formatDiffBadge(ghostDistanceM - distanceM)}
                             </Text>
                         </View>
                     </View>
@@ -231,16 +344,21 @@ export default function GhostRunScreen() {
                     </View>
 
                     <LineChart
+                        key={chartKey}
                         data={chartData}
                         width={Math.min(W - 32 - 28, 420)}
-                        height={140}
+                        height={160}
                         chartConfig={chartConfig}
                         bezier
                         style={{ marginTop: 12, borderRadius: 14 }}
-                        withInnerLines={false}
+                        withInnerLines={true}
                         withOuterLines={false}
                         withVerticalLabels={false}
                         withHorizontalLabels={false}
+                        withDots={false}
+                        withShadow={true}
+                        fromZero={false}
+                        segments={4}
                     />
 
                     <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 8 }}>
@@ -257,14 +375,16 @@ export default function GhostRunScreen() {
                     style={[s.controlBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
                     onPress={isPaused ? resumeRun : pauseRun}
                     activeOpacity={0.85}
+                    disabled={isFinished}
                 >
                     <Ionicons name={(isPaused ? "play" : "pause") as IoniconName} size={22} color={colors.text} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[s.stopBtn, { backgroundColor: colors.danger, marginLeft: 14 }]}
+                    style={[s.stopBtn, { backgroundColor: colors.danger, marginLeft: 14, opacity: isFinished ? 0.6 : 1 }]}
                     onPress={stopRun}
                     activeOpacity={0.85}
+                    disabled={isFinished}
                 >
                     <Ionicons name={"stop" as IoniconName} size={22} color={"white"} />
                 </TouchableOpacity>
