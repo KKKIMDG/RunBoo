@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import BackButton from "@/components/ui/BackButton";
 import { styles } from "./ProfileScreen.styles";
 import { useBadge } from "@/screens/Badge/useBadge";
+import { fetchCurrentRunningStreak } from "@/services/record/recordsService";
 import { updateMyNickname } from "@/services/user/userService";
 import { useGrass } from "@/screens/Profile/useGrass";
 import {useMe} from "@/hooks/useMe";
@@ -26,6 +27,8 @@ export default function ProfileScreen({ navigation }: any) {
     // 로그인 유저 기준 배지 로드
     const { me, loading: meLoading, refetch  } = useMe();
     const { badges, badgeCount, loading: badgeLoading } = useBadge();
+    const [streak, setStreak] = useState<number | null>(null);
+    const [streakLoading, setStreakLoading] = useState(false);
     const { data: grassData, levelMap, loading: grassLoading } = useGrass(12);
     const [isEditingNickname, setIsEditingNickname] = useState(false);
     const [nicknameInput, setNicknameInput] = useState("");
@@ -36,12 +39,27 @@ export default function ProfileScreen({ navigation }: any) {
             ? { uri: me.profileImageUrl }
             : require("@/assets/images/runboo.png");
 
-
     React.useEffect(() => {
         if (me?.nickname) {
             setNicknameInput(me.nickname);
         }
     }, [me?.nickname]);
+
+    React.useEffect(() => {
+        if (!me) return;
+
+        const loadStreak = async () => {
+            try {
+                setStreakLoading(true);
+                const value = await fetchCurrentRunningStreak();
+                setStreak(value);
+            } finally {
+                setStreakLoading(false);
+            }
+        };
+
+        loadStreak();
+    }, [me]);
     const handleSaveNickname = async () => {
         if (!nicknameInput.trim()) return;
 
@@ -315,7 +333,9 @@ export default function ProfileScreen({ navigation }: any) {
                         </View>
                         <View>
                             <Text style={styles.miniStatLabel}>연속 일수</Text>
-                            <Text style={styles.miniStatValue}>12</Text>
+                            <Text style={styles.miniStatValue}>
+                                {streakLoading ? "-" : (streak ?? "-")}
+                            </Text>
                         </View>
                     </View>
 

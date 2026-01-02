@@ -44,6 +44,11 @@ public class RecordController {
         return recordService.getGrass(user.getUserId(), weeks);
     }
 
+    // 4) 프로필 - 현재 연속 일수
+    @GetMapping("/streak/current")
+    public int getCurrentStreak(@AuthenticationPrincipal CustomUserDetails user) {
+        return recordService.getCurrentRunningStreak(user.getUserId());
+    }
 
     @PostMapping
     public ResponseEntity<String> createRecord(@AuthenticationPrincipal CustomUserDetails user, @RequestBody RunRecordRequestDto requestDto) {
