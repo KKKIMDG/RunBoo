@@ -3,7 +3,7 @@ package com.runboo.domain.tier.service;
 import com.runboo.domain.tier.dto.UserTierResponse;
 import com.runboo.domain.tier.entity.Tier;
 import com.runboo.domain.tier.entity.UserTier;
-import com.runboo.domain.tier.entity.UserTier.DistanceType;
+import com.runboo.domain.tier.entity.UserTier   .DistanceType;
 import com.runboo.domain.tier.repository.TierRepository;
 import com.runboo.domain.tier.repository.UserTierRepository;
 import com.runboo.domain.user.entity.User;
