@@ -20,10 +20,15 @@ export async function fetchDashboardStats(
   return res as DashboardStatsDto;
 }
 
-/* 활동 잔디 관려 */
+/** 활동 잔디 관련 **/
 export async function fetchGrass(weeks = 12): Promise<GrassResponseDto> {
     // api.get은 path만 받으니까 쿼리스트링을 직접 붙여야 함
     const res = await api.get(`/api/records/grass?weeks=${weeks}`);
     return res as GrassResponseDto;
 }
 
+/** 프로필페이지 연속 일수 관련 */
+export async function fetchCurrentRunningStreak(): Promise<number> {
+    const res = await api.get('/api/records/streak/current');
+    return res as number;
+}
