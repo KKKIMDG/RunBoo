@@ -21,7 +21,6 @@ import { useBadge } from "@/screens/Badge/useBadge";
 import { fetchCurrentRunningStreak } from "@/services/record/recordsService";
 import { updateMyNickname } from "@/services/user/userService";
 import { useGrass } from "@/screens/Profile/useGrass";
-// import {useMe} from "@/hooks/useMe";
 import { useUserMe } from "@/contexts/UserMeContext";
 
 export default function ProfileScreen({ navigation }: any) {
@@ -467,45 +466,22 @@ const tempStyles = StyleSheet.create({
 });
 
 /**
-활동 잔디
+ 활동 잔디
  */
-// function buildGrassColumns12Weeks(startDate: string, endDate: string) {
-//     const start = new Date(startDate + "T00:00:00");
-//     const end = new Date(endDate + "T00:00:00");
-//
-//     const columns: (string | null)[][] = [];
-//
-//     for (let w = 0; w < 12; w++) {
-//         const col: (string | null)[] = [];
-//         for (let d = 0; d < 7; d++) {
-//             const cur = new Date(start);
-//             cur.setDate(start.getDate() + w * 7 + d);
-//
-//             if (cur > end) col.push(null);
-//             else col.push(cur.toISOString().slice(0, 10));
-//         }
-//         columns.push(col);
-//     }
-//
-//     return columns;
-// }
-
 function buildGrassColumns12Weeks(startDate: string, endDate: string) {
-    // ✅ 1) UTC 기준으로 파싱 (Z 붙이기)
-    const start = new Date(startDate + "T00:00:00Z");
-    const end = new Date(endDate + "T00:00:00Z");
+    const start = new Date(startDate + "T00:00:00");
+    const end = new Date(endDate + "T00:00:00");
 
     const columns: (string | null)[][] = [];
 
     for (let w = 0; w < 12; w++) {
         const col: (string | null)[] = [];
         for (let d = 0; d < 7; d++) {
-            // ✅ 2) start.getTime() 기반으로 날짜 더하기 (UTC/플랫폼 차이 최소화)
-            const cur = new Date(start.getTime() + (w * 7 + d) * 24 * 60 * 60 * 1000);
+            const cur = new Date(start);
+            cur.setDate(start.getDate() + w * 7 + d);
 
-            // ✅ 3) 비교도 time으로 (시간대 이슈 제거)
-            if (cur.getTime() > end.getTime()) col.push(null);
-            else col.push(cur.toISOString().slice(0, 10)); // ✅ UTC에서 만든 key
+            if (cur > end) col.push(null);
+            else col.push(cur.toISOString().slice(0, 10));
         }
         columns.push(col);
     }
