@@ -38,9 +38,7 @@ public class RecordService {
         return new DashboardStatsDto(monthly, weekly, personalBests);
     }
 
-    /* =========================
-       프로필 활동 잔디 (최근 12주)
-     ========================= */
+    /** 프로필 활동 잔디 (최근 12주) */
     public GrassResponseDto getGrass(Long userId, int weeks) {
         ZoneId zone = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zone);
@@ -86,9 +84,7 @@ public class RecordService {
         );
     }
 
-    /* =========================
-       월간 통계
-     ========================= */
+    /** 월간 통계 */
     private MonthlySummaryDto getThisMonthSummary(Long userId) {
         ZoneId zone = ZoneId.systemDefault();
 
@@ -124,9 +120,7 @@ public class RecordService {
         );
     }
 
-    /* =========================
-       주간 통계
-     ========================= */
+    /** 주간 통계 */
     private WeeklySummaryDto getThisWeekSummary(Long userId) {
         ZoneId zone = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zone);
@@ -178,9 +172,7 @@ public class RecordService {
         return new WeeklySummaryDto(items);
     }
 
-    /* =========================
-       개인 최고 기록
-     ========================= */
+    /** 개인 최고 기록 */
     private PersonalBestsDto getPersonalBests(Long userId) {
         List<Record> all = recordRepository.findByUserIdOrderByStartedAtDesc(userId);
 
@@ -213,9 +205,7 @@ public class RecordService {
         );
     }
 
-    /* =========================
-       실제 러닝 시간 계산 (초)
-     ========================= */
+    /** 실제 러닝 시간 계산 (초) */
     private long calcDurationSec(Record r) {
         if (r.getStartedAt() != null && r.getEndedAt() != null) {
             long sec = Duration.between(r.getStartedAt(), r.getEndedAt()).getSeconds();
@@ -244,9 +234,7 @@ public class RecordService {
         runRecordRepository.save(runRecord);
     }
 
-    /* =========================
-       프로필 - 현재 연속 일수
-     ========================= */
+    /** 프로필 - 현재 연속 일수 */
     public int getCurrentRunningStreak(Long userId) {
         ZoneId zone = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zone);
