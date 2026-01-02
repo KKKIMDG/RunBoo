@@ -58,13 +58,32 @@ const s = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#EEF1F7",
     },
-    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-    date: { fontSize: 16, fontWeight: "800", color: "#111827" },
-    badge: { color: "#6B7280", fontSize: 12, fontWeight: "700" },
-    badgeGhost: { color: "#3A4A98" },
-    badgeTier: { color: "#fc1b1b" },
-    sub: { marginTop: 4, marginBottom: 10, color: "#6B7280" },
-
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center"
+    },
+    date: {
+        fontSize: 16,
+        fontWeight: "800",
+        color: "#111827"
+    },
+    badge: {
+        color: "#6B7280",
+        fontSize: 12,
+        fontWeight: "700"
+    },
+    badgeGhost: {
+        color: "#3A4A98"
+    },
+    badgeTier: {
+        color: "#fc1b1b"
+    },
+    sub: {
+        marginTop: 4,
+        marginBottom: 10,
+        color: "#6B7280"
+    },
     rowBox: {
         backgroundColor: "#F7F8FC",
         borderRadius: 14,
@@ -72,6 +91,14 @@ const s = StyleSheet.create({
         paddingHorizontal: 12,
         marginTop: 8,
     },
-    label: { color: "#6B7280", fontWeight: "700", marginBottom: 4 },
-    value: { color: "#111827", fontSize: 18, fontWeight: "900" },
+    label: {
+        color: "#6B7280",
+        fontWeight: "700",
+        marginBottom: 4
+    },
+    value: {
+        color: "#111827",
+        fontSize: 18,
+        fontWeight: "900"
+    },
 });
