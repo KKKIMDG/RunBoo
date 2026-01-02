@@ -3,7 +3,7 @@ import { styles } from './SettingsScreen.styles';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import SettingItem from '@/components/setting/SettingItem';
-import {SafeAreaView} from "react-native-safe-area-context"; // 경로 수정됨
+import {SafeAreaView} from "react-native-safe-area-context";
 
 export default function SettingsScreen({ navigation, onLogout }: any) {
   const [pushEnabled, setPushEnabled] = useState(true);

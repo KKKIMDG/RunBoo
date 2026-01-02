@@ -170,6 +170,18 @@ export const api = {
         });
     },
 
+    patch: async <T>(path: string, data: T) => {
+        return request(`${BASE_URL}${path}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader(),
+            },
+            body: JSON.stringify(data),
+        });
+    },
+
+
     delete: async (path: string) => {
         return request(`${BASE_URL}${path}`, {
             method: 'DELETE',
