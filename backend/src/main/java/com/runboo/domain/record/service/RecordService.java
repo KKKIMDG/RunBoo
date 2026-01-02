@@ -38,38 +38,32 @@ public class RecordService {
         return new DashboardStatsDto(monthly, weekly, personalBests);
     }
 
-    /* =========================
-   프로필 활동 잔디 (최근 12주)
- ========================= */
+    /** 프로필 활동 잔디 (최근 12주) */
     public GrassResponseDto getGrass(Long userId, int weeks) {
-        ZoneId zone = ZoneId.systemDefault(); // 필요하면 ZoneId.of("Asia/Seoul")로 고정
+        ZoneId zone = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zone);
 
-        // ✅ 이번 주 시작(일요일 고정)
-        LocalDate thisWeekSunday = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        // 이번 주 시작(일요일)
+        LocalDate thisWeekSunday =
+                today.with(java.time.temporal.TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
 
-        // ✅ 이번 주 포함 weeks주 -> (weeks-1)주 전 일요일부터
         int w = Math.max(weeks, 1);
         LocalDate startDate = thisWeekSunday.minusWeeks(w - 1);
-
-        // ✅ endDate는 오늘 (오늘 이후 날짜는 생성 안 함)
         LocalDate endDate = today;
 
-        // ✅ DB 조회 범위: startDate 00:00 ~ (endDate+1) 00:00 (exclusive)
         LocalDateTime start = startDate.atStartOfDay(zone).toLocalDateTime();
         LocalDateTime endExclusive = endDate.plusDays(1).atStartOfDay(zone).toLocalDateTime();
 
         List<Record> records =
                 recordRepository.findByUserIdAndStartedAtBetween(userId, start, endExclusive);
 
-        // ✅ 날짜별 거리 합산
+        // ✅ LocalDateTime 기준 → toLocalDate()
         Map<LocalDate, Double> distanceByDate = records.stream()
                 .collect(Collectors.groupingBy(
                         r -> r.getStartedAt().toLocalDate(),
                         Collectors.summingDouble(r -> Optional.ofNullable(r.getDistanceM()).orElse(0.0))
                 ));
 
-        // ✅ startDate ~ endDate까지 하루씩 응답 생성
         List<GrassDayDto> days = new ArrayList<>();
         for (LocalDate d = startDate; !d.isAfter(endDate); d = d.plusDays(1)) {
             double dist = distanceByDate.getOrDefault(d, 0.0);
@@ -79,11 +73,7 @@ public class RecordService {
             else if (dist > 0.0) level = 1;
             else level = 0;
 
-            days.add(new GrassDayDto(
-                    d.toString(), // "YYYY-MM-DD"
-                    dist,
-                    level
-            ));
+            days.add(new GrassDayDto(d.toString(), dist, level));
         }
 
         return new GrassResponseDto(
@@ -94,10 +84,7 @@ public class RecordService {
         );
     }
 
-
-    /* =========================
-       월간 통계
-     ========================= */
+    /** 월간 통계 */
     private MonthlySummaryDto getThisMonthSummary(Long userId) {
         ZoneId zone = ZoneId.systemDefault();
 
@@ -107,6 +94,7 @@ public class RecordService {
 
         LocalDateTime start = monthStart.atStartOfDay(zone).toLocalDateTime();
         LocalDateTime end = monthEnd.atStartOfDay(zone).toLocalDateTime();
+
         List<Record> records =
                 recordRepository.findByUserIdAndStartedAtBetween(userId, start, end);
 
@@ -116,7 +104,6 @@ public class RecordService {
                 .mapToDouble(r -> Optional.ofNullable(r.getDistanceM()).orElse(0.0))
                 .sum();
 
-        // ✅ startedAt ~ endedAt 기준
         long totalDurationSec = records.stream()
                 .mapToLong(this::calcDurationSec)
                 .sum();
@@ -133,9 +120,7 @@ public class RecordService {
         );
     }
 
-    /* =========================
-       주간 통계
-     ========================= */
+    /** 주간 통계 */
     private WeeklySummaryDto getThisWeekSummary(Long userId) {
         ZoneId zone = ZoneId.systemDefault();
         LocalDate today = LocalDate.now(zone);
@@ -167,7 +152,6 @@ public class RecordService {
                     .mapToDouble(r -> Optional.ofNullable(r.getDistanceM()).orElse(0.0))
                     .sum();
 
-            // ✅ startedAt ~ endedAt 기준
             long durationSec = dayRecords.stream()
                     .mapToLong(this::calcDurationSec)
                     .sum();
@@ -188,12 +172,8 @@ public class RecordService {
         return new WeeklySummaryDto(items);
     }
 
-    /* =========================
-       개인 최고 기록
-       ✅ longestDuration는 실제 시간(ended-start)로 재계산해서 Top1 선정
-     ========================= */
+    /** 개인 최고 기록 */
     private PersonalBestsDto getPersonalBests(Long userId) {
-        // 개인 최고는 기간 제한 없이 전체 기록 기준
         List<Record> all = recordRepository.findByUserIdOrderByStartedAtDesc(userId);
 
         RecordDto longestDistance = all.stream()
@@ -201,7 +181,6 @@ public class RecordService {
                 .map(RecordDto::new)
                 .orElse(null);
 
-        // 🔥 핵심: durationSec가 아니라 startedAt~endedAt으로 비교
         RecordDto longestDuration = all.stream()
                 .max(Comparator.comparingLong(this::calcDurationSec))
                 .map(RecordDto::new)
@@ -226,18 +205,15 @@ public class RecordService {
         );
     }
 
-    /* =========================
-       실제 러닝 시간 계산 (초)
-       startedAt ~ endedAt 기준
-     ========================= */
+    /** 실제 러닝 시간 계산 (초) */
     private long calcDurationSec(Record r) {
         if (r.getStartedAt() != null && r.getEndedAt() != null) {
             long sec = Duration.between(r.getStartedAt(), r.getEndedAt()).getSeconds();
             return Math.max(sec, 0);
         }
-        // fallback
         return Optional.ofNullable(r.getDurationSec()).orElse(0);
     }
+
     @Transactional
     public void saveRecord(RunRecordRequestDto dto) {
         User user = userRepository.findById(dto.getUserId())
@@ -256,5 +232,35 @@ public class RecordService {
                 .build();
 
         runRecordRepository.save(runRecord);
+    }
+
+    /** 프로필 - 현재 연속 일수 */
+    public int getCurrentRunningStreak(Long userId) {
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDate today = LocalDate.now(zone);
+
+        LocalDate fromDate = today.minusDays(365);
+
+        LocalDateTime start = fromDate.atStartOfDay(zone).toLocalDateTime();
+        LocalDateTime endExclusive = today.plusDays(1).atStartOfDay(zone).toLocalDateTime();
+
+        List<Record> records =
+                recordRepository.findByUserIdAndStartedAtBetween(userId, start, endExclusive);
+
+        if (records.isEmpty()) return 0;
+
+        Set<LocalDate> runDays = records.stream()
+                .map(r -> r.getStartedAt().toLocalDate())
+                .collect(Collectors.toSet());
+
+        LocalDate cursor = runDays.contains(today) ? today : today.minusDays(1);
+
+        int streak = 0;
+        while (runDays.contains(cursor)) {
+            streak++;
+            cursor = cursor.minusDays(1);
+        }
+
+        return streak;
     }
 }
