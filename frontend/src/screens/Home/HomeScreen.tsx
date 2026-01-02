@@ -1,20 +1,23 @@
-import React, { FC } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { FC, useState } from "react";
+import { View, Text, TouchableOpacity, Image } from "react-native"; // ✅ Image 추가
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused } from '@react-navigation/native';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps'; // ✅ Marker 추가
+
+// Components & Hooks
 import { TopNavBar } from "@/components/layout/TopNavBar";
-import { useHomeScreen, RunningMode } from "./useHomeScreen"; // 훅 import
+import { useHomeScreen, RunningMode } from "./useHomeScreen";
 import { getStyles } from "./HomeScreen.styles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
+import { useNearbyRunners } from "@/hooks/useNearbyRunners"; // ✅ 주변 러너 훅
+import { useMe } from "@/hooks/useMe";
 
 // Ghost
 import GhostSelectSheet from "./components/GhostSelectSheet";
 import { fetchGhostProfiles } from "@/services/ghost/ghostService";
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import type { GhostProfileDto } from "@/types/ghost";
-import { useMe } from "@/hooks/useMe";
-import { useState } from "react"; // 고스트용 state는 여기에 남김 (훅으로 안 옮겼다면)
 
 type HomeScreenProps = {
     navigation?: { navigate: (screen: string, params?: any) => void };
@@ -51,8 +54,11 @@ const ModeTab: FC<{
 const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     const { me } = useMe();
 
-    // ✅ [중요] 모든 로직과 상태를 useHomeScreen 훅에서 가져옵니다.
-    // 내부에 별도의 useState나 핸들러 함수를 선언하면 "중복 선언" 에러가 납니다.
+    // ✅ 1. 주변 러너 데이터 가져오기
+    const isFocused = useIsFocused();
+    const { nearbyRunners } = useNearbyRunners(isFocused);
+
+    // ✅ 2. 홈 스크린 로직 가져오기
     const {
         activeMode,
         handleModeChange,
@@ -82,7 +88,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     const colors = Colors[colorScheme];
     const borderColor = colorScheme === "dark" ? "#333333" : "#E0E0E0";
 
-    /** 고스트 모드 상태 (이 부분은 아직 훅으로 안 옮겼으므로 여기에 유지) */
+    /** 고스트 모드 상태 */
     const [ghostSheetOpen, setGhostSheetOpen] = useState(false);
     const [ghostLoading, setGhostLoading] = useState(false);
     const [ghostProfiles, setGhostProfiles] = useState<GhostProfileDto[]>([]);
@@ -138,7 +144,36 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                             }}
                             showsUserLocation={true}
                             showsMyLocationButton={false}
-                        />
+                        >
+                            {/* ✅ [추가] 주변 러너 마커 표시 */}
+                            {nearbyRunners.map((runner) => (
+                                <Marker
+                                    key={runner.userId}
+                                    coordinate={{
+                                        latitude: runner.latitude,
+                                        longitude: runner.longitude,
+                                    }}
+                                    title={runner.nickname}
+                                    anchor={{ x: 0.5, y: 0.5 }} // 이미지 중심점 맞춤
+                                >
+                                    <View style={{
+                                        width: 36, height: 36, borderRadius: 18,
+                                        backgroundColor: 'white', borderWidth: 2, borderColor: '#4A6EA9',
+                                        justifyContent: 'center', alignItems: 'center',
+                                        shadowColor: "#000", shadowOpacity: 0.3, elevation: 4
+                                    }}>
+                                        {runner.profileImageUrl ? (
+                                            <Image
+                                                source={{ uri: runner.profileImageUrl }}
+                                                style={{ width: 32, height: 32, borderRadius: 16 }}
+                                            />
+                                        ) : (
+                                            <Ionicons name="person" size={20} color="#4A6EA9" />
+                                        )}
+                                    </View>
+                                </Marker>
+                            ))}
+                        </MapView>
                     ) : (
                         <View style={styles.mapContent}>
                             <Text style={styles.mapPlaceholderText}>위치를 불러오는 중...</Text>
@@ -152,7 +187,8 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                     <View style={styles.mapBottomRow}>
                         <View style={styles.mapBottomButton}>
                             <Ionicons name="people-outline" size={16} color={colors.primary} />
-                            <Text style={styles.countText}>5</Text>
+                            {/* 주변 러너 수 표시 */}
+                            <Text style={styles.countText}>{nearbyRunners.length}</Text>
                         </View>
 
                         <TouchableOpacity style={styles.mapBottomButton} onPress={handleOpenFullMap}>
