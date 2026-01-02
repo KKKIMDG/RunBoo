@@ -229,7 +229,6 @@ const s = StyleSheet.create({
     wrap: {
         marginBottom: 0,
     },
-
     bar: {
         backgroundColor: "transparent",
         paddingHorizontal: 12,
@@ -239,9 +238,14 @@ const s = StyleSheet.create({
         alignItems: "flex-start",
         justifyContent: "space-between",
     },
-    barLeft: { flex: 1, paddingRight: 10 },
-    title: { color: "#6B7280", fontWeight: "700" },
-
+    barLeft: {
+        flex: 1,
+        paddingRight: 10
+    },
+    title: {
+        color: "#6B7280",
+        fontWeight: "700"
+    },
     barRight: {
         alignItems: "flex-end",
         justifyContent: "flex-end",
@@ -252,16 +256,17 @@ const s = StyleSheet.create({
         fontWeight: "700",
         marginTop: 0,
     },
-
     panel: {
         marginTop: 10,
         backgroundColor: "#EEF1F7",
         borderRadius: 16,
         padding: 10,
     },
-
-    controls: { flexDirection: "row", gap: 10, alignItems: "stretch" },
-
+    controls: {
+        flexDirection: "row",
+        gap: 10,
+        alignItems: "stretch"
+    },
     pickBtn: {
         flex: 1,
         backgroundColor: "#F7F8FC",
@@ -269,9 +274,16 @@ const s = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 12,
     },
-    pickLabel: { color: "#6B7280", fontWeight: "900", fontSize: 12 },
-    pickValue: { marginTop: 4, color: "#111827", fontWeight: "900" },
-
+    pickLabel: {
+        color: "#6B7280",
+        fontWeight: "900",
+        fontSize: 12
+    },
+    pickValue: {
+        marginTop: 4,
+        color: "#111827",
+        fontWeight: "900"
+    },
     resetBtn: {
         width: 86,
         borderRadius: 14,
@@ -285,14 +297,12 @@ const s = StyleSheet.create({
         fontWeight: "900",
         fontSize: 12,
     },
-
     hint: {
         marginTop: 8,
         color: "#6B7280",
         fontWeight: "700",
         fontSize: 12,
     },
-
     // iOS Modal
     modalDim: {
         flex: 1,
@@ -307,7 +317,11 @@ const s = StyleSheet.create({
         borderRadius: 18,
         padding: 14,
     },
-    modalTitle: { fontWeight: "900", color: "#111827", marginBottom: 10 },
+    modalTitle: {
+        fontWeight: "900",
+        color: "#111827",
+        marginBottom: 10
+    },
     modalBtns: {
         flexDirection: "row",
         gap: 10,

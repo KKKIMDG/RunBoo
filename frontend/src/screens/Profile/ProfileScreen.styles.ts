@@ -45,8 +45,6 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-
-  // ✅ dev 브랜치 이미지 처리 방식 유지
   profileImagePlaceholder: {
     width: 60,
     height: 60,
