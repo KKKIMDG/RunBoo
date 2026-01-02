@@ -1,9 +1,9 @@
-import React, { FC, useState } from "react";
+import React, { FC } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { TopNavBar } from "@/components/layout/TopNavBar";
-import { useHomeScreen, RunningMode } from "./useHomeScreen";
+import { useHomeScreen, RunningMode } from "./useHomeScreen"; // 훅 import
 import { getStyles } from "./HomeScreen.styles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
@@ -11,9 +11,10 @@ import { Colors } from "@/constants/theme";
 // Ghost
 import GhostSelectSheet from "./components/GhostSelectSheet";
 import { fetchGhostProfiles } from "@/services/ghost/ghostService";
-import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import type { GhostProfileDto } from "@/types/ghost";
 import { useMe } from "@/hooks/useMe";
+import { useState } from "react"; // 고스트용 state는 여기에 남김 (훅으로 안 옮겼다면)
 
 type HomeScreenProps = {
     navigation?: { navigate: (screen: string, params?: any) => void };
@@ -48,18 +49,32 @@ const ModeTab: FC<{
 };
 
 const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
-    const { me, loading } = useMe();
+    const { me } = useMe();
+
+    // ✅ [중요] 모든 로직과 상태를 useHomeScreen 훅에서 가져옵니다.
+    // 내부에 별도의 useState나 핸들러 함수를 선언하면 "중복 선언" 에러가 납니다.
     const {
         activeMode,
         handleModeChange,
+
+        // 측정 모드
         isGoalPickerOpen,
         selectedGoal,
         goalOptions,
         toggleGoalPicker,
         handleSelectGoal,
         handleStartRun,
+
+        // 티어 모드
+        isTierPickerOpen,
+        tierDistance,
+        toggleTierPicker,
+        handleSelectTierDistance,
+        handleStartTierRun,
+
+        // 지도 관련
         location,
-        handleOpenFullMap,
+        handleOpenFullMap
     } = useHomeScreen();
 
     const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
@@ -67,19 +82,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     const colors = Colors[colorScheme];
     const borderColor = colorScheme === "dark" ? "#333333" : "#E0E0E0";
 
-    /** 티어 모드 상태 */
-    const [isTierPickerOpen, setIsTierPickerOpen] = useState(false);
-    const [tierDistance, setTierDistance] = useState<"5km" | "10km">("5km");
-    const toggleTierPicker = () => setIsTierPickerOpen(prev => !prev);
-    const handleSelectTierDistance = (distance: "5km" | "10km") => {
-        setTierDistance(distance);
-        setIsTierPickerOpen(false);
-    };
-    const handleStartTierRun = () => {
-        console.log("티어 러닝 시작!", tierDistance);
-    };
-
-    /** 고스트 모드 상태 */
+    /** 고스트 모드 상태 (이 부분은 아직 훅으로 안 옮겼으므로 여기에 유지) */
     const [ghostSheetOpen, setGhostSheetOpen] = useState(false);
     const [ghostLoading, setGhostLoading] = useState(false);
     const [ghostProfiles, setGhostProfiles] = useState<GhostProfileDto[]>([]);
@@ -125,47 +128,37 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                 <View style={styles.mapBox}>
                     {location ? (
                         <MapView
-                            provider={PROVIDER_GOOGLE} // 구글맵 사용
+                            provider={PROVIDER_GOOGLE}
                             style={styles.map}
                             region={{
                                 latitude: location.coords.latitude,
                                 longitude: location.coords.longitude,
-                                latitudeDelta: 0.01, // 줌 레벨 (작을수록 확대)
+                                latitudeDelta: 0.01,
                                 longitudeDelta: 0.01,
                             }}
-                            showsUserLocation={true} // 파란 점 표시
-                            showsMyLocationButton={false} // 기본 버튼 숨김
-                        >
-                            {/* 필요하다면 마커 추가 가능 */}
-                        </MapView>
+                            showsUserLocation={true}
+                            showsMyLocationButton={false}
+                        />
                     ) : (
                         <View style={styles.mapContent}>
                             <Text style={styles.mapPlaceholderText}>위치를 불러오는 중...</Text>
                         </View>
                     )}
 
-                    {/* 줌 버튼 */}
                     <TouchableOpacity style={styles.zoomBtn}>
                         <Ionicons name="eye-outline" size={22} color={colors.text} />
                     </TouchableOpacity>
 
-                    {/* 지도 하단 정보 (사용자 수, 자세히 보기) */}
                     <View style={styles.mapBottomRow}>
-                        {/* 왼쪽: 사용자 수 */}
                         <View style={styles.mapBottomButton}>
                             <Ionicons name="people-outline" size={16} color={colors.primary} />
                             <Text style={styles.countText}>5</Text>
                         </View>
 
-                        {/* 오른쪽: 자세히 보기 (스타일 통일) */}
-                        <TouchableOpacity
-                            style={styles.mapBottomButton}
-                            onPress={handleOpenFullMap}
-                        >
+                        <TouchableOpacity style={styles.mapBottomButton} onPress={handleOpenFullMap}>
                             <Text style={styles.detailText}>자세히 보기</Text>
                         </TouchableOpacity>
                     </View>
-
                 </View>
 
                 {/* 하단 버튼 영역 */}
@@ -185,17 +178,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                             </TouchableOpacity>
 
                             {isGoalPickerOpen && (
-                                <View
-                                    style={{
-                                        backgroundColor: colors.card,
-                                        borderRadius: 20,
-                                        marginBottom: 10,
-                                        overflow: "hidden",
-                                        width: "100%",
-                                        borderWidth: 1,
-                                        borderColor,
-                                    }}
-                                >
+                                <View style={{ backgroundColor: colors.card, borderRadius: 20, marginBottom: 10, borderWidth: 1, borderColor }}>
                                     {goalOptions.map((option, index) => (
                                         <TouchableOpacity
                                             key={index}
@@ -207,13 +190,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                                                 borderBottomColor: borderColor,
                                             }}
                                         >
-                                            <Text
-                                                style={{
-                                                    fontSize: 16,
-                                                    fontWeight: "bold",
-                                                    color: selectedGoal.value === option.value ? "#4A6EA9" : colors.text,
-                                                }}
-                                            >
+                                            <Text style={{ fontSize: 16, fontWeight: "bold", color: selectedGoal.value === option.value ? "#4A6EA9" : colors.text }}>
                                                 {option.label}
                                             </Text>
                                         </TouchableOpacity>
@@ -243,17 +220,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                             </TouchableOpacity>
 
                             {isTierPickerOpen && (
-                                <View
-                                    style={{
-                                        backgroundColor: colors.card,
-                                        borderRadius: 20,
-                                        marginBottom: 10,
-                                        overflow: "hidden",
-                                        width: "100%",
-                                        borderWidth: 1,
-                                        borderColor,
-                                    }}
-                                >
+                                <View style={{ backgroundColor: colors.card, borderRadius: 20, marginBottom: 10, borderWidth: 1, borderColor }}>
                                     {(["5km", "10km"] as const).map((dist) => (
                                         <TouchableOpacity
                                             key={dist}
@@ -265,13 +232,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                                                 borderBottomColor: borderColor,
                                             }}
                                         >
-                                            <Text
-                                                style={{
-                                                    fontSize: 16,
-                                                    fontWeight: "bold",
-                                                    color: tierDistance === dist ? "#4A6EA9" : colors.text,
-                                                }}
-                                            >
+                                            <Text style={{ fontSize: 16, fontWeight: "bold", color: tierDistance === dist ? "#4A6EA9" : colors.text }}>
                                                 {dist}
                                             </Text>
                                         </TouchableOpacity>

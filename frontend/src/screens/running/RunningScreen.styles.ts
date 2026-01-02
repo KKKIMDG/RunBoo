@@ -82,33 +82,60 @@ export const getStyles = (isDarkMode: boolean = false) => {
             }),
         },
 
-        // --- 정보 카드 ---
+        // --- 정보 카드 컨테이너 ---
         statsContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
             marginBottom: 20,
         },
-        statCard: {
+
+        // ✅ [StatBox 컴포넌트 전용 스타일]
+        statBox: {
             backgroundColor: cardColor,
-            width: (width - 60) / 3,
-            paddingVertical: 20,
-            alignItems: 'center',
-            borderRadius: 15,
+            borderRadius: 20,
+            padding: 16,
+            marginBottom: 12,
+            // 그림자
             ...Platform.select({
                 ios: { shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10 },
                 android: { elevation: 5 },
             }),
+            flex: 1, // 가로 배치 시 꽉 차게
+            marginHorizontal: 4, // 박스 간 간격
+            minHeight: 110, // 최소 높이 확보
+            justifyContent: 'space-between'
         },
-        statIconContainer: { marginBottom: 10 },
-        statLabel: { fontSize: 14, color: subTextColor, marginBottom: 5 },
-        statValueSmall: {
-            fontSize: 20,
-            fontWeight: 'bold',
+        statHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 8,
+        },
+        statLabel: {
+            fontSize: 14,
+            color: subTextColor,
+            fontWeight: '600',
+            marginLeft: 6,
+        },
+        statValueContainer: {
+            flexDirection: 'row',
+            alignItems: 'baseline', // 숫자와 단위를 바닥선에 맞춤
+        },
+        statValue: {
+            fontSize: 22, // 숫자는 크게
+            fontWeight: '800', // 더 두껍게
             color: textColor,
-            fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+            letterSpacing: -0.5,
+            fontVariant: ['tabular-nums'],
         },
-        statValueLarge: { fontSize: 26, fontWeight: 'bold', color: pointColorBlue },
-        statUnit: { fontSize: 12, color: subTextColor, marginTop: 5 },
+        statValueHighlight: {
+            color: pointColorBlue, // 강조 색상 (파란색)
+        },
+        statUnit: {
+            fontSize: 14,
+            color: subTextColor,
+            fontWeight: '600',
+            marginLeft: 4,
+        },
 
         // --- 차트 영역 ---
         chartCard: {
@@ -152,7 +179,7 @@ export const getStyles = (isDarkMode: boolean = false) => {
         },
         mapOverlayText: { fontSize: 12, fontWeight: '600', color: '#333' },
 
-        // --- 🔥 [에러 원인 해결] 하단 컨트롤 버튼 영역 ---
+        // --- 하단 컨트롤 버튼 영역 ---
         controlContainer: {
             position: 'absolute',
             bottom: 0,
