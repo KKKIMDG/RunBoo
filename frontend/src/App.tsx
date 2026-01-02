@@ -9,6 +9,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {AuthService} from "@/services/auth/authService";
 import {authEventBus} from "@/services/auth/authEvents";
 import {UserMeProvider} from "@/contexts/UserMeContext";
+import {UserSettingProvider} from "@/contexts/UserSettingContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -67,13 +68,15 @@ export default function App() {
 
     return (
         <NavigationContainer theme={MyTheme}>
-            <UserMeProvider>
-                <RootNavigator
-                    isLoggedIn={isLoggedIn}
-                    onLoginSuccess={handleLoginSuccess}
-                    onLogout={handleLogout}
-                />
-            </UserMeProvider>
+            <UserSettingProvider>
+                <UserMeProvider>
+                    <RootNavigator
+                        isLoggedIn={isLoggedIn}
+                        onLoginSuccess={handleLoginSuccess}
+                        onLogout={handleLogout}
+                    />
+                </UserMeProvider>
+            </UserSettingProvider>
         </NavigationContainer>
     );
 }
