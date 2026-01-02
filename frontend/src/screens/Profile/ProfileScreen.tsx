@@ -33,6 +33,7 @@ export default function ProfileScreen({ navigation }: any) {
     const [isEditingNickname, setIsEditingNickname] = useState(false);
     const [nicknameInput, setNicknameInput] = useState("");
     const [saving, setSaving] = useState(false);
+    const [imageLoading, setImageLoading] = useState(false);
 
     const profileImageSource =
         typeof userMe?.profileImageUrl === "string" && userMe.profileImageUrl.length > 0
@@ -120,16 +121,18 @@ export default function ProfileScreen({ navigation }: any) {
             if (!image || !userMe) return;
 
             setSaving(true);
+            setImageLoading(true);
 
             const imageUrl = await uploadProfileImage(image);
 
             await updateMyProfileImage(imageUrl);
-            await refetch(); // ⭐️ 중요
+            await refetch();
 
         } catch (e) {
             console.error(e);
         } finally {
             setSaving(false);
+            setImageLoading(false);
         }
     };
 
@@ -197,7 +200,7 @@ export default function ProfileScreen({ navigation }: any) {
                                         resizeMode="contain"
                                     />
 
-                                    {saving && (
+                                    {imageLoading  && (
                                         <View style={styles.profileImageOverlay}>
                                             <ActivityIndicator color="#FFF" />
                                         </View>
