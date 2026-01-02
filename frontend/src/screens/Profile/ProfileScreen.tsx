@@ -21,11 +21,12 @@ import { useBadge } from "@/screens/Badge/useBadge";
 import { fetchCurrentRunningStreak } from "@/services/record/recordsService";
 import { updateMyNickname } from "@/services/user/userService";
 import { useGrass } from "@/screens/Profile/useGrass";
-import {useMe} from "@/hooks/useMe";
+// import {useMe} from "@/hooks/useMe";
+import { useUserMe } from "@/contexts/UserMeContext";
 
 export default function ProfileScreen({ navigation }: any) {
     // 로그인 유저 기준 배지 로드
-    const { me, loading: meLoading, refetch  } = useMe();
+    const { userMe, loading: meLoading, refetch  } = useUserMe();
     const { badges, badgeCount, loading: badgeLoading } = useBadge();
     const [streak, setStreak] = useState<number | null>(null);
     const [streakLoading, setStreakLoading] = useState(false);
@@ -35,18 +36,18 @@ export default function ProfileScreen({ navigation }: any) {
     const [saving, setSaving] = useState(false);
 
     const profileImageSource =
-        typeof me?.profileImageUrl === "string" && me.profileImageUrl.length > 0
-            ? { uri: me.profileImageUrl }
+        typeof userMe?.profileImageUrl === "string" && userMe.profileImageUrl.length > 0
+            ? { uri: userMe.profileImageUrl }
             : require("@/assets/images/runboo.png");
 
     React.useEffect(() => {
-        if (me?.nickname) {
-            setNicknameInput(me.nickname);
+        if (userMe?.nickname) {
+            setNicknameInput(userMe.nickname);
         }
-    }, [me?.nickname]);
+    }, [userMe?.nickname]);
 
     React.useEffect(() => {
-        if (!me) return;
+        if (!userMe) return;
 
         const loadStreak = async () => {
             try {
@@ -59,7 +60,7 @@ export default function ProfileScreen({ navigation }: any) {
         };
 
         loadStreak();
-    }, [me]);
+    }, [userMe]);
     const handleSaveNickname = async () => {
         if (!nicknameInput.trim()) return;
 
@@ -90,9 +91,9 @@ export default function ProfileScreen({ navigation }: any) {
     };
 
     const uploadProfileImage = async (image: ImagePicker.ImagePickerAsset) => {
-        if (!me?.userId) throw new Error("사용자 정보가 없습니다");
+        if (!userMe?.userId) throw new Error("사용자 정보가 없습니다");
 
-        const filePath = `${me.userId}_${Date.now()}.jpg`;
+        const filePath = `${userMe.userId}_${Date.now()}.jpg`;
 
         const fileResponse = await fetch(image.uri);
         const arrayBuffer = await fileResponse.arrayBuffer();
@@ -117,7 +118,7 @@ export default function ProfileScreen({ navigation }: any) {
     const handleChangeProfileImage = async () => {
         try {
             const image = await pickImage();
-            if (!image || !me) return;
+            if (!image || !userMe) return;
 
             setSaving(true);
 
@@ -237,7 +238,7 @@ export default function ProfileScreen({ navigation }: any) {
                                         </>
                                     ) : (
                                         <>
-                                            <Text style={styles.userName}>{me?.nickname}</Text>
+                                            <Text style={styles.userName}>{userMe?.nickname}</Text>
 
                                             <TouchableOpacity
                                                 onPress={() => setIsEditingNickname(true)}
