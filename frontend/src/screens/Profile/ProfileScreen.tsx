@@ -32,9 +32,11 @@ export default function ProfileScreen({ navigation }: any) {
     const [saving, setSaving] = useState(false);
 
     const profileImageSource =
-        typeof me?.profileImageUrl === "string"
+        typeof me?.profileImageUrl === "string" && me.profileImageUrl.length > 0
             ? { uri: me.profileImageUrl }
             : require("@/assets/images/runboo.png");
+
+
     React.useEffect(() => {
         if (me?.nickname) {
             setNicknameInput(me.nickname);
