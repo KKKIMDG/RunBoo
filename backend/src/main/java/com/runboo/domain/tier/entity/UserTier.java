@@ -7,14 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(
-    name = "user_tier",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            columnNames = {"user_id", "distance_type"}
-        )
-    }
-)
+@Table(name = "user_tier")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserTier {
