@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import { useMe } from "@/hooks/useMe";
 
 export interface TopNavBarProps {
   onLeftPress?: () => void;
@@ -17,35 +19,38 @@ export interface TopNavBarProps {
 export function TopNavBar({
                             onLeftPress,
                             onRightPress,
-                            profileImageUrl,
                           }: TopNavBarProps) {
   const [imageLoading, setImageLoading] = useState(false);
+  const { me, refetch } = useMe();
 
-  const hasImage = typeof profileImageUrl === "string";
+  const profileImageSource =
+      typeof me?.profileImageUrl === "string" && me.profileImageUrl.length > 0
+          ? { uri: me.profileImageUrl }
+          : require("@/assets/images/runboo.png");
 
+  useFocusEffect(
+      React.useCallback(() => {
+        refetch();
+      }, [refetch])
+  );
   return (
       <View style={styles.root}>
         {/* 왼쪽 프로필 버튼 */}
         <TouchableOpacity onPress={onLeftPress} activeOpacity={0.7}>
           <View style={styles.profileImageWrapper}>
-            {/* 1️이미지가 없으면 무조건 로딩 */}
-            {!hasImage && (
-                <ActivityIndicator size="small" color="#3A4A98" />
-            )}
+            <Image
+                source={profileImageSource}
+                style={styles.profileImage}
+                resizeMode="cover"
+                onLoadStart={() => setImageLoading(true)}
+                onLoadEnd={() => setImageLoading(false)}
+                onError={() => setImageLoading(false)}
+            />
 
-            {/* 이미지가 있으면 로딩 상태에 따라 처리 */}
-            {hasImage && (
-                <>
-                  {imageLoading && (
-                      <ActivityIndicator size="small" color="#3A4A98" />
-                  )}
-                  <Image
-                      source={{ uri: profileImageUrl! }}
-                      style={styles.profileImage}
-                      onLoadStart={() => setImageLoading(true)}
-                      onLoadEnd={() => setImageLoading(false)}
-                  />
-                </>
+            {imageLoading && (
+                <View style={styles.profileImage}>
+                  <ActivityIndicator size="small" color="#3A4A98" />
+                </View>
             )}
           </View>
         </TouchableOpacity>

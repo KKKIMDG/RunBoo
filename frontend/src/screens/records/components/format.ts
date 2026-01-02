@@ -21,18 +21,14 @@ function extractTime(iso: string) {
     return { hh: m[1], mm: m[2] };
 }
 
-/* =========================
-   날짜 표시 (YYYY.MM.DD)
- ========================= */
+/* 날짜 표시 (YYYY.MM.DD) */
 export function formatDate(iso: string) {
     const d = extractDate(iso);
     if (!d) return "-";
     return `${d.yyyy}.${d.mm}.${d.dd}`;
 }
 
-/* =========================
-   시간 범위 (HH:mm ~ HH:mm)
- ========================= */
+/* 시간 범위 (HH:mm ~ HH:mm) */
 export function formatTimeRange(startIso: string, endIso: string) {
     const s = extractTime(startIso);
     const e = extractTime(endIso);
@@ -40,10 +36,7 @@ export function formatTimeRange(startIso: string, endIso: string) {
     return `${s.hh}:${s.mm} ~ ${e.hh}:${e.mm}`;
 }
 
-/* =========================
-   실제 러닝 시간 (초 → 문자열)
-   ⚠️ 이건 "차이"이므로 Date 사용 OK
- ========================= */
+/* 실제 러닝 시간 (초 → 문자열) */
 export function formatDurationFromRange(startIso: string, endIso: string) {
     if (!startIso || !endIso) return "-";
 
@@ -56,9 +49,7 @@ export function formatDurationFromRange(startIso: string, endIso: string) {
     return formatDuration(sec);
 }
 
-/* =========================
-   페이스 (초/km)
- ========================= */
+/* 페이스 (초/km) */
 export function formatPace(avgPaceSecPerKm: number) {
     if (!Number.isFinite(avgPaceSecPerKm) || avgPaceSecPerKm <= 0) return "-";
 
@@ -69,9 +60,7 @@ export function formatPace(avgPaceSecPerKm: number) {
     return `${mm}:${String(ss).padStart(2, "0")} /km`;
 }
 
-/* =========================
-   시간 포맷 (초 → 분/초 or 시간/분/초)
- ========================= */
+/* 시간 포맷 (초 → 분/초 or 시간/분/초) */
 export function formatDuration(durationSec: number) {
     if (!Number.isFinite(durationSec) || durationSec <= 0) return "-";
 

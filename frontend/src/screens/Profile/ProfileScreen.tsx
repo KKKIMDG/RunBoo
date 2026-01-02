@@ -9,15 +9,16 @@ import {
     StyleSheet,
     ActivityIndicator, TextInput,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { supabase } from "@/lib/supabase";
+import { updateMyProfileImage } from "@/services/user/userService";
+
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-
 import BackButton from "@/components/ui/BackButton";
 import { styles } from "./ProfileScreen.styles";
 import { useBadge } from "@/screens/Badge/useBadge";
 import { updateMyNickname } from "@/services/user/userService";
-
 import { useGrass } from "@/screens/Profile/useGrass";
 import {useMe} from "@/hooks/useMe";
 
@@ -31,9 +32,11 @@ export default function ProfileScreen({ navigation }: any) {
     const [saving, setSaving] = useState(false);
 
     const profileImageSource =
-        typeof me?.profileImageUrl === "string"
+        typeof me?.profileImageUrl === "string" && me.profileImageUrl.length > 0
             ? { uri: me.profileImageUrl }
             : require("@/assets/images/runboo.png");
+
+
     React.useEffect(() => {
         if (me?.nickname) {
             setNicknameInput(me.nickname);
@@ -53,6 +56,65 @@ export default function ProfileScreen({ navigation }: any) {
             setSaving(false);
         }
     };
+    const pickImage = async () => {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) return;
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+
+        if (result.canceled) return;
+        return result.assets[0];
+    };
+
+    const uploadProfileImage = async (image: ImagePicker.ImagePickerAsset) => {
+        if (!me?.userId) throw new Error("사용자 정보가 없습니다");
+
+        const filePath = `${me.userId}_${Date.now()}.jpg`;
+
+        const fileResponse = await fetch(image.uri);
+        const arrayBuffer = await fileResponse.arrayBuffer();
+
+        const { error } = await supabase.storage
+            .from("profile-images")
+            .upload(filePath, arrayBuffer, {
+                upsert: true,
+                contentType: image.mimeType ?? "image/jpeg",
+            });
+
+        if (error) throw error;
+
+        const { data } = supabase.storage
+            .from("profile-images")
+            .getPublicUrl(filePath);
+
+        return data.publicUrl;
+    };
+
+
+    const handleChangeProfileImage = async () => {
+        try {
+            const image = await pickImage();
+            if (!image || !me) return;
+
+            setSaving(true);
+
+            const imageUrl = await uploadProfileImage(image);
+
+            await updateMyProfileImage(imageUrl);
+            await refetch(); // ⭐️ 중요
+
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setSaving(false);
+        }
+    };
+
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -106,13 +168,24 @@ export default function ProfileScreen({ navigation }: any) {
                             </>
                         ) : (
                             <>
-                                <View style={styles.profileImagePlaceholder}>
+                                <TouchableOpacity
+                                    style={styles.profileImagePlaceholder}
+                                    onPress={handleChangeProfileImage}
+                                    disabled={saving}
+                                >
                                     <Image
                                         source={profileImageSource}
                                         style={styles.profileImage}
                                         resizeMode="contain"
                                     />
-                                </View>
+
+                                    {saving && (
+                                        <View style={styles.profileImageOverlay}>
+                                            <ActivityIndicator color="#FFF" />
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+
                                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                                     {isEditingNickname ? (
                                         <>

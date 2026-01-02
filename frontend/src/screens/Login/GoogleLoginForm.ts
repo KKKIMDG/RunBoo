@@ -29,7 +29,7 @@ export const googleLoginForm = (onLoginSuccess: (token: string) => void) => {
                 const res = await AuthService.googleLogin(accessToken);
                 const decoded: any = jwtDecode(res.accessToken);
                 await AsyncStorage.setItem('accessToken', res.accessToken);
-                await AsyncStorage.setItem('userId', String(decoded.sub || decoded.id));
+                await AsyncStorage.setItem('refreshToken',  res.refreshToken);
                 setAccessToken(res.accessToken);
                 onLoginSuccess(res.accessToken);
             } catch (error) {

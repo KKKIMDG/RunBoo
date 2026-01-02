@@ -7,14 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(
-    name = "user_tier",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            columnNames = {"user_id", "distance_type"}
-        )
-    }
-)
+@Table(name = "user_tier")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserTier {
@@ -49,7 +42,7 @@ public class UserTier {
         KM_5,
         KM_10
     }
-    
+
     /* ===== 비즈니스 메서드 ===== */
     public void changeTier(Tier tier) {
         this.tier = tier;

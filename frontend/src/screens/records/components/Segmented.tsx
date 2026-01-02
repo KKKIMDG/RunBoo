@@ -45,7 +45,14 @@ const s = StyleSheet.create({
         borderRadius: 12,
         alignItems: "center",
     },
-    active: { backgroundColor: "#3A4A98" },
-    text: { color: "#687076", fontWeight: "700" },
-    activeText: { color: "white" },
+    active: {
+        backgroundColor: "#3A4A98"
+    },
+    text: {
+        color: "#687076",
+        fontWeight: "700"
+    },
+    activeText: {
+        color: "white"
+    },
 });
