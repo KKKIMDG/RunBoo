@@ -19,7 +19,6 @@ export const useRunningScreen = () => {
 
   const navigation = useNavigation<RunningScreenNavigationProp>();
   const route = useRoute<RunningScreenRouteProp>();
-  const isTierMode = route.params?.isTierMode ?? false;
   const targetDistance = route.params?.targetDistance ?? 0;
   // --- 상태 관리 ---
   const [isReady, setIsReady] = useState(true);
@@ -159,7 +158,6 @@ export const useRunningScreen = () => {
 
     const requestData = {
       userId: userIdStr ? parseInt(userIdStr) : 0,
-      mode: isTierMode ? "TIER" : "NORMAL",
       distanceM: distance,
       durationSec: time,
       avgPace: Math.floor(avgPaceSec),
@@ -199,7 +197,6 @@ export const useRunningScreen = () => {
 
     navigation.navigate("RunResult", {
       distanceM: distance,
-      mode: isTierMode ? "TIER" : "NORMAL",
       durationSec: time,
       avgPaceSec: avgPaceSec,
       calories: calories,
