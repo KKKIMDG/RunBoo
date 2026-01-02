@@ -7,9 +7,12 @@ import com.runboo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;
+// ★ 중요: METERS를 쓰기 위해 DistanceUnit을 임포트해야 합니다.
+import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.core.GeoOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +27,13 @@ public class RunnerService {
 
     private final String REDIS_KEY = "active_runners";
 
-    public List<RunnerResponse> updateAndGetNearbyRunners(Long myId, LocationRequest request) {
+    @Transactional
+    public List<RunnerResponse> updateAndGetNearbyRunners(String email, LocationRequest request) {
+        User me = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("로그인 유저 정보를 찾을 수 없습니다."));
+
+        Long myId = me.getId();
+
         GeoOperations<String, String> geoOps = redisTemplate.opsForGeo();
 
         geoOps.add(REDIS_KEY, new Point(request.getLongitude(), request.getLatitude()), String.valueOf(myId));
@@ -32,7 +41,7 @@ public class RunnerService {
 
         Circle circle = new Circle(
                 new Point(request.getLongitude(), request.getLatitude()),
-                new Distance(request.getRadius(), Metrics.KILOMETERS)
+                new Distance(request.getRadius(), DistanceUnit.METERS)
         );
 
         RedisGeoCommands.GeoRadiusCommandArgs args = RedisGeoCommands.GeoRadiusCommandArgs
@@ -52,16 +61,15 @@ public class RunnerService {
 
                 Point point = result.getContent().getPoint();
 
-                User user = userRepository.findById(memberId).orElse(null);
-
-                if (user == null) continue;
+                User nearbyUser = userRepository.findById(memberId).orElse(null);
+                if (nearbyUser == null) continue;
 
                 responseList.add(RunnerResponse.builder()
                         .userId(memberId)
-                        .nickname(user.getNickname())
+                        .nickname(nearbyUser.getNickname())
                         .latitude(point.getY())
                         .longitude(point.getX())
-                        .profileImageUrl(user.getProfileImageUrl())
+                        .profileImageUrl(nearbyUser.getProfileImageUrl())
                         .build());
             }
         }
