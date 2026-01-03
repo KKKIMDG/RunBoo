@@ -23,10 +23,7 @@ type Props = {
     loading: boolean;
     data: GhostProfileDto[];
     onClose: () => void;
-
-    // ✅ 남겨두되, 내부에서 navigate 이후에도 호출해줌(부모가 추가 동작 원하면 사용 가능)
     onSelect?: (gp: GhostProfileDto) => void;
-
     onRefresh?: () => void;
 };
 
@@ -34,16 +31,22 @@ type GhostType =
     | "SELF_BEST"
     | "SELF_YESTERDAY"
     | "SELF_WEEKLY_AVG"
-    | "RANKING_NATIONAL"
-    | "RANKING_LOCAL";
+    | "RANKING_NATIONAL_1"
+    | "RANKING_NATIONAL_2"
+    | "RANKING_NATIONAL_3"
+    | "RANKING_NATIONAL_4"
+    | "RANKING_NATIONAL_5";
 
 function normalizeType(t: string): GhostType | "UNKNOWN" {
     const x = String(t ?? "").trim().toUpperCase();
     if (x === "SELF_BEST") return "SELF_BEST";
     if (x === "SELF_YESTERDAY") return "SELF_YESTERDAY";
     if (x === "SELF_WEEKLY_AVG") return "SELF_WEEKLY_AVG";
-    if (x === "RANKING_NATIONAL") return "RANKING_NATIONAL";
-    if (x === "RANKING_LOCAL") return "RANKING_LOCAL";
+    if (x === "RANKING_NATIONAL_1") return "RANKING_NATIONAL_1";
+    if (x === "RANKING_NATIONAL_2") return "RANKING_NATIONAL_2";
+    if (x === "RANKING_NATIONAL_3") return "RANKING_NATIONAL_3";
+    if (x === "RANKING_NATIONAL_4") return "RANKING_NATIONAL_4";
+    if (x === "RANKING_NATIONAL_5") return "RANKING_NATIONAL_5";
     return "UNKNOWN";
 }
 
@@ -65,15 +68,26 @@ function getTitleBySlot(slot: SlotType) {
     if (slot === "SELF_BEST") return "내 최고 기록";
     if (slot === "SELF_YESTERDAY") return "어제 기록";
     if (slot === "SELF_WEEKLY_AVG") return "이번 주 평균";
-    if (slot === "RANKING_NATIONAL") return "전국 1위";
-    return "지역 챔피언";
+    if (slot === "RANKING_NATIONAL_1") return "전국 1위";
+    if (slot === "RANKING_NATIONAL_2") return "전국 2위";
+    if (slot === "RANKING_NATIONAL_3") return "전국 3위";
+    if (slot === "RANKING_NATIONAL_4") return "전국 4위";
+    return "전국 5위";
 }
 
 function getIconBySlot(slot: SlotType): IoniconName {
     if (slot === "SELF_BEST") return "trophy-outline";
     if (slot === "SELF_YESTERDAY") return "today-outline";
     if (slot === "SELF_WEEKLY_AVG") return "bar-chart-outline";
-    if (slot === "RANKING_NATIONAL") return "medal-outline";
+    if (
+        slot === "RANKING_NATIONAL_1" ||
+        slot === "RANKING_NATIONAL_2" ||
+        slot === "RANKING_NATIONAL_3"
+    ) return "trophy-outline";
+    if (
+        slot === "RANKING_NATIONAL_4" ||
+        slot === "RANKING_NATIONAL_5"
+    ) return "medal-outline";
     return "location-outline";
 }
 
@@ -107,7 +121,7 @@ export default function GhostSelectSheet({
                                              onClose,
                                              onSelect,
                                          }: Props) {
-    const navigation = useNavigation<any>(); // ✅ 빠르게 동작시키기 위해 any
+    const navigation = useNavigation<any>();
 
     const base = Colors[scheme] as any;
     const c = {
@@ -149,7 +163,13 @@ export default function GhostSelectSheet({
 
     const rankingRows: Row[] = useMemo(
         () =>
-            ["RANKING_NATIONAL", "RANKING_LOCAL"].map((slot) => ({
+            [
+                "RANKING_NATIONAL_1",
+                "RANKING_NATIONAL_2",
+                "RANKING_NATIONAL_3",
+                "RANKING_NATIONAL_4",
+                "RANKING_NATIONAL_5",
+            ].map((slot) => ({
                 key: slot as SlotType,
                 slot: slot as SlotType,
                 title: getTitleBySlot(slot as SlotType),
@@ -320,7 +340,6 @@ const s = StyleSheet.create({
         alignItems: "center",
     },
     sheetTitle: { fontSize: 16, fontWeight: "800" },
-
     tabRow: { flexDirection: "row", padding: 14 },
     pill: {
         flexDirection: "row",
@@ -331,9 +350,7 @@ const s = StyleSheet.create({
         marginRight: 8,
     },
     pillText: { marginLeft: 6, fontSize: 13, fontWeight: "700" },
-
     loadingBox: { padding: 20 },
-
     item: {
         flexDirection: "row",
         alignItems: "center",
