@@ -70,7 +70,7 @@ const s = StyleSheet.create({
     },
     badge: {
         fontSize: 12,
-        fontWeight: "800",
+        fontWeight: "900",
         color: "#6B7280"
     },
     badgeGhost: {
