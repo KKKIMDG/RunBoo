@@ -65,13 +65,21 @@ export function UserMeProvider({ children }: { children: React.ReactNode }) {
      * - 강제 로그아웃
      */
     useEffect(() => {
-        const unsubscribe = authEventBus.subscribe(() => {
+        const unsubscribe = authEventBus.subscribeLogout(() => {
             logout();
         });
 
         return () => {
             unsubscribe();
         };
+    }, []);
+
+    useEffect(() => {
+        const unsubscribe = authEventBus.subscribeLogin(() => {
+            fetchUserMe();
+        });
+
+        return unsubscribe;
     }, []);
 
     return (
