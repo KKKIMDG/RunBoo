@@ -26,10 +26,10 @@ export function UserMeProvider({ children }: { children: React.ReactNode }) {
      * - userMe 초기화
      */
     const logout = async () => {
-        await AsyncStorage.removeItem("accessToken");
-        await AsyncStorage.removeItem("refreshToken");
         setUserMe(null);
+        authEventBus.emitLogout();
     };
+
 
     /**
      * 내 정보 조회

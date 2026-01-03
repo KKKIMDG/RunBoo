@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Instant;
 import java.util.Date;
 
 @Component
@@ -30,23 +31,52 @@ public class JwtTokenProvider {
        Token Create
     ===================== */
 
+    /**
+     * access token 생성
+     */
     public String createAccessToken(Long userId) {
-        return createToken(userId, accessTokenValidityMs, "ACCESS");
+        return createToken(String.valueOf(userId), accessTokenValidityMs, "ACCESS");
     }
 
+    /**
+     * refresh token 생성
+     */
     public String createRefreshToken(Long userId) {
-        return createToken(userId, refreshTokenValidityMs, "REFRESH");
+        return createToken(String.valueOf(userId), refreshTokenValidityMs, "REFRESH");
     }
 
-    private String createToken(Long userId, long validityMs, String type) {
+    /**
+     * 공통 토큰 생성 로직
+     */
+    private String createToken(String subject, long validityMs, String type) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + validityMs);
 
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))
-                .claim("type", type)              // 핵심
+                .setSubject(subject)
+                .claim("type", type) // 토큰 용도 명시
                 .setIssuedAt(now)
                 .setExpiration(expiry)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    /**
+     * 비밀번호 재설정 전용 토큰 생성
+     *
+     * 특징
+     * - 이메일 기반 (userId 사용 X)
+     * - type = PASSWORD_RESET
+     * - 짧은 만료 시간 (10분)
+     */
+    public String createPasswordResetToken(String email) {
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("type", "PASSWORD_RESET")
+                .setIssuedAt(new Date())
+                .setExpiration(
+                        Date.from(Instant.now().plusSeconds(10 * 60))
+                )
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -55,12 +85,12 @@ public class JwtTokenProvider {
        Token Validate
     ===================== */
 
+    /**
+     * 토큰 서명 + 만료 검증
+     */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
+            parseClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
@@ -71,24 +101,44 @@ public class JwtTokenProvider {
        Claims
     ===================== */
 
+    /**
+     * 토큰에서 userId 추출 (access / refresh 전용)
+     */
     public Long getUserIdFromToken(String token) {
-        return Long.valueOf(
-                Jwts.parserBuilder()
-                        .setSigningKey(key)
-                        .build()
-                        .parseClaimsJws(token)
-                        .getBody()
-                        .getSubject()
-        );
+        return Long.valueOf(parseClaims(token).getSubject());
     }
 
-    // 토큰 타입 추출
+    /**
+     * 토큰 타입 추출
+     */
     public String getTokenType(String token) {
+        return parseClaims(token).get("type", String.class);
+    }
+
+    /**
+     * 비밀번호 재설정 토큰 검증 및 이메일 추출
+     *
+     * 검증 포인트
+     * - 토큰 타입이 PASSWORD_RESET인지
+     */
+    public String getEmailFromPasswordResetToken(String token) {
+        Claims claims = parseClaims(token);
+
+        if (!"PASSWORD_RESET".equals(claims.get("type"))) {
+            throw new IllegalArgumentException("비밀번호 재설정 토큰이 아닙니다.");
+        }
+
+        return claims.getSubject(); // email
+    }
+
+    /**
+     * Claims 파싱 공통 메서드
+     */
+    private Claims parseClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .get("type", String.class);
+                .getBody();
     }
 }
