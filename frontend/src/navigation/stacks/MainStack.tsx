@@ -7,7 +7,9 @@ import CourseDetailScreen from "@/screens/Course/CourseDetailScreen";
 import TierResultScreen from "@/screens/TierResult";
 import ProfileScreen from "@/screens/Profile/ProfileScreen";
 import BadgeCollectionModal from "@/screens/Badge/BadgeCollectionModal"; // dabin 추가분
-import GhostRunScreen from "@/screens/ghost/GhostRunScreen"; // dev 추가분
+import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
+import ChangePasswordScreen from "@/screens/Settings/ChangePasswordScreen";
+import VerifyCurrentPasswordScreen from "@/screens/Settings/VerifyCurrentPasswordScreen"; // dev 추가분
 
 const Stack = createNativeStackNavigator();
 
@@ -28,7 +30,8 @@ export default function MainStack({ onLogout }: any) {
           />
         )}
       </Stack.Screen>
-
+        <Stack.Screen name="VerifyCurrentPassword" component={VerifyCurrentPasswordScreen} />
+      <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       {/* 2. 프로필 및 티어 결과 */}
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="TierResult" component={TierResultScreen} />

@@ -78,5 +78,9 @@ export const styles = StyleSheet.create({
     color: '#FF6467',
     marginLeft: 8,
   },
+  helperText: {
+    fontSize: 13,
+    marginTop: 6,
+  },
 
 });

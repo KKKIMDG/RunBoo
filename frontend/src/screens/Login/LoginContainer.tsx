@@ -19,6 +19,7 @@ export default function LoginContainer({ onLoginSuccess }: { onLoginSuccess: (to
             onLogin={apiHandlers.handleLogin}
             onSignUp={navigationHandlers.handleSignUp}
             onSocialLogin={navigationHandlers.handleSocialLogin}
+            PasswordReset={navigationHandlers.handlePasswordReset}
         />
     );
 }

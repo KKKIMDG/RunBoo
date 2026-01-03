@@ -12,6 +12,8 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
     const { settings, update, loading } = useSettings();
     const { userMe } = useUserMe();
 
+    const isLocal = userMe?.provider === 'LOCAL';
+
     // 어떤 select가 열려 있는지 (화살표용)
     const [openSelectKey, setOpenSelectKey] = useState<string | null>(null);
 
@@ -40,7 +42,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                 <Text style={styles.headerTitle}>설정</Text>
             </View>
 
-            {/* ================= 드랍다운 (ScrollView 밖) ================= */}
+            {/* ================= 드랍다운 ================= */}
             {dropdown && (
                 <Modal transparent animationType="fade">
                     <Pressable
@@ -50,7 +52,6 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                             setOpenSelectKey(null);
                         }}
                     />
-
                     <View
                         style={{
                             position: 'absolute',
@@ -99,23 +100,33 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                         <Ionicons name="shield-outline" size={16} color="#3A4A98" />
                         <Text style={styles.sectionTitle}>계정 및 보안</Text>
                     </View>
+
                     <View style={styles.card}>
                         <SettingItem
                             icon="person-outline"
                             label={userMe.email}
                             type="text"
                         />
-                        <SettingItem
-                            icon="key-outline"
-                            label="비밀번호 변경"
-                            onPress={() => navigation.navigate('ChangePassword')}
-                        />
-                        <SettingItem
-                            icon="link-outline"
-                            label="연결된 계정"
-                            onPress={() => navigation.navigate('LinkedAccounts')}
-                            isLast
-                        />
+
+                        {isLocal ? (
+                            <SettingItem
+                                icon="key-outline"
+                                label="비밀번호 변경"
+                                onPress={() => navigation.navigate('VerifyCurrentPassword')}
+                                isLast
+                            />
+                        ) : (
+                            <SettingItem
+                                icon="link-outline"
+                                label={
+                                    userMe.provider === 'KAKAO'
+                                        ? '카카오 계정과 연동 중'
+                                        : 'Google 계정과 연동 중'
+                                }
+                                type="text"
+                                isLast
+                            />
+                        )}
                     </View>
                 </View>
 
@@ -125,6 +136,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                         <Ionicons name="notifications-outline" size={16} color="#FBC02D" />
                         <Text style={styles.sectionTitle}>알림 및 소리</Text>
                     </View>
+
                     <View style={styles.card}>
                         <SettingItem
                             icon="notifications-outline"
@@ -170,6 +182,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                         <Ionicons name="color-palette-outline" size={16} color="#E91E63" />
                         <Text style={styles.sectionTitle}>화면 및 테마</Text>
                     </View>
+
                     <View style={styles.card}>
                         <SettingItem
                             icon="moon-outline"
@@ -232,6 +245,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                         <Ionicons name="eye-outline" size={16} color="#03A9F4" />
                         <Text style={styles.sectionTitle}>프라이버시</Text>
                     </View>
+
                     <View style={styles.card}>
                         <SettingItem
                             icon="location-outline"

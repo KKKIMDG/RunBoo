@@ -16,9 +16,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleResponseStatus(ResponseStatusException e) {
         return ResponseEntity
                 .status(e.getStatusCode())
-                .body(Map.of(
-                        "message", e.getReason()
-                ));
+                .body(Map.of("message", e.getReason()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -34,8 +32,25 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .badRequest()
-                .body(Map.of(
-                        "message", message
-                ));
+                .body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgumentException(
+            IllegalArgumentException e
+    ) {
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of("message", e.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<?> handleIllegalStateException(
+            IllegalStateException e
+    ) {
+        return ResponseEntity
+                .status(403)
+                .body(Map.of("message", e.getMessage()));
     }
 }
+

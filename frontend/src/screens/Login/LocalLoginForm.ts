@@ -60,11 +60,13 @@ export const localLoginForm = (onLoginSuccess: (token: string) => void) => {
     };
 
     const handleSignUp = () => navigation.navigate('SignUp');
-
+    // @ts-ignore
+    const handlePasswordReset = () => navigation.navigate('PasswordReset')
     return {
         formState: { email, password },
         formHandlers: { setEmail, setPassword },
         apiHandlers: { handleLogin },
-        navigationHandlers: { handleSignUp, handleSocialLogin },
+        navigationHandlers: { handleSignUp, handleSocialLogin, handlePasswordReset },
+
     };
 };

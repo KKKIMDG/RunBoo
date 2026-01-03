@@ -13,6 +13,7 @@ interface LoginScreenProps {
     onLogin?: () => void;
     onSignUp?: () => void;
     onSocialLogin?: (platform: 'Google' | 'Kakao') => void;
+    PasswordReset?: () => void;
 }
 
 const LoginScreen: FC<LoginScreenProps> = ({
@@ -23,6 +24,7 @@ const LoginScreen: FC<LoginScreenProps> = ({
     onLogin,
     onSignUp,
     onSocialLogin,
+    PasswordReset,
 }) => {
     const colorScheme = useColorScheme() ?? 'light';
     const styles = getStyles(colorScheme);
@@ -99,6 +101,12 @@ const LoginScreen: FC<LoginScreenProps> = ({
                 <Text style={styles.signupText}>계정이 없으신가요?</Text>
                 <TouchableOpacity onPress={onSignUp} style={styles.signupButton}>
                     <Text style={styles.signupButtonText}>회원가입</Text>
+                </TouchableOpacity>
+            </View>
+            <View style={styles.signupContainer}>
+                <Text style={styles.signupText}>비밀번호를 잃어버리셨나요?</Text>
+                <TouchableOpacity onPress={PasswordReset} style={styles.signupButton}>
+                    <Text style={styles.signupButtonText}>비밀번호 찾기</Text>
                 </TouchableOpacity>
             </View>
         </View>
