@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-/** select 옵션 타입 */
+/**
+ * Select 옵션 타입
+ */
 interface SelectOption<T = any> {
     label: string;
     value: T;
@@ -46,7 +48,11 @@ interface SettingItemProps {
     onPress?: () => void;
 }
 
-/** 커스텀 스위치 */
+/**
+ * 커스텀 소형 스위치
+ * - 시각적 크기는 작게 유지
+ * - 터치 영역은 외부 wrapper에서 확장
+ */
 const CustomSmallSwitch = ({
                                active,
                                onToggle,
@@ -71,18 +77,19 @@ const CustomSmallSwitch = ({
     });
 
     return (
-        <TouchableOpacity activeOpacity={0.8} onPress={() => onToggle(!active)}>
+        <Animated.View
+            style={[
+                styles.switchTrack,
+                { backgroundColor: active ? '#2E3D6E' : '#E9ECEF' },
+            ]}
+        >
             <Animated.View
                 style={[
-                    styles.switchTrack,
-                    { backgroundColor: active ? '#2E3D6E' : '#E9ECEF' },
+                    styles.switchThumb,
+                    { transform: [{ translateX }] },
                 ]}
-            >
-                <Animated.View
-                    style={[styles.switchThumb, { transform: [{ translateX }] }]}
-                />
-            </Animated.View>
-        </TouchableOpacity>
+            />
+        </Animated.View>
     );
 };
 
@@ -119,67 +126,100 @@ export default function SettingItem({
     });
 
     const isDisabled = type === 'text';
+    const Wrapper = type === 'switch' ? View : TouchableOpacity;
 
     return (
         <View ref={itemRef}>
-            <TouchableOpacity
+            <Wrapper
                 style={[styles.container, !isLast && styles.borderBottom]}
-                activeOpacity={0.7}
-                disabled={isDisabled}
-                onPress={() => {
-                    if (type === 'link') {
-                        onPress?.();
-                        return;
+                {...(type !== 'switch'
+                    ? {
+                        activeOpacity: 0.7,
+                        disabled: isDisabled,
+                        onPress: () => {
+                            if (type === 'link') {
+                                onPress?.();
+                                return;
+                            }
+
+                            if (type === 'select') {
+                                if (!options || !onSelect || !onOpenSelect) return;
+
+                                onToggleOpen?.();
+
+                                itemRef.current?.measureInWindow(
+                                    (x, y, width, height) => {
+                                        onOpenSelect({
+                                            x,
+                                            y,
+                                            width,
+                                            height,
+                                            options,
+                                            onSelect,
+                                        });
+                                    }
+                                );
+                            }
+                        },
                     }
-
-                    if (type === 'select') {
-                        if (!options || !onSelect || !onOpenSelect) return;
-
-                        onToggleOpen?.();
-
-                        itemRef.current?.measureInWindow((x, y, width, height) => {
-                            onOpenSelect({
-                                x,
-                                y,
-                                width,
-                                height,
-                                options,
-                                onSelect,
-                            });
-                        });
-                    }
-                }}
+                    : {})}
             >
                 {/* 왼쪽 */}
                 <View style={styles.leftContent}>
-                    <Ionicons name={icon} size={20} color="#868E96" style={styles.icon} />
+                    <Ionicons
+                        name={icon}
+                        size={20}
+                        color="#868E96"
+                        style={styles.icon}
+                    />
                     <Text style={styles.label}>{label}</Text>
                 </View>
 
                 {/* 오른쪽 */}
                 <View style={styles.rightContent}>
                     {type === 'switch' ? (
-                        <CustomSmallSwitch
-                            active={isEnabled}
-                            onToggle={onToggle || (() => {})}
-                        />
+                        /**
+                         * 스위치 hit area 확장
+                         * - row 전체는 아님
+                         * - 스위치 주변만 넉넉하게 터치 가능
+                         */
+                        <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={() => onToggle?.(!isEnabled)}
+                            style={styles.switchHitArea}
+                        >
+                            <CustomSmallSwitch
+                                active={isEnabled}
+                                onToggle={onToggle || (() => {})}
+                            />
+                        </TouchableOpacity>
                     ) : (
                         <>
-                            {value && <Text style={styles.valueText}>{value}</Text>}
+                            {value && (
+                                <Text style={styles.valueText}>{value}</Text>
+                            )}
 
                             {type === 'select' && (
                                 <Animated.View style={{ transform: [{ rotate }] }}>
-                                    <Ionicons name="chevron-down" size={18} color="#ADB5BD" />
+                                    <Ionicons
+                                        name="chevron-down"
+                                        size={18}
+                                        color="#ADB5BD"
+                                    />
                                 </Animated.View>
                             )}
 
                             {type === 'link' && (
-                                <Ionicons name="chevron-forward" size={18} color="#ADB5BD" />
+                                <Ionicons
+                                    name="chevron-forward"
+                                    size={18}
+                                    color="#ADB5BD"
+                                />
                             )}
                         </>
                     )}
                 </View>
-            </TouchableOpacity>
+            </Wrapper>
         </View>
     );
 }
@@ -200,7 +240,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    icon: { marginRight: 12 },
+    icon: {
+        marginRight: 12,
+    },
     label: {
         fontSize: 15,
         color: '#1F2937',
@@ -215,6 +257,13 @@ const styles = StyleSheet.create({
         color: '#ADB5BD',
         marginRight: 4,
     },
+
+    /** 스위치 터치 영역 확장용 */
+    switchHitArea: {
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+    },
+
     switchTrack: {
         width: 32,
         height: 18,

@@ -11,6 +11,7 @@ type UserMeContextValue = {
     userMe: UserMe | null;
     loading: boolean;
     refetch: () => Promise<void>;
+    logout: () => Promise<void>;
 };
 
 const UserMeContext = createContext<UserMeContextValue | null>(null);
@@ -79,6 +80,7 @@ export function UserMeProvider({ children }: { children: React.ReactNode }) {
                 userMe,
                 loading,
                 refetch: fetchUserMe,
+                logout,
             }}
         >
             {children}

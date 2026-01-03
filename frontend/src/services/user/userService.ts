@@ -26,3 +26,27 @@ export const updateMyProfileImage = async (
 ): Promise<void> => {
     await api.patch("/api/users/me/profile-image", { profileImageUrl });
 };
+
+/**
+ * 현재 비밀번호 검증
+ * POST /api/users/me/password/verify
+ */
+export const verifyCurrentPassword = async (
+    currentPassword: string
+): Promise<void> => {
+    await api.post("/api/users/me/password/verify", {
+        currentPassword,
+    });
+};
+
+/**
+ * 비밀번호 변경
+ * PUT /api/users/me/password
+ */
+export const changePassword = async (
+    newPassword: string
+): Promise<void> => {
+    await api.put("/api/users/me/password", {
+        newPassword,
+    });
+};

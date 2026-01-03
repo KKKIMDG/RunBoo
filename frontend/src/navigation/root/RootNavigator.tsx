@@ -1,6 +1,6 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
-import * as Location from 'expo-location'; // ✅ [추가 1] 타입 정의용 import
+import * as Location from 'expo-location';
 
 import AuthStack from "../auth/AuthStack";
 import MainStack from "@/navigation/stacks/MainStack";
@@ -8,7 +8,7 @@ import MainStack from "@/navigation/stacks/MainStack";
 import RunningScreen from "@/screens/running";
 import RunResultScreen from "@/screens/RunResult";
 import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
-import MapFullScreen from "@/screens/Home/MapFullScreen"; // ✅ [추가 2] 파일 import
+import MapFullScreen from "@/screens/Home/MapFullScreen";
 import TierResultScreen from "@/screens/TierResult/TierResultScreen";
 
 import { Coordinate } from "@/utils/runUtils";
@@ -51,7 +51,7 @@ export type RootStackParamList = {
         routeCoordinates: Coordinate[];
     };
 
-    // ✅ [추가 3] 전체 화면 지도 (파라미터 타입 정의)
+    // [추가 3] 전체 화면 지도 (파라미터 타입 정의)
     MapFull: { location: Location.LocationObject | null };
 };
 
