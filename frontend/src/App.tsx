@@ -41,7 +41,7 @@ export default function App() {
 
     //전역 자동 로그아웃
     useEffect(() => {
-        const unsubscribe = authEventBus.subscribe(() => {
+        const unsubscribe = authEventBus.subscribeLogout(() => {
             handleLogout();
         });
 
@@ -51,6 +51,7 @@ export default function App() {
     const handleLoginSuccess = (token: string) => {
         setAccessToken(token);
         setIsLoggedIn(true);
+        authEventBus.emitLogin();
     };
 
     if (loading) {return null;}
