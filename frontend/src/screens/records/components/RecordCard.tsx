@@ -74,10 +74,10 @@ const s = StyleSheet.create({
         fontWeight: "700"
     },
     badgeGhost: {
-        color: "#3A4A98"
+        color: "#9e80c0"
     },
     badgeTier: {
-        color: "#fc1b1b"
+        color: "#54a54a"
     },
     sub: {
         marginTop: 4,
