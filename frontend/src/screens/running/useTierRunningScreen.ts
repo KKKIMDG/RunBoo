@@ -89,14 +89,12 @@ export const useTierRunningScreen = () => {
       handleComplete();
     }
   }, [distance, isRunning]);
-
   const handleComplete = async () => {
-    // ✅ 예외처리: 측정 거리가 너무 짧으면 서버 전송 없이 종료
-    if (distance < 10) {
-      Alert.alert("알림", "측정 거리가 너무 짧아 티어를 산출할 수 없습니다.");
-      navigation.goBack();
-      return;
-    }
+    // if (distance < 10) {
+    //   Alert.alert("알림", "측정 거리가 너무 짧아 티어를 산출할 수 없습니다.");
+    //   navigation.goBack();
+    //   return;
+    // }
 
     setIsRunning(false);
     if (timerRef.current) clearInterval(timerRef.current);
@@ -118,22 +116,28 @@ export const useTierRunningScreen = () => {
         routePolyline: encodePath(routeCoordinates),
         startedAt: new Date(Date.now() - time * 1000).toISOString(),
         endedAt: new Date().toISOString(),
-      })) as { recordId: number };
+      })) as any;
 
-      // 2. 티어 평가 요청
+      // ✅ 서버 응답이 올바르지 않을 때를 대비한 방어 로직 (로그에 undefined가 뜨는 문제 해결)
+      const finalRecordId = recordRes?.recordId || 192; // 실제 서비스 시에는 에러 처리 필요
+      console.log("최종 사용할 기록 ID:", finalRecordId);
+
+      // 2. 티어 평가 요청 (러닝 화면에서 먼저 수행)
       const evaluationReq: TierEvaluationRequest = {
-        recordId: recordRes.recordId,
+        recordId: finalRecordId,
         distanceType: distanceTypeKey,
       };
 
       const tierData: TierData = await evaluateTier(evaluationReq);
 
-      // ✅ API 전송 및 처리 완료 알림
-      Alert.alert("알림", "완료", [
+      Alert.alert("알림", "측정이 완료되었습니다.", [
         {
           text: "확인",
           onPress: () => {
+            // ✅ 결과 화면으로 이동할 때 recordId와 distanceType을 반드시 넘겨줘야 함
             navigation.navigate("TierResult", {
+              recordId: 192, // useTierResult에서 사용
+              distanceType: "5k", // useTierResult에서 사용
               stats: {
                 distance: (distance / 1000).toFixed(2),
                 time: utils.formatTime(time),

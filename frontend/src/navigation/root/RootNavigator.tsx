@@ -32,7 +32,13 @@ export type RootStackParamList = {
     routeCoordinates: Coordinate[];
   };
   TierResult: {
-    stats: { distance: string; time: string; pace: string };
+    recordId: number;
+    distanceType: "5k" | "10k"; // ✅ 이 줄을 추가하세요.
+    stats: {
+      distance: string;
+      time: string;
+      pace: string;
+    };
     achievedTier: string;
     distanceM: number;
     durationSec: number;
