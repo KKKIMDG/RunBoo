@@ -1,5 +1,6 @@
 package com.runboo.domain.tier.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.runboo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -39,12 +40,12 @@ public class UserTier {
     }
 
     public enum DistanceType {
-        KM_5,
-        KM_10
+        @JsonProperty("5k") KM_5,
+        @JsonProperty("10k") KM_10;
     }
-
-    /* ===== 비즈니스 메서드 ===== */
-    public void changeTier(Tier tier) {
-        this.tier = tier;
+    // UserTier 엔티티 내부에 추가
+    public void updateTier(Tier newTier) {
+        this.tier = newTier;
+        // 필요한 경우 업데이트 시간 필드도 갱신
     }
 }

@@ -20,22 +20,18 @@ export default function MainStack({ onLogout }: any) {
       <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
 
       {/* 탭 위로 올라오는 화면들 */}
-      
+
       {/* 1. 설정 화면 (로그아웃 함수 전달 위해 render callback 사용) */}
       <Stack.Screen name="Settings">
-        {(props) => (
-          <SettingsScreen
-            {...props}
-            onLogout={onLogout}
-          />
-        )}
+        {(props) => <SettingsScreen {...props} onLogout={onLogout} />}
       </Stack.Screen>
         <Stack.Screen name="VerifyCurrentPassword" component={VerifyCurrentPasswordScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       {/* 2. 프로필 및 티어 결과 */}
       <Stack.Screen name="Profile" component={ProfileScreen} />
+
       <Stack.Screen name="TierResult" component={TierResultScreen} />
-      
+
       {/* 3. 고스트 런 화면 (dev 브랜치 추가분) */}
       <Stack.Screen name="GhostRun" component={GhostRunScreen} />
 
