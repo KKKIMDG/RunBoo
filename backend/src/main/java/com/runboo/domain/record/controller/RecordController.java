@@ -54,7 +54,7 @@ public class RecordController {
     public ResponseEntity<String> createRecord(@AuthenticationPrincipal CustomUserDetails user, @RequestBody RunRecordRequestDto requestDto) {
 
         String type = "TOTAL_DISTANCE";
-        Long userId = requestDto.getUserId();
+        Long userId = user.getUserId();
         recordService.saveRecord(requestDto);
         double value = requestDto.getDistanceM();
         userChallengeService.updateProgress(userId, type, (int) value);

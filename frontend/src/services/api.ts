@@ -26,28 +26,33 @@ const getAuthHeader = (): Record<string, string> => {
  * 공통 응답 처리
  */
 const handleResponse = async (res: Response) => {
+  const text = await res.text();
+
   if (!res.ok) {
     let message = "요청에 실패했습니다.";
-
     try {
-      const text = await res.text();
       if (text) {
         const body = JSON.parse(text);
         if (body?.message) message = body.message;
       }
-    } catch (_) {}
-
+    } catch (_) {
+      // JSON 파싱 실패 시 원문 텍스트 사용
+      message = text || message;
+    }
     throw { status: res.status, message };
   }
 
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  // ✅ 성공 응답 처리: JSON 파싱 시도, 실패 시 텍스트 반환
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch (e) {
+    console.warn("JSON 파싱 실패, 텍스트 응답 반환:", text);
+    return { message: text };
+  }
 };
 
 /**
  * 🔑 accessToken 재발급 (refreshToken 사용)
- * ⚠️ api/request 절대 사용 금지
- *  동시 401 요청 잠금
  */
 let refreshingPromise: Promise<string | null> | null = null;
 
@@ -78,43 +83,50 @@ const refreshAccessToken = async (): Promise<string | null> => {
  * 공통 request
  */
 const request = async (input: RequestInfo, init: RequestInit, retry = true) => {
+  // ✅ 요청 전 토큰 로드 보장
   await ensureAccessTokenLoaded();
-  const res = await fetch(input, init);
 
-  // 401,403은 특별 취급
-  if (res.status !== 401 && res.status !== 403) {
-    return handleResponse(res);
-  }
-
-  // 재시도 불가
-  if (!retry) {
-    throw { status: 401, message: "인증이 만료되었습니다." };
-  }
-
-  // 🔄 토큰 재발급
-  const newAccessToken = await refreshAccessToken();
-  if (!newAccessToken) {
-    // refresh 토큰 만료일 때만 로그아웃
-    authEventBus.emitLogout();
-    throw { status: 401, message: "로그인이 필요합니다." };
-  }
-
-  await AsyncStorage.setItem("accessToken", newAccessToken);
-  setAccessToken(newAccessToken);
-
-  return request(
-    input,
-    {
-      ...init,
-      headers: mergeHeaders(init.headers, newAccessToken),
+  // ✅ 최신 토큰 헤더 주입
+  const finalInit = {
+    ...init,
+    headers: {
+      ...init.headers,
+      ...getAuthHeader(),
     },
-    false
-  );
-};
-const mergeHeaders = (oldHeaders: RequestInit["headers"], token: string) => {
-  const headers = new Headers(oldHeaders || {});
-  headers.set("Authorization", `Bearer ${token}`);
-  return headers;
+  };
+
+  const res = await fetch(input, finalInit);
+
+  // 401, 403 인증 에러 처리
+  if (res.status === 401 || res.status === 403) {
+    if (!retry) {
+      throw { status: 401, message: "인증이 만료되었습니다." };
+    }
+
+    const newAccessToken = await refreshAccessToken();
+    if (!newAccessToken) {
+      authEventBus.emitLogout();
+      throw { status: 401, message: "로그인이 필요합니다." };
+    }
+
+    await AsyncStorage.setItem("accessToken", newAccessToken);
+    setAccessToken(newAccessToken);
+
+    // 재시도 시 새 토큰 주입
+    return request(
+      input,
+      {
+        ...init,
+        headers: {
+          ...init.headers,
+          Authorization: `Bearer ${newAccessToken}`,
+        },
+      },
+      false
+    );
+  }
+
+  return handleResponse(res);
 };
 
 let bootstrappingPromise: Promise<void> | null = null;
@@ -133,42 +145,23 @@ const ensureAccessTokenLoaded = async () => {
 
   await bootstrappingPromise;
 };
+
 export const api = {
   get: async (path: string) => {
     return request(`${BASE_URL}${path}`, {
       method: "GET",
-      headers: {
-        ...getAuthHeader(),
-      },
     });
   },
 
-  post: async (url: string, data: any) => {
-    try {
-      const response = await fetch(`${BASE_URL}${url}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // 필요한 경우 인증 헤더 추가
-        },
-        body: JSON.stringify(data),
-      });
-
-      // 응답 텍스트를 먼저 받음
-      const text = await response.text();
-
-      // 텍스트가 없거나 형식이 JSON이 아니면 텍스트 그대로 혹은 빈 객체 반환
-      try {
-        return JSON.parse(text);
-      } catch (e) {
-        // JSON 파싱 실패 시 (문자열 응답 등) 텍스트를 객체에 담아 반환하거나 처리
-        console.warn("JSON 파싱 실패, 텍스트 응답 반환:", text);
-        return { message: text };
-      }
-    } catch (error) {
-      console.error("API Post Error:", error);
-      throw error;
-    }
+  // ✅ 수정: 직접 fetch 대신 공통 request 함수를 사용하도록 변경
+  post: async (path: string, data: any) => {
+    return request(`${BASE_URL}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
   },
 
   put: async <T>(path: string, data: T) => {
@@ -176,7 +169,6 @@ export const api = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        ...getAuthHeader(),
       },
       body: JSON.stringify(data),
     });
@@ -185,9 +177,6 @@ export const api = {
   delete: async (path: string) => {
     return request(`${BASE_URL}${path}`, {
       method: "DELETE",
-      headers: {
-        ...getAuthHeader(),
-      },
     });
   },
 };

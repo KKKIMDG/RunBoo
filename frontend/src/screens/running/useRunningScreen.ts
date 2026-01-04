@@ -4,12 +4,9 @@ import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Location from "expo-location";
 import { useKeepAwake } from "expo-keep-awake";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Coordinate, getDistance, encodePath } from "@/utils/runUtils";
 import { RootStackParamList } from "@/navigation/root/RootNavigator";
-
-// ▼▼▼ 1. 환경 변수 임포트 추가 ▼▼▼
-import { API_BASE_URL } from "@env";
+import { createRecord } from "@/services/record/recordsService"; // ✅ 공통 서비스 사용
 
 type RunningScreenRouteProp = RouteProp<RootStackParamList, "Running">;
 type RunningScreenNavigationProp = StackNavigationProp<RootStackParamList>;
@@ -19,8 +16,11 @@ export const useRunningScreen = () => {
 
   const navigation = useNavigation<RunningScreenNavigationProp>();
   const route = useRoute<RunningScreenRouteProp>();
+
+  // ✅ 내비게이션 파라미터에서 userId 추출
+  const userId = route?.params?.userId;
   const targetDistance = route.params?.targetDistance ?? 0;
-  // --- 상태 관리 ---
+
   const [isReady, setIsReady] = useState(true);
   const [countdown, setCountdown] = useState(3);
   const [isRunning, setIsRunning] = useState(false);
@@ -37,7 +37,7 @@ export const useRunningScreen = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // --- 유틸리티 ---
+  // --- 유틸리티 함수 ---
   const formatTime = (totalSeconds: number) => {
     const h = Math.floor(totalSeconds / 3600);
     const m = Math.floor((totalSeconds % 3600) / 60);
@@ -54,7 +54,7 @@ export const useRunningScreen = () => {
     return `${m}'${s < 10 ? "0" + s : s}"`;
   };
 
-  // --- 로직 (Effect) ---
+  // --- 카운트다운 로직 ---
   useEffect(() => {
     if (isReady && countdown > 0) {
       countdownTimerRef.current = setTimeout(() => {
@@ -62,13 +62,15 @@ export const useRunningScreen = () => {
       }, 1000);
     } else if (isReady && countdown === 0) {
       setIsReady(false);
-      startRun();
+      setIsRunning(true);
+      startLocationTracking();
     }
     return () => {
       if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
     };
   }, [isReady, countdown]);
 
+  // --- 타이머 및 페이스 계산 로직 ---
   useEffect(() => {
     if (isRunning && !isPaused) {
       timerRef.current = setInterval(() => {
@@ -90,6 +92,7 @@ export const useRunningScreen = () => {
     };
   }, [isRunning, isPaused, distance]);
 
+  // --- 위치 추적 시작 ---
   const startLocationTracking = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
@@ -105,8 +108,6 @@ export const useRunningScreen = () => {
       },
       (newLocation) => {
         const { latitude, longitude } = newLocation.coords;
-        const newPoint: Coordinate = { latitude, longitude };
-
         setRouteCoordinates((prevRoute) => {
           if (prevRoute.length > 0) {
             const lastPoint = prevRoute[prevRoute.length - 1];
@@ -120,45 +121,27 @@ export const useRunningScreen = () => {
               setDistance((prevDist) => prevDist + dist);
             }
           }
-          return [...prevRoute, newPoint];
+          return [...prevRoute, { latitude, longitude }];
         });
       }
     );
   };
 
-  // --- 러닝 제어 ---
-  const startRun = () => {
-    setIsRunning(true);
-    setIsPaused(false);
-    startLocationTracking();
-  };
-
-  const pauseRun = () => {
-    setIsPaused(true);
-    if (locationSubscription.current) {
-      locationSubscription.current.remove();
-    }
-  };
-
-  const resumeRun = () => {
-    setIsPaused(false);
-    startLocationTracking();
-  };
-
+  // --- 러닝 종료 및 데이터 저장 ---
   const stopRun = async () => {
     setIsRunning(false);
     setIsPaused(false);
     if (timerRef.current) clearInterval(timerRef.current);
-    if (locationSubscription.current) locationSubscription.current.remove();
+    locationSubscription.current?.remove();
 
     const avgPaceSec = distance > 0 ? time / (distance / 1000) : 0;
     const calories = Math.floor(distance * 0.05);
 
-    const userIdStr = await AsyncStorage.getItem("userId");
-
+    // ✅ [DEBUG] 서버 전송 데이터 조립
     const requestData = {
-      userId: userIdStr ? parseInt(userIdStr) : 0,
-      distanceM: distance,
+      userId: userId ? Number(userId) : 0, // 파라미터 ID를 숫자로 변환
+      mode: "NORMAL" as const,
+      distanceM: Math.floor(distance),
       durationSec: time,
       avgPace: Math.floor(avgPaceSec),
       calories: calories,
@@ -167,34 +150,25 @@ export const useRunningScreen = () => {
       endedAt: new Date().toISOString(),
     };
 
-    console.log("LOG 저장할 데이터:", JSON.stringify(requestData));
+    // ✅ [DEBUG] 콘솔 로그 출력 (여기서 userId를 꼭 확인하세요!)
+    console.log("=========================================");
+    console.log("🚀 [DEBUG] 기록 저장 요청 전송 데이터:");
+    console.log(JSON.stringify(requestData, null, 2));
+    console.log("=========================================");
 
     try {
-      // ▼▼▼ 2. 환경 변수 사용으로 변경 ▼▼▼
-      // .env에 정의된 API_BASE_URL (예: http://20.20.10.37:8080) 사용
-      const url = `${API_BASE_URL}/api/records`;
-
-      console.log("전송 URL:", url); // 디버깅용 로그
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (response.ok) {
-        console.log("✅ DB 저장 성공!");
-      } else {
-        console.error("❌ DB 저장 실패:", await response.text());
-        Alert.alert("저장 실패", "서버에 기록을 저장하지 못했습니다.");
-      }
-    } catch (error) {
-      console.error("❌ 네트워크 에러:", error);
-      Alert.alert("에러", "서버와 연결할 수 없습니다.");
+      // ✅ recordService를 통해 저장 (api.ts가 토큰을 자동으로 붙여줌)
+      const response = await createRecord(requestData);
+      console.log("✅ [DEBUG] 서버 응답:", response);
+    } catch (error: any) {
+      console.error("❌ [DEBUG] 저장 실패 에러:", error);
+      Alert.alert(
+        "저장 실패",
+        `기록을 저장하지 못했습니다. (${error.message || "네트워크 에러"})`
+      );
     }
 
+    // 결과 화면으로 이동
     navigation.navigate("RunResult", {
       distanceM: distance,
       durationSec: time,
@@ -217,7 +191,11 @@ export const useRunningScreen = () => {
       paceHistory,
       targetDistance,
     },
-    actions: { pauseRun, resumeRun, stopRun },
+    actions: {
+      pauseRun: () => setIsPaused(true),
+      resumeRun: () => setIsPaused(false),
+      stopRun,
+    },
     utils: { formatTime, formatPace },
   };
 };

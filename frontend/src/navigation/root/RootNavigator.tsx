@@ -17,8 +17,9 @@ import type { GhostProfileDto } from "@/types/ghost";
 
 export type RootStackParamList = {
   MainStack: undefined;
-  Running: { targetDistance: number; mode?: "NORMAL" };
+  Running: { userId: number; targetDistance: number; mode?: "NORMAL" };
   TierRunning: {
+    userId?: number; // ✅ 사용자 ID 파라미터 추가
     targetDistance: number;
     mode?: "TIER";
     distanceType?: "5km" | "10km";
@@ -32,6 +33,7 @@ export type RootStackParamList = {
     routeCoordinates: Coordinate[];
   };
   TierResult: {
+    userId?: number; // ✅ 사용자 ID 파라미터 추가
     recordId: number;
     distanceType: "5k" | "10k"; // ✅ 이 줄을 추가하세요.
     stats: {

@@ -3,11 +3,10 @@ import { Alert } from "react-native";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Location from "expo-location";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Coordinate, getDistance, encodePath } from "@/utils/runUtils";
 import { RootStackParamList } from "@/navigation/root/RootNavigator";
-import { api } from "@/services/api";
 import { evaluateTier } from "@/services/tier/tierService";
+import { createRecord } from "@/services/record/recordsService"; // ✅ 서비스 임포트
 import type { TierData, TierEvaluationRequest } from "@/types/tier";
 
 type TierRunningRouteProp = RouteProp<RootStackParamList, "TierRunning">;
@@ -17,6 +16,8 @@ export const useTierRunningScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<TierRunningRouteProp>();
 
+  // ✅ 파라미터에서 userId 확보
+  const userId = route?.params?.userId;
   const targetDistance = route.params?.targetDistance ?? 5000;
   const distanceTypeKey: "5k" | "10k" = targetDistance <= 5000 ? "5k" : "10k";
 
@@ -84,45 +85,49 @@ export const useTierRunningScreen = () => {
     const remain = targetDistance - distance;
     setRemainingDistance(remain > 0 ? remain : 0);
 
-    // 테스트용: 10미터 이상 이동 시 자동 종료 로직 실행
+    // 테스트용: 10미터 도달 시 완료
     if (isRunning && distance >= 10) {
       handleComplete();
     }
   }, [distance, isRunning]);
-  const handleComplete = async () => {
-    // if (distance < 10) {
-    //   Alert.alert("알림", "측정 거리가 너무 짧아 티어를 산출할 수 없습니다.");
-    //   navigation.goBack();
-    //   return;
-    // }
 
+  const handleComplete = async () => {
     setIsRunning(false);
     if (timerRef.current) clearInterval(timerRef.current);
     locationSub.current?.remove();
 
     const avgPaceSec = distance > 0 ? time / (distance / 1000) : 0;
     const calories = Math.floor(distance * 0.05);
-    const userIdStr = await AsyncStorage.getItem("userId");
 
     try {
-      // 1. 서버 기록 저장
-      const recordRes = (await api.post("/api/records", {
-        userId: userIdStr ? parseInt(userIdStr) : 0,
-        mode: "TIER",
-        distanceM: targetDistance,
+      // ✅ [DEBUG] 전송 데이터 구성
+      const requestData = {
+        userId: userId ? Number(userId) : 0,
+        mode: "TIER" as const,
+        distanceM: Math.floor(distance),
         durationSec: time,
         avgPace: Math.floor(avgPaceSec),
         calories,
         routePolyline: encodePath(routeCoordinates),
         startedAt: new Date(Date.now() - time * 1000).toISOString(),
         endedAt: new Date().toISOString(),
-      })) as any;
+      };
 
-      // ✅ 서버 응답이 올바르지 않을 때를 대비한 방어 로직 (로그에 undefined가 뜨는 문제 해결)
-      const finalRecordId = recordRes?.recordId || 192; // 실제 서비스 시에는 에러 처리 필요
-      console.log("최종 사용할 기록 ID:", finalRecordId);
+      console.log(
+        "🚀 [DEBUG] 티어 기록 저장 요청 전송 데이터:",
+        JSON.stringify(requestData, null, 2)
+      );
 
-      // 2. 티어 평가 요청 (러닝 화면에서 먼저 수행)
+      // 1. 서버 기록 저장 (recordService를 통해 인증 헤더 자동 주입)
+      await createRecord(requestData);
+
+      // ✅ 요청하신 대로 테스트를 위해 recordId는 192로 고정 *********테스트를 위해 기록 더미로 넣어놓음 **********
+      const finalRecordId = 250;
+      const distanceTypeKey = "10k";
+      console.log("✅ [DEBUG] 테스트용 고정 recordId 사용:", finalRecordId);
+      console.log("✅ [DEBUG] 테스트용 고정 recordId 사용:", distanceTypeKey);
+
+      // 2. 티어 평가 요청
       const evaluationReq: TierEvaluationRequest = {
         recordId: finalRecordId,
         distanceType: distanceTypeKey,
@@ -134,11 +139,10 @@ export const useTierRunningScreen = () => {
         {
           text: "확인",
           onPress: () => {
-            // ✅ 결과 화면으로 이동할 때 recordId와 distanceType을 반드시 넘겨줘야 함
             navigation.navigate("TierResult", {
-              // 실제 데이터 대입해야함, 테스트를 위해 고정해놓음 *************************
-              recordId: 192, // useTierResult에서 사용
-              distanceType: "5k", // useTierResult에서 사용
+              userId,
+              recordId: finalRecordId,
+              distanceType: distanceTypeKey,
               stats: {
                 distance: (distance / 1000).toFixed(2),
                 time: utils.formatTime(time),
@@ -155,7 +159,7 @@ export const useTierRunningScreen = () => {
         },
       ]);
     } catch (e) {
-      console.error("데이터 처리 오류:", e);
+      console.error("❌ 데이터 처리 오류:", e);
       Alert.alert("오류", "서버 전송에 실패했습니다.");
       navigation.goBack();
     }
