@@ -19,7 +19,7 @@ export type RootStackParamList = {
   MainStack: undefined;
   Running: { userId: number; targetDistance: number; mode?: "NORMAL" };
   TierRunning: {
-    userId?: number; // ✅ 사용자 ID 파라미터 추가
+    userId?: number;
     targetDistance: number;
     mode?: "TIER";
     distanceType?: "5km" | "10km";
@@ -38,7 +38,8 @@ export type RootStackParamList = {
     recordId: number;
     distanceType: "5k" | "10k";
     achievedTier: string;
-    
+    isStopped?: boolean; // ✅ 측정 중단 여부 파라미터 추가
+
     // ✅ 화면 표시용 및 원본 데이터
     stats: {
       distance: string;

@@ -6,7 +6,7 @@ import * as Location from "expo-location";
 import { Coordinate, getDistance, encodePath } from "@/utils/runUtils";
 import { RootStackParamList } from "@/navigation/root/RootNavigator";
 import { evaluateTier } from "@/services/tier/tierService";
-import { createRecord } from "@/services/record/recordsService"; // ✅ 서비스 임포트
+import { createRecord, fetchMyRecords } from "@/services/record/recordsService";
 import type { TierData, TierEvaluationRequest } from "@/types/tier";
 
 type TierRunningRouteProp = RouteProp<RootStackParamList, "TierRunning">;
@@ -16,7 +16,6 @@ export const useTierRunningScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<TierRunningRouteProp>();
 
-  // ✅ 파라미터에서 userId 확보
   const userId = route?.params?.userId;
   const targetDistance = route.params?.targetDistance ?? 5000;
   const distanceTypeKey: "5k" | "10k" = targetDistance <= 5000 ? "5k" : "10k";
@@ -53,6 +52,14 @@ export const useTierRunningScreen = () => {
   };
 
   useEffect(() => {
+    const remain = targetDistance - distance;
+    setRemainingDistance(remain > 0 ? remain : 0);
+    if (isRunning && distance >= targetDistance) {
+      handleComplete(false);
+    }
+  }, [distance, isRunning, targetDistance]);
+
+  useEffect(() => {
     if (isReady && countdown > 0) {
       const t = setTimeout(() => setCountdown((prev) => prev - 1), 1000);
       return () => clearTimeout(t);
@@ -81,17 +88,7 @@ export const useTierRunningScreen = () => {
     };
   }, [isReady, countdown, isRunning, isPaused, distance]);
 
-  useEffect(() => {
-    const remain = targetDistance - distance;
-    setRemainingDistance(remain > 0 ? remain : 0);
-
-    // 테스트용: 10미터 도달 시 완료
-    if (isRunning && distance >= 10) {
-      handleComplete();
-    }
-  }, [distance, isRunning]);
-
-  const handleComplete = async () => {
+  const handleComplete = async (isStopped: boolean = false) => {
     setIsRunning(false);
     if (timerRef.current) clearInterval(timerRef.current);
     locationSub.current?.remove();
@@ -100,7 +97,6 @@ export const useTierRunningScreen = () => {
     const calories = Math.floor(distance * 0.05);
 
     try {
-      // ✅ [DEBUG] 전송 데이터 구성
       const requestData = {
         userId: userId ? Number(userId) : 0,
         mode: "TIER" as const,
@@ -113,29 +109,44 @@ export const useTierRunningScreen = () => {
         endedAt: new Date().toISOString(),
       };
 
-      console.log(
-        "🚀 [DEBUG] 티어 기록 저장 요청 전송 데이터:",
-        JSON.stringify(requestData, null, 2)
-      );
-
-      // 1. 서버 기록 저장 (recordService를 통해 인증 헤더 자동 주입)
+      // 🚀 1. 새로운 기록 저장
       await createRecord(requestData);
 
-      // ✅ 요청하신 대로 테스트를 위해 recordId는 192로 고정 *********테스트를 위해 기록 더미로 넣어놓음 **********
-      const finalRecordId = 250;
-      const distanceTypeKey = "10k";
-      console.log("✅ [DEBUG] 테스트용 고정 recordId 사용:", finalRecordId);
-      console.log("✅ [DEBUG] 테스트용 고정 recordId 사용:", distanceTypeKey);
+      // 🚀 2. 저장 직후 목록을 불러와서 '가장 큰 ID'를 방금 생성된 ID로 특정
+      const records = await fetchMyRecords();
+      if (!records || records.length === 0)
+        throw new Error("기록을 찾을 수 없습니다.");
 
-      // 2. 티어 평가 요청
+      // ✅ 현재 테이블 내의 Max ID가 방금 저장된 레코드의 ID입니다.
+      const finalRecordId = Math.max(...records.map((r: any) => r.id));
+      console.log("✅ [DEBUG] 방금 측정된 최신 Record ID:", finalRecordId);
+
+      if (isStopped) {
+        Alert.alert("알림", "측정을 중단합니다. 기록 페이지로 이동합니다.", [
+          {
+            text: "확인",
+            onPress: () => {
+              navigation.navigate("RunResult", {
+                distanceM: distance,
+                durationSec: time,
+                avgPaceSec,
+                calories,
+                routeCoordinates,
+              });
+            },
+          },
+        ]);
+        return;
+      }
+
+      // 완주 시 티어 평가
       const evaluationReq: TierEvaluationRequest = {
         recordId: finalRecordId,
         distanceType: distanceTypeKey,
       };
-
       const tierData: TierData = await evaluateTier(evaluationReq);
 
-      Alert.alert("알림", "측정이 완료되었습니다.", [
+      Alert.alert("알림", "목표 거리에 도달하여 측정을 완료합니다!", [
         {
           text: "확인",
           onPress: () => {
@@ -159,10 +170,29 @@ export const useTierRunningScreen = () => {
         },
       ]);
     } catch (e) {
-      console.error("❌ 데이터 처리 오류:", e);
-      Alert.alert("오류", "서버 전송에 실패했습니다.");
-      navigation.goBack();
+      console.error("❌ 처리 오류:", e);
+      Alert.alert("오류", "데이터 처리 중 문제가 발생했습니다.");
     }
+  };
+
+  const handleStopPress = () => {
+    setIsPaused(true);
+    Alert.alert(
+      "측정 중단",
+      "목표 거리를 채우지 못했습니다. 중단하고 현재까지의 기록만 저장할까요?",
+      [
+        {
+          text: "계속하기",
+          onPress: () => setIsPaused(false),
+          style: "cancel",
+        },
+        {
+          text: "그만두기",
+          onPress: () => handleComplete(true),
+          style: "destructive",
+        },
+      ]
+    );
   };
 
   const startTracking = async () => {
@@ -203,7 +233,7 @@ export const useTierRunningScreen = () => {
     actions: {
       pauseRun: () => setIsPaused(true),
       resumeRun: () => setIsPaused(false),
-      stopTierRunManual: handleComplete,
+      stopTierRunManual: handleStopPress,
     },
     utils,
   };
