@@ -23,7 +23,7 @@ export type RootStackParamList = {
     targetDistance: number;
     mode?: "TIER";
     distanceType?: "5km" | "10km";
-  }; // ✅ 파라미터 보강
+  };
   GhostRun: { ghost: GhostProfileDto };
   RunResult: {
     distanceM: number;
@@ -33,15 +33,18 @@ export type RootStackParamList = {
     routeCoordinates: Coordinate[];
   };
   TierResult: {
-    userId?: number; // ✅ 사용자 ID 파라미터 추가
+    // ✅ 로직 필수 파라미터
+    userId?: number;
     recordId: number;
-    distanceType: "5k" | "10k"; // ✅ 이 줄을 추가하세요.
+    distanceType: "5k" | "10k";
+    achievedTier: string;
+    
+    // ✅ 화면 표시용 및 원본 데이터
     stats: {
       distance: string;
       time: string;
       pace: string;
     };
-    achievedTier: string;
     distanceM: number;
     durationSec: number;
     avgPaceSec: number;

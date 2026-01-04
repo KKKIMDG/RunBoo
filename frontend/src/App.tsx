@@ -8,6 +8,8 @@ import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {AuthService} from "@/services/auth/authService";
 import {authEventBus} from "@/services/auth/authEvents";
+import {UserMeProvider} from "@/contexts/UserMeContext";
+import {UserSettingProvider} from "@/contexts/UserSettingContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -39,7 +41,7 @@ export default function App() {
 
     //전역 자동 로그아웃
     useEffect(() => {
-        const unsubscribe = authEventBus.subscribe(() => {
+        const unsubscribe = authEventBus.subscribeLogout(() => {
             handleLogout();
         });
 
@@ -49,6 +51,7 @@ export default function App() {
     const handleLoginSuccess = (token: string) => {
         setAccessToken(token);
         setIsLoggedIn(true);
+        authEventBus.emitLogin();
     };
 
     if (loading) {return null;}
@@ -66,11 +69,15 @@ export default function App() {
 
     return (
         <NavigationContainer theme={MyTheme}>
-            <RootNavigator
-                isLoggedIn={isLoggedIn}
-                onLoginSuccess={handleLoginSuccess}
-                onLogout={handleLogout}
-            />
+            <UserSettingProvider>
+                <UserMeProvider>
+                    <RootNavigator
+                        isLoggedIn={isLoggedIn}
+                        onLoginSuccess={handleLoginSuccess}
+                        onLogout={handleLogout}
+                    />
+                </UserMeProvider>
+            </UserSettingProvider>
         </NavigationContainer>
     );
 }

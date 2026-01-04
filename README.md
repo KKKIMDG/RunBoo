@@ -1,1 +1,32 @@
-RunBoo~~<img width="1408" height="3040" alt="전짚마" src="https://github.com/user-attachments/assets/7999222e-a2ca-4565-bcdf-5c83e2c978d2" />
+가장 트렌디한 런닝 앱.<br>
+***RunBoo*** <br>
+입니다. <br>
+
+### 😀 서비스 개발 배경
+런닝의 인기가 하늘을 치솟고 있습니다.<br>
+하지만 시중에 출시되어 있는 런닝 앱은 소수입니다. <br>
+***RunBoo*** 가 완전히 새로운 런닝의 경험을 제공해 드립니다. <br>
+
+### ⭐ 주요 기능
+
+**1. 티어** <br>
+몇 키로를 몇 분에 끊는지 길게 누군가에게 더 이상 설명할 필요가 없습니다. <br>
+5km, 10km 의 런닝 기록을 측정하고 게임과 같이 티어를 부여받습니다. <br>
+런부의 티어 만으로 런닝크루 가입 및 자기소개에 유용하게 사용할 수 있습니다. <br>
+
+**2. 고스트** <br>
+3가지의 런닝 모드 중 고스트 모드가 있습니다. <br>
+고스트 모드를 통해서 자신의 직전 런닝 기록, 자신의 베스트 페이스 런닝 기록, 이번주 평균치 런닝 기록 그리고 전국 Top5 의 런닝 페이스로 <br>
+함께 런닝을 뛸 수 있습니다. <br>
+
+**3. 주변 러너 찾기** <br>
+따로 크루에 가입하지 않아도 당신은 혼자가 아닙니다. 운동화만 신고 나오세요.<br>
+현재 위치를 기반으로 주변 러너들을 자동으로 찾아줍니다. <br>
+주변 러너들과 자신의 페이스를 비교하고, 코스까지 추천해줍니다. <br>
+
+### 👤 개발진
+
+**김동건** | PM, FullStack | [GitHub](https://github.com/KKKIMDG) <br>
+**김다빈** | FullStack | [GitHub](https://github.com/i3inni) <br>
+**김희곤** | FullStack | [GitHub](https://github.com/heegon02) <br>
+**이차원** | FullStack | [GitHub](https://github.com/Lee-Dimension) <br>

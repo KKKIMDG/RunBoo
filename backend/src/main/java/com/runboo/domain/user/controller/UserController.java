@@ -1,8 +1,10 @@
 package com.runboo.domain.user.controller;
 
 import com.runboo.domain.user.dto.NicknameUpdateRequest;
+import com.runboo.domain.user.dto.PasswordChangeRequestDto;
 import com.runboo.domain.user.dto.UserMeResponseDto;
 import com.runboo.domain.user.dto.ProfileImgUpdateRequest;
+import com.runboo.domain.user.dto.PasswordVerifyRequestDto;
 import com.runboo.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,7 @@ public class UserController {
 
     /**
      * 내 닉네임 수정
-     * PUT /api/users/me/nickname
+     * PATCH /api/users/me/nickname
      */
     @PatchMapping("/me/nickname")
     public ResponseEntity<Void> updateNickname(
@@ -36,8 +38,10 @@ public class UserController {
         userService.updateMyNickname(request.getNickname());
         return ResponseEntity.ok().build();
     }
+
     /**
      * 내 프로필 사진 수정
+     * PATCH /api/users/me/profile-image
      */
     @PatchMapping("/me/profile-image")
     public ResponseEntity<Void> updateProfileImage(
@@ -46,25 +50,38 @@ public class UserController {
         userService.updateMyProfileImage(request.getProfileImageUrl());
         return ResponseEntity.ok().build();
     }
-//    /**
-//     * 비밀번호 변경
-//     * PUT /api/users/password
-//     */
-//    @PutMapping("/password")
-//    public ResponseEntity<Void> changePassword(
-//            @Valid @RequestBody PasswordChangeRequestDto request
-//    ) {
-//        userService.changePassword(request);
-//        return ResponseEntity.ok().build();
-//    }
-//
-//    /**
-//     * 계정 탈퇴
-//     * DELETE /api/users/me
-//     */
-//    @DeleteMapping("/me")
-//    public ResponseEntity<Void> withdraw() {
-//        userService.withdraw();
-//        return ResponseEntity.ok().build();
-//    }
+
+    /**
+     * 현재 비밀번호 검증
+     * POST /api/users/me/password/verify
+     */
+    @PostMapping("/me/password/verify")
+    public ResponseEntity<Void> verifyCurrentPassword(
+            @Valid @RequestBody PasswordVerifyRequestDto request
+    ) {
+        userService.verifyCurrentPassword(request.currentPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 비밀번호 변경
+     * PUT /api/users/me/password
+     */
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+            @Valid @RequestBody PasswordChangeRequestDto request
+    ) {
+        userService.changePassword(request.getNewPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 계정 탈퇴
+     * DELETE /api/users/me
+     */
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdraw() {
+        userService.withdraw();
+        return ResponseEntity.ok().build();
+    }
 }

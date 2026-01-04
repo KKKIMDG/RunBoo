@@ -1,42 +1,52 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_BASE_URL } from "@env";
+import { api } from "@/services/api";
+import type { UserMe } from "@/types/userMe";
 
-export const updateMyNickname = async (nickname: string) => {
-    const token = await AsyncStorage.getItem("accessToken");
-
-    const res = await fetch(
-        `${API_BASE_URL}/api/users/me/nickname`,
-        {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ nickname }),
-        }
-    );
-
-    if (!res.ok) {
-        throw new Error("닉네임 변경 실패");
-    }
+/**
+ * 내 정보 조회
+ * GET /api/users/me
+ */
+export const getMe = async (): Promise<UserMe> => {
+    return api.get("/api/users/me");
 };
 
-export const updateMyProfileImage = async (profileImageUrl: string) => {
-    const token = await AsyncStorage.getItem("accessToken");
+/**
+ * 닉네임 변경
+ * PATCH /api/users/me/nickname
+ */
+export const updateMyNickname = async (nickname: string): Promise<void> => {
+    await api.patch("/api/users/me/nickname", { nickname });
+};
 
-    const res = await fetch(
-        `${API_BASE_URL}/api/users/me/profile-image`,
-        {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ profileImageUrl }),
-        }
-    );
+/**
+ * 프로필 이미지 변경
+ * PATCH /api/users/me/profile-image
+ */
+export const updateMyProfileImage = async (
+    profileImageUrl: string
+): Promise<void> => {
+    await api.patch("/api/users/me/profile-image", { profileImageUrl });
+};
 
-    if (!res.ok) {
-        throw new Error("프로필 이미지 변경 실패");
-    }
+/**
+ * 현재 비밀번호 검증
+ * POST /api/users/me/password/verify
+ */
+export const verifyCurrentPassword = async (
+    currentPassword: string
+): Promise<void> => {
+    await api.post("/api/users/me/password/verify", {
+        currentPassword,
+    });
+};
+
+/**
+ * 비밀번호 변경
+ * PUT /api/users/me/password
+ */
+export const changePassword = async (
+    newPassword: string
+): Promise<void> => {
+    await api.put("/api/users/me/password", {
+        newPassword,
+    });
 };

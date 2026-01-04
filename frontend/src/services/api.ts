@@ -153,7 +153,6 @@ export const api = {
     });
   },
 
-  // ✅ 수정: 직접 fetch 대신 공통 request 함수를 사용하도록 변경
   post: async (path: string, data: any) => {
     return request(`${BASE_URL}${path}`, {
       method: "POST",
@@ -167,6 +166,16 @@ export const api = {
   put: async <T>(path: string, data: T) => {
     return request(`${BASE_URL}${path}`, {
       method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+  },
+
+  patch: async <T>(path: string, data: T) => {
+    return request(`${BASE_URL}${path}`, {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },

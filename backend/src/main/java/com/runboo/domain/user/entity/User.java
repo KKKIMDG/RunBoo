@@ -89,5 +89,7 @@ public class User {
     public void changeProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
     }
-
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
 }

@@ -1,17 +1,33 @@
 type Listener = () => void;
 
 class AuthEventBus {
-    private listeners: Listener[] = [];
+    private logoutListeners: Listener[] = [];
+    private loginListeners: Listener[] = [];
 
-    subscribe(listener: Listener) {
-        this.listeners.push(listener);
+    /* ================= 로그아웃 ================= */
+    subscribeLogout(listener: Listener) {
+        this.logoutListeners.push(listener);
         return () => {
-            this.listeners = this.listeners.filter(l => l !== listener);
+            this.logoutListeners =
+                this.logoutListeners.filter(l => l !== listener);
         };
     }
 
     emitLogout() {
-        this.listeners.forEach(l => l());
+        this.logoutListeners.forEach(l => l());
+    }
+
+    /* ================= 로그인 ================= */
+    subscribeLogin(listener: Listener) {
+        this.loginListeners.push(listener);
+        return () => {
+            this.loginListeners =
+                this.loginListeners.filter(l => l !== listener);
+        };
+    }
+
+    emitLogin() {
+        this.loginListeners.forEach(l => l());
     }
 }
 

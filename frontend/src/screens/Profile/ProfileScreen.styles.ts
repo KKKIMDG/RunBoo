@@ -238,4 +238,31 @@ export const styles = StyleSheet.create({
     color: "#3A4A98",
     fontWeight: "600",
   },
+
+  /* ===== header row ===== */
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  /* ===== tier button ===== */
+  tierButton: {
+    backgroundColor: "#6366F1",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    alignSelf: "flex-start",
+  },
+  tierButtonText: {
+    color: "#FFF",
+    fontSize: 12,
+    fontWeight: "bold",
+    marginLeft: 6,
+  },
 });

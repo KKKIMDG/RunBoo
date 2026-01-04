@@ -155,7 +155,7 @@ export default function RecordsScreen() {
             <View style={s.container}>
                 <Text style={s.title}>{activeTab === "record" ? "기록" : "통계"}</Text>
                 <Text style={s.subTitle}>
-                    {activeTab === "record" ? "나의 러닝 기록" : "나의 러닝 통계"}
+                    {activeTab === "record" ? "나의 런닝 기록" : "나의 런닝 통계"}
                 </Text>
 
                 <View style={{ marginVertical: 12 }}>
