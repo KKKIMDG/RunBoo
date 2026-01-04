@@ -136,6 +136,7 @@ export const useTierRunningScreen = () => {
           onPress: () => {
             // ✅ 결과 화면으로 이동할 때 recordId와 distanceType을 반드시 넘겨줘야 함
             navigation.navigate("TierResult", {
+              // 실제 데이터 대입해야함, 테스트를 위해 고정해놓음 *************************
               recordId: 192, // useTierResult에서 사용
               distanceType: "5k", // useTierResult에서 사용
               stats: {
