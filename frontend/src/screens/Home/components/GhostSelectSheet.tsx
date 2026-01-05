@@ -11,7 +11,6 @@ import {
     ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 
 import type { GhostProfileDto } from "@/types/ghost";
 import { Colors } from "@/constants/theme";
@@ -23,7 +22,7 @@ type Props = {
     loading: boolean;
     data: GhostProfileDto[];
     onClose: () => void;
-    onSelect?: (gp: GhostProfileDto) => void;
+    onSelect?: (gp: GhostProfileDto) => void; // ✅ 부모가 navigate 처리
     onRefresh?: () => void;
 };
 
@@ -83,11 +82,10 @@ function getIconBySlot(slot: SlotType): IoniconName {
         slot === "RANKING_NATIONAL_1" ||
         slot === "RANKING_NATIONAL_2" ||
         slot === "RANKING_NATIONAL_3"
-    ) return "trophy-outline";
-    if (
-        slot === "RANKING_NATIONAL_4" ||
-        slot === "RANKING_NATIONAL_5"
-    ) return "medal-outline";
+    )
+        return "trophy-outline";
+    if (slot === "RANKING_NATIONAL_4" || slot === "RANKING_NATIONAL_5")
+        return "medal-outline";
     return "location-outline";
 }
 
@@ -121,8 +119,6 @@ export default function GhostSelectSheet({
                                              onClose,
                                              onSelect,
                                          }: Props) {
-    const navigation = useNavigation<any>();
-
     const base = Colors[scheme] as any;
     const c = {
         background: base?.background ?? "#ffffff",
@@ -184,11 +180,10 @@ export default function GhostSelectSheet({
         // 1) 시트 닫기
         onClose?.();
 
-        // 2) 부모 콜백도 필요하면 호출
+        // 2) ✅ 부모(HomeScreen)에게 선택만通知 (부모가 userId 포함해서 navigate 처리)
         onSelect?.(gp);
 
-        // 3) ✅ 고스트 런 화면으로 이동 + params 전달
-        navigation.navigate("GhostRun", { ghost: gp });
+        // ❌ 여기서 navigation.navigate("GhostRun"... ) 하지 않음
     };
 
     return (
@@ -230,9 +225,7 @@ export default function GhostSelectSheet({
                                 size={16}
                                 color={tab === "ranking" ? "#fff" : c.text}
                             />
-                            <Text
-                                style={[s.pillText, { color: tab === "ranking" ? "#fff" : c.text }]}
-                            >
+                            <Text style={[s.pillText, { color: tab === "ranking" ? "#fff" : c.text }]}>
                                 랭킹
                             </Text>
                         </TouchableOpacity>
@@ -262,11 +255,7 @@ export default function GhostSelectSheet({
                                                 },
                                             ]}
                                         >
-                                            <Ionicons
-                                                name={getIconBySlot(item.slot)}
-                                                size={18}
-                                                color={c.mutedText}
-                                            />
+                                            <Ionicons name={getIconBySlot(item.slot)} size={18} color={c.mutedText} />
 
                                             <View style={{ flex: 1, marginLeft: 12 }}>
                                                 <Text style={s.itemTitle}>{item.title}</Text>
@@ -287,11 +276,7 @@ export default function GhostSelectSheet({
                                         onPress={() => handleSelect(gp)}
                                         activeOpacity={0.85}
                                     >
-                                        <Ionicons
-                                            name={getIconBySlot(item.slot)}
-                                            size={18}
-                                            color={c.primary}
-                                        />
+                                        <Ionicons name={getIconBySlot(item.slot)} size={18} color={c.primary} />
                                         <View style={{ flex: 1, marginLeft: 12 }}>
                                             <Text style={s.itemTitle}>{item.title}</Text>
                                             <Text style={s.itemSub}>{safeDate10(gp.createdAt)}</Text>
