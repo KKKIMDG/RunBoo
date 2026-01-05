@@ -31,6 +31,9 @@ export const useTierRunningScreen = () => {
   const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
   const [paceHistory, setPaceHistory] = useState<number[]>([]);
 
+  // 수정: 지도의 중심점을 맞추기 위한 최신 위치 상태 추가
+  const [lastLocation, setLastLocation] = useState<Coordinate | null>(null);
+
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const locationSub = useRef<Location.LocationSubscription | null>(null);
 
@@ -109,17 +112,13 @@ export const useTierRunningScreen = () => {
         endedAt: new Date().toISOString(),
       };
 
-      // 🚀 1. 새로운 기록 저장
       await createRecord(requestData);
 
-      // 🚀 2. 저장 직후 목록을 불러와서 '가장 큰 ID'를 방금 생성된 ID로 특정
       const records = await fetchMyRecords();
       if (!records || records.length === 0)
         throw new Error("기록을 찾을 수 없습니다.");
 
-      // ✅ 현재 테이블 내의 Max ID가 방금 저장된 레코드의 ID입니다.
       const finalRecordId = Math.max(...records.map((r: any) => r.id));
-      console.log("✅ [DEBUG] 방금 측정된 최신 Record ID:", finalRecordId);
 
       if (isStopped) {
         Alert.alert("알림", "측정을 중단합니다. 기록 페이지로 이동합니다.", [
@@ -139,7 +138,6 @@ export const useTierRunningScreen = () => {
         return;
       }
 
-      // 완주 시 티어 평가
       const evaluationReq: TierEvaluationRequest = {
         recordId: finalRecordId,
         distanceType: distanceTypeKey,
@@ -198,10 +196,20 @@ export const useTierRunningScreen = () => {
   const startTracking = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") return;
+
+    // 수정: 초기 위치 가져오기
+    const initialPos = await Location.getCurrentPositionAsync({});
+    setLastLocation({
+      latitude: initialPos.coords.latitude,
+      longitude: initialPos.coords.longitude,
+    });
+
     locationSub.current = await Location.watchPositionAsync(
-      { accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 1 },
+      { accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 3 },
       (loc) => {
         const { latitude, longitude } = loc.coords;
+        const newCoord = { latitude, longitude };
+
         setRouteCoordinates((prev) => {
           if (prev.length > 0) {
             const d = getDistance(
@@ -210,10 +218,16 @@ export const useTierRunningScreen = () => {
               latitude,
               longitude
             );
-            if (d > 0 && d < 30) setDistance((cur) => cur + d);
+            // 튐 방지 필터링 (초당 30m 이상 이동 시 무시)
+            if (d > 0.5 && d < 30) {
+              setDistance((cur) => cur + d);
+            }
           }
-          return [...prev, { latitude, longitude }];
+          return [...prev, newCoord];
         });
+
+        // 수정: 최신 위치 업데이트 (지도의 Region 이동용)
+        setLastLocation(newCoord);
       }
     );
   };
@@ -229,6 +243,7 @@ export const useTierRunningScreen = () => {
       currentPace,
       routeCoordinates,
       paceHistory,
+      lastLocation, // 추가
     },
     actions: {
       pauseRun: () => setIsPaused(true),

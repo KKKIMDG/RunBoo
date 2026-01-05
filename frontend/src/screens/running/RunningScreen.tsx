@@ -198,6 +198,12 @@ const RunningScreen = () => {
             withVerticalLabels={false}
             withHorizontalLabels={false}
           />
+          <View style={styles.chartLabels}>
+            <Text style={styles.chartLabelText}>시작</Text>
+            <Text style={styles.chartLabelText}>
+              현재: {formatPace(currentPace)}/km
+            </Text>
+          </View>
         </View>
 
         <View style={styles.mapContainer}>
@@ -267,7 +273,7 @@ const RunningScreen = () => {
 const customStyles = StyleSheet.create({
   focusButton: {
     position: "absolute",
-    top: 16,
+    bottom: 16,
     right: 16,
     backgroundColor: "white",
     padding: 10,

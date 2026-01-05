@@ -29,7 +29,6 @@ export const useRunningScreen = () => {
   const [paceHistory, setPaceHistory] = useState<number[]>([]);
   const [isFollowing, setIsFollowing] = useState(true);
 
-  // ✅ 초기 위치만 저장 (지도의 최초 렌더링용)
   const [initialLocation, setInitialLocation] = useState<Coordinate | null>(
     null
   );
@@ -38,8 +37,6 @@ export const useRunningScreen = () => {
     null
   );
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // ✅ 외부에서 위치 업데이트를 감지하기 위한 콜백 추가
   const onLocationUpdate = useRef<((coords: Coordinate) => void) | null>(null);
 
   const utils = {
@@ -111,13 +108,13 @@ export const useRunningScreen = () => {
       {
         accuracy: Location.Accuracy.BestForNavigation,
         timeInterval: 2000,
-        distanceInterval: 2,
+        distanceInterval: 5, // ✅ 최소 이동 간격을 5m로 상향
       },
       (newLocation) => {
         const { latitude, longitude, accuracy } = newLocation.coords;
-        if (accuracy && accuracy > 30) return;
+        // ✅ GPS 정확도가 20m 이상으로 떨어지면 무시 (더 엄격하게)
+        if (accuracy && accuracy > 20) return;
 
-        // ✅ UI 컴포넌트의 지도 이동 콜백 실행
         if (onLocationUpdate.current) {
           onLocationUpdate.current({ latitude, longitude });
         }
@@ -131,7 +128,11 @@ export const useRunningScreen = () => {
               latitude,
               longitude
             );
-            if (dist >= 1 && dist < 20) {
+
+            // ✅ 필터링 로직 강화:
+            // 1. 최소 3m 이상 이동했을 때만 합산 (GPS 튀는 현상 방지)
+            // 2. 2초 동안 16m(시속 약 28km) 이상 이동했다면 튄 좌표로 간주하여 제외
+            if (dist >= 3 && dist < 16) {
               setDistance((d) => d + dist);
               return [...prev, { latitude, longitude }];
             }
@@ -189,15 +190,15 @@ export const useRunningScreen = () => {
       paceHistory,
       targetDistance,
       isFollowing,
-      initialLocation, // ✅ 추가
+      initialLocation,
     },
     actions: {
       pauseRun: () => setIsPaused(true),
       resumeRun: () => setIsPaused(false),
       stopRun,
       toggleFollowing: () => setIsFollowing(!isFollowing),
-      setIsFollowing, // ✅ 추가
-      onLocationUpdate, // ✅ 추가
+      setIsFollowing,
+      onLocationUpdate,
     },
     utils,
   };
