@@ -2,7 +2,6 @@ import React from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
@@ -12,6 +11,7 @@ import { getStyles } from "./Challenge.styles";
 import { useChallenge, Challenge } from "./useChallenge";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const getLevelStyle = (level: string) => {
   switch (level) {
