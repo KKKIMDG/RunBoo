@@ -78,9 +78,14 @@ function getIconBySlot(slot: SlotType): IoniconName {
     if (slot === "SELF_BEST") return "trophy-outline";
     if (slot === "SELF_YESTERDAY") return "today-outline";
     if (slot === "SELF_WEEKLY_AVG") return "bar-chart-outline";
-    if (slot === "RANKING_NATIONAL_1" || slot === "RANKING_NATIONAL_2" || slot === "RANKING_NATIONAL_3")
+    if (
+        slot === "RANKING_NATIONAL_1" ||
+        slot === "RANKING_NATIONAL_2" ||
+        slot === "RANKING_NATIONAL_3"
+    )
         return "trophy-outline";
-    if (slot === "RANKING_NATIONAL_4" || slot === "RANKING_NATIONAL_5") return "medal-outline";
+    if (slot === "RANKING_NATIONAL_4" || slot === "RANKING_NATIONAL_5")
+        return "medal-outline";
     return "location-outline";
 }
 
@@ -95,6 +100,32 @@ function safeDate10(iso: string) {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     return `${yy}.${mm}.${dd}`;
+}
+
+/**
+ * ✅ SELF_WEEKLY_AVG 날짜 표기:
+ * createdAt(=주 시작일로 들어온 값) 기준으로 "MM.DD ~ MM.DD" 형태로 표시
+ *
+ * 예) 2026-01-05T00:00:00Z(월요일) -> "01.05 ~ 01.11"
+ */
+function safeWeekRangeLabel(weekStartIso: string) {
+    if (!weekStartIso) return "-";
+    const start = new Date(weekStartIso);
+    if (isNaN(start.getTime())) return "-";
+
+    // start ~ start+6일
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+
+    const sYY = String(start.getFullYear());
+    const sMM = String(start.getMonth() + 1).padStart(2, "0");
+    const sDD = String(start.getDate()).padStart(2, "0");
+
+    const eYY = String(end.getFullYear());
+    const eMM = String(end.getMonth() + 1).padStart(2, "0");
+    const eDD = String(end.getDate()).padStart(2, "0");
+
+    return `${sYY}.${sMM}.${sDD} ~ ${eYY}.${eMM}.${eDD}`;
 }
 
 type TabKey = "self" | "ranking";
@@ -264,6 +295,12 @@ export default function GhostSelectSheet({
                                     );
                                 }
 
+                                // ✅ SELF_WEEKLY_AVG만 기간으로 표기
+                                const subText =
+                                    item.slot === "SELF_WEEKLY_AVG"
+                                        ? safeWeekRangeLabel(gp.createdAt)
+                                        : safeDate10(gp.createdAt);
+
                                 return (
                                     <TouchableOpacity
                                         style={[s.item, { borderColor: c.border }]}
@@ -277,7 +314,7 @@ export default function GhostSelectSheet({
                                         />
                                         <View style={{ flex: 1, marginLeft: 12 }}>
                                             <Text style={s.itemTitle}>{item.title}</Text>
-                                            <Text style={s.itemSub}>{safeDate10(gp.createdAt)}</Text>
+                                            <Text style={s.itemSub}>{subText}</Text>
                                         </View>
                                         <View style={{ alignItems: "flex-end" }}>
                                             <Text style={s.itemTitle}>{formatKm(gp.targetDistanceKm)}</Text>

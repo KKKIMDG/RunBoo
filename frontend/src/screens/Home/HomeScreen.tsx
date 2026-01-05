@@ -217,11 +217,6 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
 
             // 2) 내 기록은 run_records 전부 조회 후 프론트에서 계산
             const myRecords = await fetchMyRecords();
-
-            console.log("🧪 myRecords typeof:", typeof myRecords);
-            console.log("🧪 myRecords isArray:", Array.isArray(myRecords));
-            console.log("🧪 myRecords length:", Array.isArray(myRecords) ? myRecords.length : "NOT_ARRAY");
-            console.log("🧪 myRecords sample:", Array.isArray(myRecords) ? myRecords[0] : myRecords);
             const selfComputed = computeSelfGhosts(me.userId, myRecords);
 
             // 3) 합쳐서 시트에 제공 (SELF_* + RANKING_*)
