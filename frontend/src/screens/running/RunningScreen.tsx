@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,8 +10,9 @@ import {
   ToastAndroid,
   Platform,
   SafeAreaView,
+  StyleSheet,
 } from "react-native";
-import MapView, { Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
 import {
   Ionicons,
@@ -34,6 +35,7 @@ const RunningScreen = () => {
   const isDarkMode = useColorScheme() === "dark";
   const styles = getStyles(isDarkMode);
   const navigation = useNavigation<NavigationProp>();
+  const mapRef = useRef<MapView>(null);
 
   const { state, actions, utils } = useRunningScreen();
 
@@ -42,34 +44,73 @@ const RunningScreen = () => {
     time,
     distance,
     currentPace,
-    routeCoordinates,
+    routeCoordinates, // ✅ 좌표는 계속 수집됨
     paceHistory,
     isReady,
     countdown,
+    isFollowing,
+    initialLocation,
   } = state;
 
-  const { pauseRun, resumeRun, stopRun } = actions;
+  const {
+    pauseRun,
+    resumeRun,
+    stopRun,
+    toggleFollowing,
+    setIsFollowing,
+    onLocationUpdate,
+  } = actions;
   const { formatTime, formatPace } = utils;
 
-  const handleStopPress = () => {
-    const msg = "종료하려면 버튼을 1초간 길게 누르세요";
-    if (Platform.OS === "android") {
-      ToastAndroid.show(msg, ToastAndroid.SHORT);
-    } else {
-      Alert.alert("알림", msg);
+  // 실시간 지도 카메라 이동 로직
+  useEffect(() => {
+    onLocationUpdate.current = (coords) => {
+      if (isFollowing && mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            ...coords,
+            latitudeDelta: 0.002,
+            longitudeDelta: 0.002,
+          },
+          1000
+        );
+      }
+    };
+  }, [isFollowing]);
+
+  const handleFocusPress = () => {
+    toggleFollowing();
+    if (!isFollowing && routeCoordinates.length > 0) {
+      const last = routeCoordinates[routeCoordinates.length - 1];
+      mapRef.current?.animateToRegion(
+        {
+          ...last,
+          latitudeDelta: 0.002,
+          longitudeDelta: 0.002,
+        },
+        500
+      );
     }
   };
 
+  // ✅ 종료 시 수집된 routeCoordinates를 결과 화면으로 전달
   const handleStopLongPress = () => {
     stopRun();
-    navigation.navigate("RunResult", {
-      distanceM: distance,
-      durationSec: time,
-      avgPaceSec: currentPace,
-      calories: Math.floor(distance * 0.06),
-      routeCoordinates,
-    });
   };
+
+  const chartData = useMemo(
+    () => ({
+      labels: [],
+      datasets: [
+        {
+          data: paceHistory.length > 0 ? paceHistory : [0],
+          color: (opacity = 1) => `rgba(74, 110, 169, ${opacity})`,
+          strokeWidth: 2,
+        },
+      ],
+    }),
+    [paceHistory]
+  );
 
   const chartConfig = {
     backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
@@ -80,20 +121,8 @@ const RunningScreen = () => {
     propsForDots: { r: "0" },
   };
 
-  const chartData = {
-    labels: [],
-    datasets: [
-      {
-        data: paceHistory.length > 0 ? paceHistory : [0],
-        color: (opacity = 1) => `rgba(74, 110, 169, ${opacity})`,
-        strokeWidth: 2,
-      },
-    ],
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* 1. 카운트다운 오버레이 (준비 중일 때만 표시) */}
       {isReady && (
         <View style={styles.countdownOverlay}>
           <Text style={styles.countdownText}>
@@ -103,12 +132,10 @@ const RunningScreen = () => {
         </View>
       )}
 
-      {/* 2. 메인 컨텐츠 */}
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* 헤더: 상태 표시 */}
         <View style={styles.header}>
           <View style={styles.statusTag}>
             <View
@@ -123,7 +150,6 @@ const RunningScreen = () => {
           </View>
         </View>
 
-        {/* 대시보드: 주요 통계 */}
         <View style={styles.statsContainer}>
           <StatBox
             icon={<Ionicons name="time-outline" size={24} color="#4A6EA9" />}
@@ -151,7 +177,6 @@ const RunningScreen = () => {
           />
         </View>
 
-        {/* 데이터 시각화: 차트 */}
         <View style={styles.chartCard}>
           <View style={styles.chartTitleContainer}>
             <Ionicons
@@ -173,45 +198,48 @@ const RunningScreen = () => {
             withVerticalLabels={false}
             withHorizontalLabels={false}
           />
-          <View style={styles.chartLabels}>
-            <Text style={styles.chartLabelText}>시작</Text>
-            <Text style={styles.chartLabelText}>
-              현재: {formatPace(currentPace)}/km
-            </Text>
-          </View>
         </View>
 
-        {/* 경로 표시: 지도 */}
         <View style={styles.mapContainer}>
           <MapView
+            ref={mapRef}
             style={styles.map}
             provider={PROVIDER_GOOGLE}
             showsUserLocation={true}
-            followsUserLocation={!isPaused}
             loadingEnabled={true}
-            region={
-              routeCoordinates.length > 0
+            initialRegion={
+              initialLocation
                 ? {
-                    latitude:
-                      routeCoordinates[routeCoordinates.length - 1].latitude,
-                    longitude:
-                      routeCoordinates[routeCoordinates.length - 1].longitude,
-                    latitudeDelta: 0.005,
-                    longitudeDelta: 0.005,
+                    ...initialLocation,
+                    latitudeDelta: 0.002,
+                    longitudeDelta: 0.002,
                   }
                 : undefined
             }
+            onPanDrag={() => {
+              if (isFollowing) setIsFollowing(false);
+            }}
           >
-            <Polyline
-              coordinates={routeCoordinates}
-              strokeColor="#4A6EA9"
-              strokeWidth={5}
-            />
+            {/* ✅ [수정] 실행 중에는 Polyline을 렌더링하지 않음 */}
           </MapView>
+
+          <TouchableOpacity
+            style={[
+              customStyles.focusButton,
+              isFollowing && customStyles.focusButtonActive,
+            ]}
+            onPress={handleFocusPress}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name={isFollowing ? "crosshairs-gps" : "crosshairs"}
+              size={24}
+              color={isFollowing ? "#FFF" : "#4A6EA9"}
+            />
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* 3. 하단 컨트롤 바 */}
       <View style={styles.controlContainer}>
         <TouchableOpacity
           style={styles.pauseButton}
@@ -225,22 +253,42 @@ const RunningScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.stopButton, { backgroundColor: "#FF3B30" }]}
-          onPress={handleStopPress}
+          onPress={() => Alert.alert("알림", "종료하려면 길게 누르세요.")}
           onLongPress={handleStopLongPress}
           delayLongPress={1000}
         >
-          <View
-            style={{
-              width: 24,
-              height: 24,
-              backgroundColor: "white",
-              borderRadius: 4,
-            }}
-          />
+          <View style={customStyles.stopSquare} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
+
+const customStyles = StyleSheet.create({
+  focusButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 30,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+  },
+  focusButtonActive: {
+    backgroundColor: "#4A6EA9",
+    borderColor: "#4A6EA9",
+  },
+  stopSquare: {
+    width: 24,
+    height: 24,
+    backgroundColor: "white",
+    borderRadius: 4,
+  },
+});
 
 export default RunningScreen;
