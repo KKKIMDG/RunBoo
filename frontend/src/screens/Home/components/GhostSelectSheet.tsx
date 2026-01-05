@@ -65,7 +65,7 @@ type IoniconName =
 
 function getTitleBySlot(slot: SlotType) {
     if (slot === "SELF_BEST") return "내 최고 기록";
-    if (slot === "SELF_YESTERDAY") return "어제 기록";
+    if (slot === "SELF_YESTERDAY") return "직전 기록";
     if (slot === "SELF_WEEKLY_AVG") return "이번 주 평균";
     if (slot === "RANKING_NATIONAL_1") return "전국 1위";
     if (slot === "RANKING_NATIONAL_2") return "전국 2위";
@@ -78,14 +78,9 @@ function getIconBySlot(slot: SlotType): IoniconName {
     if (slot === "SELF_BEST") return "trophy-outline";
     if (slot === "SELF_YESTERDAY") return "today-outline";
     if (slot === "SELF_WEEKLY_AVG") return "bar-chart-outline";
-    if (
-        slot === "RANKING_NATIONAL_1" ||
-        slot === "RANKING_NATIONAL_2" ||
-        slot === "RANKING_NATIONAL_3"
-    )
+    if (slot === "RANKING_NATIONAL_1" || slot === "RANKING_NATIONAL_2" || slot === "RANKING_NATIONAL_3")
         return "trophy-outline";
-    if (slot === "RANKING_NATIONAL_4" || slot === "RANKING_NATIONAL_5")
-        return "medal-outline";
+    if (slot === "RANKING_NATIONAL_4" || slot === "RANKING_NATIONAL_5") return "medal-outline";
     return "location-outline";
 }
 
@@ -177,13 +172,8 @@ export default function GhostSelectSheet({
     const rows = tab === "self" ? selfRows : rankingRows;
 
     const handleSelect = (gp: GhostProfileDto) => {
-        // 1) 시트 닫기
         onClose?.();
-
-        // 2) ✅ 부모(HomeScreen)에게 선택만通知 (부모가 userId 포함해서 navigate 처리)
-        onSelect?.(gp);
-
-        // ❌ 여기서 navigation.navigate("GhostRun"... ) 하지 않음
+        onSelect?.(gp); // ✅ 부모(HomeScreen)가 navigate 처리
     };
 
     return (
@@ -255,7 +245,11 @@ export default function GhostSelectSheet({
                                                 },
                                             ]}
                                         >
-                                            <Ionicons name={getIconBySlot(item.slot)} size={18} color={c.mutedText} />
+                                            <Ionicons
+                                                name={getIconBySlot(item.slot)}
+                                                size={18}
+                                                color={c.mutedText}
+                                            />
 
                                             <View style={{ flex: 1, marginLeft: 12 }}>
                                                 <Text style={s.itemTitle}>{item.title}</Text>
@@ -276,7 +270,11 @@ export default function GhostSelectSheet({
                                         onPress={() => handleSelect(gp)}
                                         activeOpacity={0.85}
                                     >
-                                        <Ionicons name={getIconBySlot(item.slot)} size={18} color={c.primary} />
+                                        <Ionicons
+                                            name={getIconBySlot(item.slot)}
+                                            size={18}
+                                            color={c.primary}
+                                        />
                                         <View style={{ flex: 1, marginLeft: 12 }}>
                                             <Text style={s.itemTitle}>{item.title}</Text>
                                             <Text style={s.itemSub}>{safeDate10(gp.createdAt)}</Text>
