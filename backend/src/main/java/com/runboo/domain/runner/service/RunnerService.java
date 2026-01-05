@@ -63,6 +63,7 @@ public class RunnerService {
 
                 User nearbyUser = userRepository.findById(memberId).orElse(null);
                 if (nearbyUser == null) continue;
+                if (nearbyUser.isBlind()) continue;
 
                 responseList.add(RunnerResponse.builder()
                         .userId(memberId)

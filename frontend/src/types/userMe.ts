@@ -6,4 +6,5 @@ export interface UserMe {
     nickname: string;
     profileImageUrl: string | null;
     provider: SocialProvider;
+    isBlind: boolean;
 }

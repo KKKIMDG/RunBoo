@@ -50,6 +50,9 @@ public class User {
     @Column(name = "delete_at")
     private LocalDateTime deleteAt;
 
+    @Column(name = "is_blind", nullable = false, columnDefinition = "boolean default false")
+    private boolean isBlind = false;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserCourse> userCourses = new ArrayList<>();
 
@@ -91,5 +94,8 @@ public class User {
     }
     public void changePassword(String encodedPassword) {
         this.password = encodedPassword;
+    }
+    public void changeBlindStatus(boolean isBlind) {
+        this.isBlind = isBlind;
     }
 }

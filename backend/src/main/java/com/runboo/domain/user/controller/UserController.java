@@ -1,10 +1,6 @@
 package com.runboo.domain.user.controller;
 
-import com.runboo.domain.user.dto.NicknameUpdateRequest;
-import com.runboo.domain.user.dto.PasswordChangeRequestDto;
-import com.runboo.domain.user.dto.UserMeResponseDto;
-import com.runboo.domain.user.dto.ProfileImgUpdateRequest;
-import com.runboo.domain.user.dto.PasswordVerifyRequestDto;
+import com.runboo.domain.user.dto.*;
 import com.runboo.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +78,18 @@ public class UserController {
     @DeleteMapping("/me")
     public ResponseEntity<Void> withdraw() {
         userService.withdraw();
+        return ResponseEntity.ok().build();
+    }
+    /**
+     * 블라인드 모드 변경 (ON/OFF)
+     * PATCH /api/users/me/blind
+     */
+    @PatchMapping("/me/blind")
+    public ResponseEntity<Void> changeBlindStatus(
+            @RequestBody UserBlindRequestDto request
+    ) {
+        // 서비스에 요청: "내 아이디의 블라인드 상태를 이걸로 바꿔줘"
+        userService.updateBlindStatus(request.isBlind());
         return ResponseEntity.ok().build();
     }
 }

@@ -50,3 +50,7 @@ export const changePassword = async (
         newPassword,
     });
 };
+
+export const updateBlindStatus = async (blind: boolean): Promise<void> => {
+    await api.patch("/api/users/me/blind", { blind });
+};
