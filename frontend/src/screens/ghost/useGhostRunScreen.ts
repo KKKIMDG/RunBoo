@@ -9,13 +9,17 @@ import { encodePath, getDistance, Coordinate } from "@/utils/runUtils";
 import type { GhostProfileDto } from "@/types/ghost";
 import { createRecord } from "@/services/record/recordsService";
 
+// ✅ 저장할 때만 +9시간 보정해서 ISO(UTC)로 보내기
+const toIsoPlus9 = (d: Date) =>
+    new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString();
+
 export function useGhostRunScreen() {
     useKeepAwake();
 
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
 
-    // ✅ [변경] 일반 런과 동일하게 params에서 userId 받기
+    // ✅ params에서 userId / ghost 받기
     const userId = route?.params?.userId;
     const ghost: GhostProfileDto | undefined = route?.params?.ghost;
 
@@ -53,7 +57,9 @@ export function useGhostRunScreen() {
 
     // progress (0~1)
     const progress =
-        ghostTotalDistanceM > 0 ? Math.max(0, Math.min(1, distanceM / ghostTotalDistanceM)) : 0;
+        ghostTotalDistanceM > 0
+            ? Math.max(0, Math.min(1, distanceM / ghostTotalDistanceM))
+            : 0;
 
     // 페이스 비교(+)면 내가 느림, (-)면 내가 빠름
     const paceDiffSec = (currentPaceSec || 0) - ghostAvgPaceSec;
@@ -88,7 +94,10 @@ export function useGhostRunScreen() {
     // 카운트다운
     useEffect(() => {
         if (isReady && countdown > 0) {
-            countdownTimerRef.current = setTimeout(() => setCountdown((p: number) => p - 1), 1000);
+            countdownTimerRef.current = setTimeout(
+                () => setCountdown((p: number) => p - 1),
+                1000
+            );
         } else if (isReady && countdown === 0) {
             setIsReady(false);
             startRun();
@@ -159,6 +168,8 @@ export function useGhostRunScreen() {
 
     // 제어
     const startRun = () => {
+        // 러닝 시작시간은 그냥 찍어두고(UTC든 뭐든 상관없음),
+        // ✅ 저장할 때만 +9 보정해서 보낼거임
         startedAtRef.current = new Date().toISOString();
         setIsRunning(true);
         setIsPaused(false);
@@ -185,10 +196,12 @@ export function useGhostRunScreen() {
         const avgPaceSec = distanceM > 0 ? time / (distanceM / 1000) : 0;
         const calories = Math.floor(distanceM * 0.05);
 
-        // ✅ [변경] 일반 런과 동일: route.params.userId 사용
         const finalUserId = userId ? Number(userId) : 0;
         if (!finalUserId) {
-            Alert.alert("오류", "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)");
+            Alert.alert(
+                "오류",
+                "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)"
+            );
             navigation.navigate("RunResult", {
                 distanceM,
                 durationSec: time,
@@ -199,6 +212,10 @@ export function useGhostRunScreen() {
             return;
         }
 
+        // ✅ 저장 시점에만 +9 보정해서 보낼 startedAt / endedAt 만들기
+        const startedAtDate =
+            startedAtRef.current ? new Date(startedAtRef.current) : new Date(Date.now() - time * 1000);
+
         const requestData = {
             userId: finalUserId,
             mode: "GHOST" as const,
@@ -207,8 +224,10 @@ export function useGhostRunScreen() {
             avgPace: Math.floor(avgPaceSec),
             calories,
             routePolyline: encodePath(routeCoordinates),
-            startedAt: startedAtRef.current ?? new Date(Date.now() - time * 1000).toISOString(),
-            endedAt: new Date().toISOString(),
+
+            // ✅ 핵심: 저장할 때만 +9
+            startedAt: toIsoPlus9(startedAtDate),
+            endedAt: toIsoPlus9(new Date()),
         };
 
         console.log("=========================================");
