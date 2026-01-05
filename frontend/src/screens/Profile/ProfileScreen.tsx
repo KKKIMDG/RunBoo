@@ -151,7 +151,7 @@ export default function ProfileScreen({ navigation }: any) {
             {/* 총 거리 데이터 반영 */}
             <View style={styles.metricBox}>
               <Text style={styles.metricValue}>
-                {profile.userMe?.totalDistance?.toFixed(1) ?? "0.0"}
+                <Text style={styles.metricValue}>임시데이터</Text>
               </Text>
               <Text style={styles.metricSubLabel}>총 KM</Text>
             </View>
@@ -229,17 +229,32 @@ export default function ProfileScreen({ navigation }: any) {
             {/* 오른쪽 범례 (dev 브례 합침) */}
             <View style={styles.grassLegend}>
               <View style={styles.grassLegendItem}>
-                <View style={[styles.grassLegendDot, { backgroundColor: "#efefef" }]} />
+                <View
+                  style={[
+                    styles.grassLegendDot,
+                    { backgroundColor: "#efefef" },
+                  ]}
+                />
                 <Text style={styles.grassLegendText}>없음</Text>
               </View>
 
               <View style={styles.grassLegendItem}>
-                <View style={[styles.grassLegendDot, { backgroundColor: "#9ba4d8" }]} />
+                <View
+                  style={[
+                    styles.grassLegendDot,
+                    { backgroundColor: "#9ba4d8" },
+                  ]}
+                />
                 <Text style={styles.grassLegendText}>5km미만</Text>
               </View>
 
               <View style={styles.grassLegendItem}>
-                <View style={[styles.grassLegendDot, { backgroundColor: "#3A4A98" }]} />
+                <View
+                  style={[
+                    styles.grassLegendDot,
+                    { backgroundColor: "#3A4A98" },
+                  ]}
+                />
                 <Text style={styles.grassLegendText}>5km이상</Text>
               </View>
             </View>
