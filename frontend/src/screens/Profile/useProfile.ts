@@ -7,8 +7,12 @@ import { useUserMe } from "@/contexts/UserMeContext";
 import { useBadge } from "@/screens/Badge/useBadge";
 import { useGrass } from "@/screens/Profile/useGrass";
 
-import { updateMyNickname, updateMyProfileImage } from "@/services/user/userService";
+import {
+  updateMyNickname,
+  updateMyProfileImage,
+} from "@/services/user/userService";
 import { fetchCurrentRunningStreak } from "@/services/record/recordsService";
+import { getUserTierIds } from "@/services/tier/tierService"; // 서비스 임포트
 
 export function useProfile(weeks: number = 12) {
   /* =======================
@@ -33,12 +37,20 @@ export function useProfile(weeks: number = 12) {
   const [streakLoading, setStreakLoading] = useState(false);
 
   /* =======================
+     티어 데이터 (수정됨)
+  ======================= */
+  const [tier5kId, setTier5kId] = useState<number | null>(null);
+  const [tier10kId, setTier10kId] = useState<number | null>(null);
+  const [tierLoading, setTierLoading] = useState(false);
+
+  /* =======================
      파생 데이터
   ======================= */
   const profileImageSource =
-      typeof userMe?.profileImageUrl === "string" && userMe.profileImageUrl.length > 0
-          ? { uri: userMe.profileImageUrl }
-          : require("@/assets/images/runboo.png");
+    typeof userMe?.profileImageUrl === "string" &&
+    userMe.profileImageUrl.length > 0
+      ? { uri: userMe.profileImageUrl }
+      : require("@/assets/images/runboo.png");
 
   /* =======================
      effect
@@ -52,17 +64,40 @@ export function useProfile(weeks: number = 12) {
   useEffect(() => {
     if (!userMe) return;
 
-    const loadStreak = async () => {
+    const loadProfileData = async () => {
       try {
         setStreakLoading(true);
-        const value = await fetchCurrentRunningStreak();
-        setStreak(value);
+        setTierLoading(true);
+
+        // 1. 연속 러닝 스트릭 로드
+        const streakValue = await fetchCurrentRunningStreak();
+        setStreak(streakValue);
+
+        // 2. 티어 ID 리스트 로드 및 분리 저장
+        const tierIds = await getUserTierIds();
+
+        // [콘솔 로그 추가]
+        console.log("전체 티어 ID 리스트:", tierIds);
+
+        if (tierIds && tierIds.length >= 2) {
+          const t5k = tierIds[0];
+          const t10k = tierIds[1];
+          setTier5kId(t5k);
+          setTier10kId(t10k);
+          console.log(`티어 할당 완료 - 5K: ${t5k}, 10K: ${t10k}`);
+        } else if (tierIds && tierIds.length === 1) {
+          setTier5kId(tierIds[0]);
+          console.log(`티어 할당 완료 (5K만 존재): ${tierIds[0]}`);
+        }
+      } catch (error) {
+        console.error("데이터 로드 실패:", error);
       } finally {
         setStreakLoading(false);
+        setTierLoading(false);
       }
     };
 
-    loadStreak();
+    loadProfileData();
   }, [userMe]);
 
   /* =======================
@@ -114,8 +149,8 @@ export function useProfile(weeks: number = 12) {
     });
 
     const { data } = supabase.storage
-        .from("profile-images")
-        .getPublicUrl(filePath);
+      .from("profile-images")
+      .getPublicUrl(filePath);
 
     return data.publicUrl;
   };
@@ -190,6 +225,11 @@ export function useProfile(weeks: number = 12) {
     /* streak */
     streak,
     streakLoading,
+
+    /* tier (추가됨) */
+    tier5kId,
+    tier10kId,
+    tierLoading,
 
     /* grass */
     grassData,
