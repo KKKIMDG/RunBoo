@@ -7,7 +7,6 @@ import {
   useColorScheme,
   Dimensions,
   Alert,
-  SafeAreaView,
   StyleSheet,
 } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
@@ -26,6 +25,7 @@ import { StatBox } from "@/components/StatBox";
 import { RootStackParamList } from "@/navigation/root/RootNavigator";
 import { useRunningVoiceFeedback } from "@/hooks/useRunningVoiceFeedback";
 import * as Speech from "expo-speech";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
