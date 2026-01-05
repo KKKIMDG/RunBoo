@@ -1,10 +1,6 @@
 package com.runboo.domain.user.controller;
 
-import com.runboo.domain.user.dto.NicknameUpdateRequest;
-import com.runboo.domain.user.dto.PasswordChangeRequestDto;
-import com.runboo.domain.user.dto.UserMeResponseDto;
-import com.runboo.domain.user.dto.ProfileImgUpdateRequest;
-import com.runboo.domain.user.dto.PasswordVerifyRequestDto;
+import com.runboo.domain.user.dto.*;
 import com.runboo.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -77,11 +73,15 @@ public class UserController {
 
     /**
      * 계정 탈퇴
-     * DELETE /api/users/me
+     * POST /api/users/me/withdraw
      */
-    @DeleteMapping("/me")
-    public ResponseEntity<Void> withdraw() {
-        userService.withdraw();
-        return ResponseEntity.ok().build();
+    @PostMapping("/me/withdraw")
+    public ResponseEntity<Void> withdraw(
+            @RequestBody(required = false) WithdrawRequest req
+    ) {
+        System.out.println("UserController.withdraw 실행!");
+        userService.withdraw(req);
+        return ResponseEntity.noContent().build();
     }
+
 }

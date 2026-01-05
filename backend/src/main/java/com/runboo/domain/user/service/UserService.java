@@ -3,14 +3,20 @@ package com.runboo.domain.user.service;
 import com.runboo.domain.auth.repository.RefreshTokenRepository;
 import com.runboo.domain.user.dto.PasswordChangeRequestDto;
 import com.runboo.domain.user.dto.UserMeResponseDto;
+import com.runboo.domain.user.dto.WithdrawRequest;
 import com.runboo.domain.user.entity.User;
+import com.runboo.domain.user.entity.UserState;
 import com.runboo.domain.user.enums.SocialProvider;
 import com.runboo.domain.user.repository.UserRepository;
 import com.runboo.global.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -94,10 +100,22 @@ public class UserService {
      * 계정 탈퇴
      */
     @Transactional
-    public void withdraw() {
-        User user = getCurrentUser();
-        userRepository.delete(user);
+    public void withdraw(WithdrawRequest req) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        User user = userRepository.findById(userId).orElseThrow();
+
+        if (!user.isSocialUser()) {
+            if (req == null || !passwordEncoder.matches(req.password(), user.getPassword())) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "비밀번호가 올바르지 않습니다."
+                );
+            }
+        }
+
+        user.withdraw();
     }
+
 
     /**
      * 공통 유저 조회 메서드

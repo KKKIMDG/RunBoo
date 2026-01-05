@@ -44,11 +44,12 @@ public class User {
     private LocalDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
+
     @Column(name = "state")
     private UserState userState;
 
-    @Column(name = "delete_at")
-    private LocalDateTime deleteAt;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserCourse> userCourses = new ArrayList<>();
@@ -92,4 +93,12 @@ public class User {
     public void changePassword(String encodedPassword) {
         this.password = encodedPassword;
     }
+
+    public void withdraw() {
+        if (this.userState == UserState.DELETED) return;
+
+        this.userState = UserState.DELETED;
+        this.deletedAt = LocalDateTime.now();
+    }
+
 }

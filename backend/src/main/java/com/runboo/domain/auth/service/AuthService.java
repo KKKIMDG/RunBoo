@@ -6,6 +6,7 @@ import com.runboo.domain.auth.entity.RefreshToken;
 import com.runboo.domain.auth.repository.RefreshTokenRepository;
 import com.runboo.domain.user.dto.*;
 import com.runboo.domain.user.entity.User;
+import com.runboo.domain.user.entity.UserState;
 import com.runboo.domain.user.enums.SocialProvider;
 import com.runboo.domain.user.repository.UserRepository;
 import com.runboo.global.jwt.JwtTokenProvider;
@@ -57,6 +58,32 @@ public class AuthService {
     }
 
     /**
+     * 이메일 인증 코드 발송
+     */
+    @Transactional
+    public void sendEmailVerifyCode(EmailVerifyRequestDto request) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "이미 가입된 이메일입니다."
+            );
+        }
+
+        String code = emailAuthService.generateCode();
+        emailAuthService.saveCode(request.getEmail(), code);
+        emailAuthService.send(request.getEmail(), code);
+    }
+
+    /**
+     * 이메일 인증 코드 검증
+     */
+    @Transactional
+    public void verifyEmailCode(EmailVerifyCheckRequestDto request) {
+        emailAuthService.verify(request.getEmail(), request.getCode());
+    }
+
+    /**
      * 이메일 로그인
      */
     @Transactional
@@ -74,6 +101,14 @@ public class AuthService {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "소셜 로그인 계정입니다."
+            );
+        }
+
+        // 탈퇴 계정도 없는 취급
+        if (user.getUserState() != UserState.ACTIVATION) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "이메일 또는 비밀번호가 올바르지 않습니다."
             );
         }
 
@@ -103,32 +138,6 @@ public class AuthService {
     }
 
     /**
-     * 이메일 인증 코드 발송
-     */
-    @Transactional
-    public void sendEmailVerifyCode(EmailVerifyRequestDto request) {
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "이미 가입된 이메일입니다."
-            );
-        }
-
-        String code = emailAuthService.generateCode();
-        emailAuthService.saveCode(request.getEmail(), code);
-        emailAuthService.send(request.getEmail(), code);
-    }
-
-    /**
-     * 이메일 인증 코드 검증
-     */
-    @Transactional
-    public void verifyEmailCode(EmailVerifyCheckRequestDto request) {
-        emailAuthService.verify(request.getEmail(), request.getCode());
-    }
-
-    /**
      * 소셜 로그인
      */
     @Transactional
@@ -149,6 +158,13 @@ public class AuthService {
                                 )
                         )
                 );
+
+        if (user.getUserState() != UserState.ACTIVATION) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "탈퇴된 계정입니다. 탈퇴 후 한달 동안 동일 이메일로 가입이 불가합니다."
+            );
+        }
 
         Long userId = user.getId();
         String accessToken = jwtTokenProvider.createAccessToken(userId);
