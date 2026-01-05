@@ -6,7 +6,7 @@ import AuthStack from "../auth/AuthStack";
 import MainStack from "@/navigation/stacks/MainStack";
 
 import RunningScreen from "@/screens/running"; // 일반 러닝
-import TierRunningScreen from "@/screens/running/TierRunningScreen"; // ✅ 티어 전용 러닝 추가
+import TierRunningScreen from "@/screens/running/TierRunningScreen"; // 티어 전용 러닝 추가
 import RunResultScreen from "@/screens/RunResult";
 import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
 import MapFullScreen from "@/screens/Home/MapFullScreen";
@@ -33,14 +33,14 @@ export type RootStackParamList = {
     routeCoordinates: Coordinate[];
   };
   TierResult: {
-    // ✅ 로직 필수 파라미터
+    // 로직 필수 파라미터
     userId?: number;
     recordId: number;
     distanceType: "5k" | "10k";
     achievedTier: string;
-    isStopped?: boolean; // ✅ 측정 중단 여부 파라미터 추가
+    isStopped?: boolean; // 측정 중단 여부 파라미터 추가
 
-    // ✅ 화면 표시용 및 원본 데이터
+    // 화면 표시용 및 원본 데이터
     stats: {
       distance: string;
       time: string;
@@ -78,7 +78,7 @@ export default function RootNavigator({
         options={{ gestureEnabled: false }}
       />
 
-      {/* ✅ 티어 전용 스크린 연결 */}
+      {/* 티어 전용 스크린 연결 */}
       <Stack.Screen
         name="TierRunning"
         component={TierRunningScreen}

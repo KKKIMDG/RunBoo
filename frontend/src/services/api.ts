@@ -83,10 +83,10 @@ const refreshAccessToken = async (): Promise<string | null> => {
  * 공통 request
  */
 const request = async (input: RequestInfo, init: RequestInit, retry = true) => {
-  // ✅ 요청 전 토큰 로드 보장
+  // 요청 전 토큰 로드 보장
   await ensureAccessTokenLoaded();
 
-  // ✅ 최신 토큰 헤더 주입
+  // 최신 토큰 헤더 주입
   const finalInit = {
     ...init,
     headers: {
@@ -96,6 +96,14 @@ const request = async (input: RequestInfo, init: RequestInit, retry = true) => {
   };
 
   const res = await fetch(input, finalInit);
+  // 🔥 회원탈퇴 API는 refresh 금지
+  if (
+      (res.status === 401 || res.status === 403) &&
+      typeof input === "string" &&
+      input.includes("/api/users/me/withdraw")
+  ) {
+    throw { status: res.status, message: "요청에 실패했습니다." };
+  }
 
   // 401, 403 인증 에러 처리
   if (res.status === 401 || res.status === 403) {

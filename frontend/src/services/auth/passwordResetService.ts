@@ -11,7 +11,7 @@ type PasswordResetRequestBody = {
 };
 
 export async function requestPasswordReset(email: string): Promise<void> {
-    await api.post<PasswordResetRequestBody>(
+    await api.post(
         "/api/auth/password/reset-request",
         { email }
     );
@@ -35,7 +35,7 @@ export async function verifyPasswordResetCode(
     email: string,
     code: string
 ): Promise<VerifyPasswordResetResponse> {
-    const res = await api.post<VerifyPasswordResetBody>(
+    const res = await api.post(
         "/api/auth/password/verify",
         { email, code }
     );
