@@ -25,12 +25,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.loginByEmail(request));
     }
 
-    @PostMapping("/login/oauth")
-    public ResponseEntity<LoginResponseDto> socialLogin(
-            @Valid @RequestBody SocialLoginRequestDto request
-    ) {
-        return ResponseEntity.ok(authService.loginBySocial(request));
-    }
+//    @PostMapping("/login/oauth")
+//    public ResponseEntity<LoginResponseDto> socialLogin(
+//            @Valid @RequestBody SocialLoginRequestDto request
+//    ) {
+//        return ResponseEntity.ok(authService.loginBySocial(request));
+//    }
 
     @PostMapping("/signup")
     public ResponseEntity<Void> signupLocal(

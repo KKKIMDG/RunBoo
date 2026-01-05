@@ -250,11 +250,6 @@ public class AuthService {
                 passwordReset.getEmail()
         );
 
-        // 3. 인증 코드 제거
-        //    - 같은 코드 재사용 방지
-        //    - resetToken만 유효한 상태로 전환
-        passwordResetService.delete(passwordReset.getEmail());
-
         return new PasswordResetVerifyResponseDto(resetToken);
     }
     /**
@@ -263,13 +258,6 @@ public class AuthService {
      */
     @Transactional
     public void resetPassword(String resetToken, PasswordResetChangeRequestDto request) {
-
-        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "비밀번호가 일치하지 않습니다."
-            );
-        }
 
         String email = jwtTokenProvider.getEmailFromPasswordResetToken(resetToken);
 
@@ -297,6 +285,11 @@ public class AuthService {
 
         // 기존 로그인 세션 무효화
         refreshTokenRepository.deleteByUserId(user.getId());
+
+        // 인증 코드 제거
+        //    - 같은 코드 재사용 방지
+        //    - resetToken만 유효한 상태로 전환
+        passwordResetService.delete(email);
     }
 }
 
