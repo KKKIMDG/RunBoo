@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,9 @@ import {
   Alert,
   ToastAndroid,
   Platform,
+  StyleSheet,
 } from "react-native";
-import MapView, { Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
 import {
   Ionicons,
@@ -29,6 +30,10 @@ const TierRunningScreen = () => {
   const isDarkMode = useColorScheme() === "dark";
   const styles = getStyles(isDarkMode);
 
+  const mapRef = useRef<MapView>(null);
+  // 수정: 사용자가 지도를 직접 움직였는지 여부를 관리 (자동 추적 활성화 상태)
+  const [isTracking, setIsTracking] = useState(true);
+
   const { state, actions, utils } = useTierRunningScreen();
 
   const {
@@ -36,14 +41,44 @@ const TierRunningScreen = () => {
     time,
     remainingDistance,
     currentPace,
-    routeCoordinates,
     paceHistory,
     isReady,
     countdown,
+    lastLocation,
   } = state;
 
   const { pauseRun, resumeRun, stopTierRunManual } = actions;
   const { formatTime, formatPace } = utils;
+
+  // 1. 카메라 이동 로직: isTracking이 true일 때만 자동으로 내 위치 추적
+  useEffect(() => {
+    if (lastLocation && !isPaused && isTracking && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: lastLocation.latitude,
+          longitude: lastLocation.longitude,
+          latitudeDelta: 0.002,
+          longitudeDelta: 0.002,
+        },
+        1000
+      );
+    }
+  }, [lastLocation, isPaused, isTracking]);
+
+  // 내 위치로 즉시 이동하고 추적 다시 활성화
+  const moveToCurrentLocation = () => {
+    if (lastLocation && mapRef.current) {
+      setIsTracking(true);
+      mapRef.current.animateToRegion(
+        {
+          ...lastLocation,
+          latitudeDelta: 0.002,
+          longitudeDelta: 0.002,
+        },
+        500
+      );
+    }
+  };
 
   const handleStopPress = () => {
     const msg = "종료하려면 버튼을 길게 눌러주세요.";
@@ -51,15 +86,45 @@ const TierRunningScreen = () => {
     else Alert.alert("알림", msg);
   };
 
-  /** 차트 설정 (골드 테마 적용) */
+  /** 차트 설정 */
   const chartConfig = {
     backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
     backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
     decimalPlaces: 1,
-    color: (opacity = 1) => `rgba(255, 215, 0, ${opacity})`, // Gold 포인트
+    color: (opacity = 1) => `rgba(255, 215, 0, ${opacity})`,
     labelColor: () => (isDarkMode ? "#FFF" : "#333"),
     propsForDots: { r: "0" },
   };
+
+  // 2. 지도 메모이제이션 (리로드 방지)
+  const renderedMap = useMemo(
+    () => (
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        provider={PROVIDER_GOOGLE}
+        showsUserLocation={true}
+        followsUserLocation={false}
+        // 사용자가 지도를 직접 움직이면 자동 추적 일시 중지
+        onPanDrag={() => setIsTracking(false)}
+        initialRegion={
+          lastLocation
+            ? {
+                ...lastLocation,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005,
+              }
+            : {
+                latitude: 37.5665,
+                longitude: 126.978,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005,
+              }
+        }
+      />
+    ),
+    []
+  );
 
   return (
     <SafeAreaView
@@ -67,7 +132,6 @@ const TierRunningScreen = () => {
       edges={["top", "left", "right"]}
     >
       <View style={styles.container}>
-        {/* 1. 카운트다운 오버레이 */}
         {isReady && (
           <View style={styles.countdownOverlay}>
             <Text style={[styles.countdownText, { color: "#4A6EA9" }]}>
@@ -89,16 +153,9 @@ const TierRunningScreen = () => {
                 {isPaused ? "일시정지" : "티어 측정 중"}
               </Text>
             </View>
-            <TouchableOpacity style={styles.soundButton}>
-              <Ionicons
-                name="volume-medium"
-                size={24}
-                color={isDarkMode ? "#FFF" : "#333"}
-              />
-            </TouchableOpacity>
           </View>
 
-          {/* 통계 섹션 (티어 전용 아이콘 및 색상) */}
+          {/* 통계 섹션 */}
           <View style={styles.statsContainer}>
             <StatBox
               icon={<Ionicons name="time-outline" size={24} color="#4A6EA9" />}
@@ -126,7 +183,7 @@ const TierRunningScreen = () => {
             />
           </View>
 
-          {/* 페이스 분석 차트 */}
+          {/* 페이스 차트 */}
           <View style={styles.chartCard}>
             <View style={styles.chartTitleContainer}>
               <Ionicons
@@ -157,50 +214,40 @@ const TierRunningScreen = () => {
               withVerticalLabels={false}
               withHorizontalLabels={false}
             />
-            <View style={styles.chartLabels}>
-              <Text style={styles.chartLabelText}>시작</Text>
-              <Text style={styles.chartLabelText}>
-                현재: {formatPace(currentPace)}/km
-              </Text>
-            </View>
           </View>
 
-          {/* 지도 섹션 */}
+          {/* 지도 섹션 및 토글 버튼 */}
           <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              provider={PROVIDER_GOOGLE}
-              showsUserLocation
-              followsUserLocation={!isPaused}
-              region={
-                routeCoordinates.length > 0
-                  ? {
-                      latitude:
-                        routeCoordinates[routeCoordinates.length - 1].latitude,
-                      longitude:
-                        routeCoordinates[routeCoordinates.length - 1].longitude,
-                      latitudeDelta: 0.005,
-                      longitudeDelta: 0.005,
-                    }
-                  : undefined
-              }
+            {renderedMap}
+
+            {/* 수정: 내 위치 토글 버튼 */}
+            <TouchableOpacity
+              style={[
+                customStyles.locationButton,
+                {
+                  backgroundColor: isTracking
+                    ? "#4A6EA9"
+                    : isDarkMode
+                    ? "#333"
+                    : "#FFF",
+                },
+              ]}
+              onPress={moveToCurrentLocation}
             >
-              <Polyline
-                coordinates={routeCoordinates}
-                strokeColor="#4A6EA9"
-                strokeWidth={5}
+              <MaterialCommunityIcons
+                name="crosshairs-gps"
+                size={24}
+                color={isTracking ? "#FFF" : isDarkMode ? "#AAA" : "#333"}
               />
-            </MapView>
+            </TouchableOpacity>
           </View>
         </ScrollView>
 
-        {/* 3. 하단 컨트롤러 (준비 중이 아닐 때만 표시) */}
         {!isReady && (
           <View style={styles.controlContainer}>
             <TouchableOpacity
               style={styles.pauseButton}
               onPress={isPaused ? resumeRun : pauseRun}
-              activeOpacity={0.7}
             >
               <Ionicons
                 name={isPaused ? "play" : "pause"}
@@ -213,7 +260,6 @@ const TierRunningScreen = () => {
               onPress={handleStopPress}
               onLongPress={stopTierRunManual}
               delayLongPress={1000}
-              activeOpacity={0.8}
             >
               <View
                 style={{
@@ -230,5 +276,24 @@ const TierRunningScreen = () => {
     </SafeAreaView>
   );
 };
+
+// 추가 스타일
+const customStyles = StyleSheet.create({
+  locationButton: {
+    position: "absolute",
+    right: 15,
+    bottom: 15,
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+});
 
 export default TierRunningScreen;

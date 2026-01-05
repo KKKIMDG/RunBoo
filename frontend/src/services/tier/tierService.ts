@@ -22,3 +22,11 @@ export const updateUserTier = async (tierId: number, distanceType: string) => {
     {}
   );
 };
+
+/**
+ * 3. 유저가 보유한 티어 ID 리스트 조회 (GET)
+ * 최신 Swagger 명세(image_64476b.png)에 따라 숫자 배열(number[])을 반환합니다.
+ */
+export const getUserTierIds = (): Promise<number[]> => {
+  return api.get("/api/user-tier/");
+};

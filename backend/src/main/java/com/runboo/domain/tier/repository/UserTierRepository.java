@@ -6,9 +6,12 @@ import com.runboo.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface UserTierRepository extends JpaRepository<UserTier, Long> {
     Optional<UserTier> findByUserAndDistanceType(User user, UserTier.DistanceType distanceEnum);
+
+    List<UserTier> findByUserId(Long userId);
 }
