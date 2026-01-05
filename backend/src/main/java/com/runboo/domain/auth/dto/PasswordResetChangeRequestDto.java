@@ -9,6 +9,4 @@ public class PasswordResetChangeRequestDto {
     @NotBlank
     private String newPassword;
 
-    @NotBlank
-    private String confirmPassword;
 }

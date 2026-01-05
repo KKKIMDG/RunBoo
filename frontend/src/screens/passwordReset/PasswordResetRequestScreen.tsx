@@ -10,16 +10,16 @@ export default function PasswordResetRequestScreen({ navigation }: any) {
         const value = email.trim();
 
         if (!value) {
-            Alert.alert("이메일을 입력하세요");
+            Alert.alert("입력 형식 오류","이메일을 입력하세요.");
             return;
         }
 
         setLoading(true);
         try {
-            // ✅ 1단계: 인증 코드 요청 (서비스에 위임)
+            // 1단계: 인증 코드 요청 (서비스에 위임)
             await requestPasswordReset(value);
 
-            // ✅ 성공 시 2단계로 이동
+            // 성공 시 2단계로 이동
             navigation.navigate("PasswordResetVerify", { email: value });
         } catch (e: any) {
             Alert.alert(

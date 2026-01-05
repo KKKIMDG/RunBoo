@@ -4,6 +4,7 @@ import LoginContainer from '@/screens/Login/LoginContainer';
 import SignUpScreen from '@/screens/signup/SignupScreen';
 import PasswordResetRequestScreen from "@/screens/passwordReset/PasswordResetRequestScreen";
 import PasswordResetVerifyScreen from "@/screens/passwordReset/PasswordResetVerifyScreen";
+import PasswordResetChangeScreen from "@/screens/passwordReset/PasswordResetChangeScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,10 @@ export default function AuthStack({ onLoginSuccess }: any) {
             <Stack.Screen
                 name="PasswordResetVerify"
                 component={PasswordResetVerifyScreen}
+            />
+            <Stack.Screen
+                name="PasswordResetChange"
+                component={PasswordResetChangeScreen}
             />
         </Stack.Navigator>
     );

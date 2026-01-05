@@ -106,7 +106,7 @@ const LoginScreen: FC<LoginScreenProps> = ({
             <View style={styles.signupContainer}>
                 <Text style={styles.signupText}>비밀번호를 잃어버리셨나요?</Text>
                 <TouchableOpacity onPress={PasswordReset} style={styles.signupButton}>
-                    <Text style={styles.signupButtonText}>비밀번호 찾기</Text>
+                    <Text style={styles.signupButtonText}>비밀번호 재설정</Text>
                 </TouchableOpacity>
             </View>
         </View>

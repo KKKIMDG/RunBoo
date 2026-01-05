@@ -125,7 +125,7 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(token);
 
         if (!"PASSWORD_RESET".equals(claims.get("type"))) {
-            throw new IllegalArgumentException("비밀번호 재설정 토큰이 아닙니다.");
+            throw new JwtException("Invalid password reset token");
         }
 
         return claims.getSubject(); // email
