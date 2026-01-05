@@ -1,162 +1,37 @@
-// ProfileScreen.tsx
-import React, {useState} from "react";
+// screens/Profile/ProfileScreen.tsx
+import React from "react";
 import {
     View,
     Text,
     ScrollView,
     TouchableOpacity,
     Image,
-    StyleSheet,
-    ActivityIndicator, TextInput,
+    ActivityIndicator,
+    TextInput,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { supabase } from "@/lib/supabase";
-import { updateMyProfileImage } from "@/services/user/userService";
-
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 import BackButton from "@/components/ui/BackButton";
 import { styles } from "./ProfileScreen.styles";
-import { useBadge } from "@/screens/Badge/useBadge";
-import { fetchCurrentRunningStreak } from "@/services/record/recordsService";
-import { updateMyNickname } from "@/services/user/userService";
-import { useGrass } from "@/screens/Profile/useGrass";
-import {useMe} from "@/hooks/useMe";
+import { useProfile } from "./useProfile";
 
 export default function ProfileScreen({ navigation }: any) {
-    // 로그인 유저 기준 배지 로드
-    const { me, loading: meLoading, refetch  } = useMe();
-    const { badges, badgeCount, loading: badgeLoading } = useBadge();
-    const [streak, setStreak] = useState<number | null>(null);
-    const [streakLoading, setStreakLoading] = useState(false);
-    const { data: grassData, levelMap, loading: grassLoading } = useGrass(12);
-    const [isEditingNickname, setIsEditingNickname] = useState(false);
-    const [nicknameInput, setNicknameInput] = useState("");
-    const [saving, setSaving] = useState(false);
-
-    const profileImageSource =
-        typeof me?.profileImageUrl === "string" && me.profileImageUrl.length > 0
-            ? { uri: me.profileImageUrl }
-            : require("@/assets/images/runboo.png");
-
-    React.useEffect(() => {
-        if (me?.nickname) {
-            setNicknameInput(me.nickname);
-        }
-    }, [me?.nickname]);
-
-    React.useEffect(() => {
-        if (!me) return;
-
-        const loadStreak = async () => {
-            try {
-                setStreakLoading(true);
-                const value = await fetchCurrentRunningStreak();
-                setStreak(value);
-            } finally {
-                setStreakLoading(false);
-            }
-        };
-
-        loadStreak();
-    }, [me]);
-    const handleSaveNickname = async () => {
-        if (!nicknameInput.trim()) return;
-
-        try {
-            setSaving(true);
-            await updateMyNickname(nicknameInput.trim());
-            await refetch();
-            setIsEditingNickname(false);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setSaving(false);
-        }
-    };
-    const pickImage = async () => {
-        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!permission.granted) return;
-
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.8,
-        });
-
-        if (result.canceled) return;
-        return result.assets[0];
-    };
-
-    const uploadProfileImage = async (image: ImagePicker.ImagePickerAsset) => {
-        if (!me?.userId) throw new Error("사용자 정보가 없습니다");
-
-        const filePath = `${me.userId}_${Date.now()}.jpg`;
-
-        const fileResponse = await fetch(image.uri);
-        const arrayBuffer = await fileResponse.arrayBuffer();
-
-        const { error } = await supabase.storage
-            .from("profile-images")
-            .upload(filePath, arrayBuffer, {
-                upsert: true,
-                contentType: image.mimeType ?? "image/jpeg",
-            });
-
-        if (error) throw error;
-
-        const { data } = supabase.storage
-            .from("profile-images")
-            .getPublicUrl(filePath);
-
-        return data.publicUrl;
-    };
-
-
-    const handleChangeProfileImage = async () => {
-        try {
-            const image = await pickImage();
-            if (!image || !me) return;
-
-            setSaving(true);
-
-            const imageUrl = await uploadProfileImage(image);
-
-            await updateMyProfileImage(imageUrl);
-            await refetch(); // ⭐️ 중요
-
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setSaving(false);
-        }
-    };
-
+    const profile = useProfile(12);
 
     return (
         <SafeAreaView style={styles.safeArea}>
             {/* ===== 헤더 ===== */}
             <View style={styles.headerContainer}>
-                {/* 왼쪽 */}
-                <View>
-                    <BackButton />
-                </View>
-
-                {/* 가운데 */}
+                <BackButton />
                 <Text style={styles.headerTitle}>프로필</Text>
-
-                {/* 오른쪽 */}
-                <View>
-                    <TouchableOpacity
-                        style={styles.headerRightIcon}
-                        onPress={() => navigation.navigate("Settings")}
-                    >
-                        <Ionicons name="settings-outline" size={24} color="#333" />
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                    style={styles.headerRightIcon}
+                    onPress={() => navigation.navigate("Settings")}
+                >
+                    <Ionicons name="settings-outline" size={24} color="#333" />
+                </TouchableOpacity>
             </View>
-
 
             <ScrollView
                 style={styles.container}
@@ -165,51 +40,58 @@ export default function ProfileScreen({ navigation }: any) {
             >
                 {/* ===== 티어 결과 버튼 ===== */}
                 <TouchableOpacity
-                    style={tempStyles.tierButton}
-                    onPress={() =>
-                        navigation.navigate("TierResult")
-                    }
+                    style={styles.tierButton}
+                    onPress={() => navigation.navigate("TierResult")}
                 >
                     <Ionicons name="analytics-outline" size={14} color="#FFF" />
-                    <Text style={tempStyles.tierButtonText}>티어 결과 확인</Text>
+                    <Text style={styles.tierButtonText}>티어 결과 확인</Text>
                 </TouchableOpacity>
 
                 {/* ===== 유저 카드 ===== */}
                 <View style={styles.card}>
                     <View style={styles.userHeaderRow}>
-                        {meLoading ? (
+                        {profile.meLoading ? (
                             <>
                                 <View style={styles.profileImagePlaceholder}>
                                     <ActivityIndicator size="small" color="#3A4A98" />
                                 </View>
-                                <View style={{ width: 80, height: 18, backgroundColor: "#EEE", borderRadius: 4 }} />
+                                <View
+                                    style={{
+                                        width: 80,
+                                        height: 18,
+                                        backgroundColor: "#EEE",
+                                        borderRadius: 4,
+                                    }}
+                                />
                             </>
                         ) : (
                             <>
+                                {/* 프로필 이미지 */}
                                 <TouchableOpacity
                                     style={styles.profileImagePlaceholder}
-                                    onPress={handleChangeProfileImage}
-                                    disabled={saving}
+                                    onPress={profile.changeProfileImage}
+                                    disabled={profile.saving}
                                 >
                                     <Image
-                                        source={profileImageSource}
+                                        source={profile.profileImageSource}
                                         style={styles.profileImage}
                                         resizeMode="contain"
                                     />
 
-                                    {saving && (
+                                    {profile.imageLoading && (
                                         <View style={styles.profileImageOverlay}>
                                             <ActivityIndicator color="#FFF" />
                                         </View>
                                     )}
                                 </TouchableOpacity>
 
+                                {/* 닉네임 */}
                                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                                    {isEditingNickname ? (
+                                    {profile.isEditingNickname ? (
                                         <>
                                             <TextInput
-                                                value={nicknameInput}
-                                                onChangeText={setNicknameInput}
+                                                value={profile.nicknameInput}
+                                                onChangeText={profile.setNicknameInput}
                                                 style={[
                                                     styles.userName,
                                                     {
@@ -224,23 +106,27 @@ export default function ProfileScreen({ navigation }: any) {
                                             />
 
                                             <TouchableOpacity
-                                                onPress={handleSaveNickname}
-                                                disabled={saving}
+                                                onPress={profile.saveNickname}
+                                                disabled={profile.saving}
                                                 style={{ marginLeft: 6 }}
                                             >
                                                 <Ionicons
                                                     name="checkmark-circle"
                                                     size={25}
-                                                    color={saving ? "#AAA" : "#3A4A98"}
+                                                    color={profile.saving ? "#AAA" : "#3A4A98"}
                                                 />
                                             </TouchableOpacity>
                                         </>
                                     ) : (
                                         <>
-                                            <Text style={styles.userName}>{me?.nickname}</Text>
+                                            <Text style={styles.userName}>
+                                                {profile.userMe?.nickname}
+                                            </Text>
 
                                             <TouchableOpacity
-                                                onPress={() => setIsEditingNickname(true)}
+                                                onPress={() =>
+                                                    profile.setIsEditingNickname(true)
+                                                }
                                                 style={{ marginLeft: 6 }}
                                             >
                                                 <Ionicons
@@ -252,18 +138,16 @@ export default function ProfileScreen({ navigation }: any) {
                                         </>
                                     )}
                                 </View>
-
                             </>
                         )}
                     </View>
-
 
                     {/* ===== 주요 지표 ===== */}
                     <View style={styles.metricsRow}>
                         <View style={styles.metricBox}>
                             <View
                                 style={[
-                                    styles.metricIconPlaceholder, //티어 이미지 들어가야함
+                                    styles.metricIconPlaceholder,
                                     { backgroundColor: "#F3E5D8" },
                                 ]}
                             />
@@ -273,7 +157,7 @@ export default function ProfileScreen({ navigation }: any) {
                         <View style={styles.metricBox}>
                             <View
                                 style={[
-                                    styles.metricIconPlaceholder,//티어 이미지 들어가야함
+                                    styles.metricIconPlaceholder,
                                     { backgroundColor: "#B3E5FC" },
                                 ]}
                             />
@@ -302,10 +186,10 @@ export default function ProfileScreen({ navigation }: any) {
                     </View>
 
                     <View style={styles.badgeList}>
-                        {badgeLoading ? (
+                        {profile.badgeLoading ? (
                             <ActivityIndicator size="small" color="#3A4A98" />
-                        ) : badges.length > 0 ? (
-                            badges.map((userBadge) => (
+                        ) : profile.badges.length > 0 ? (
+                            profile.badges.map((userBadge) => (
                                 <View
                                     key={userBadge.userBadgeId}
                                     style={styles.badgeIconPlaceholder}
@@ -334,7 +218,9 @@ export default function ProfileScreen({ navigation }: any) {
                         <View>
                             <Text style={styles.miniStatLabel}>연속 일수</Text>
                             <Text style={styles.miniStatValue}>
-                                {streakLoading ? "-" : (streak ?? "-")}
+                                {profile.streakLoading
+                                    ? "-"
+                                    : profile.streak ?? "-"}
                             </Text>
                         </View>
                     </View>
@@ -345,79 +231,69 @@ export default function ProfileScreen({ navigation }: any) {
                         </View>
                         <View>
                             <Text style={styles.miniStatLabel}>배지 갯수</Text>
-                            <Text style={styles.miniStatValue}>{badgeCount}</Text>
+                            <Text style={styles.miniStatValue}>
+                                {profile.badgeCount}
+                            </Text>
                         </View>
                     </View>
                 </View>
 
                 {/* ===== 활동 잔디 ===== */}
                 <View style={styles.card}>
-                    <View style={headerRowStyle}>
-                        <Text style={[styles.headerTitle, { fontSize: 16 }]}>활동 잔디</Text>
-
-                        <View style={styles.legendContainer}>
-                            <View style={styles.legendItem}>
-                                <View
-                                    style={[styles.legendBox, { backgroundColor: "#F1F3F5" }]}
-                                />
-                                <Text style={styles.legendText}>없음</Text>
-                            </View>
-                            <View style={styles.legendItem}>
-                                <View
-                                    style={[
-                                        styles.legendBox,
-                                        { backgroundColor: "rgba(58, 74, 152, 0.3)" },
-                                    ]}
-                                />
-                                <Text style={styles.legendText}>5km미만</Text>
-                            </View>
-                            <View style={styles.legendItem}>
-                                <View
-                                    style={[styles.legendBox, { backgroundColor: "#3A4A98" }]}
-                                />
-                                <Text style={styles.legendText}>5km이상</Text>
-                            </View>
-                        </View>
+                    <View style={styles.headerRow}>
+                        <Text style={[styles.headerTitle, { fontSize: 16 }]}>
+                            활동 잔디
+                        </Text>
                     </View>
 
                     <View style={styles.grassGrid}>
-                        {grassLoading ? (
+                        {profile.grassLoading ? (
                             <ActivityIndicator size="small" color="#3A4A98" />
-                        ) : grassData ? (
+                        ) : profile.grassData ? (
                             <View style={styles.grassColumns}>
-                                {buildGrassColumns12Weeks(
-                                    grassData.startDate,
-                                    grassData.endDate
-                                ).map((weekCol, weekIndex) => (
-                                    <View key={`w-${weekIndex}`} style={styles.grassColumn}>
-                                        {weekCol.map((dateStrOrNull, dayIndex) => {
-                                            // ✅ 미래(오늘 이후)는 '칸 자체를 숨김' (테두리/배경 없음)
-                                            if (!dateStrOrNull) {
+                                {profile
+                                    .buildGrassColumns12Weeks(
+                                        profile.grassData.startDate,
+                                        profile.grassData.endDate
+                                    )
+                                    .map((weekCol, weekIndex) => (
+                                        <View
+                                            key={`w-${weekIndex}`}
+                                            style={styles.grassColumn}
+                                        >
+                                            {weekCol.map((date, dayIndex) => {
+                                                if (!date) {
+                                                    return (
+                                                        <View
+                                                            key={`empty-${weekIndex}-${dayIndex}`}
+                                                            style={
+                                                                styles.grassCellInvisible
+                                                            }
+                                                        />
+                                                    );
+                                                }
+
+                                                const level =
+                                                    profile.levelMap.get(date) ?? 0;
+                                                const bg =
+                                                    level === 2
+                                                        ? "#3A4A98"
+                                                        : level === 1
+                                                            ? "#9ba4d8"
+                                                            : "#efefef";
+
                                                 return (
                                                     <View
-                                                        key={`future-${weekIndex}-${dayIndex}`}
-                                                        style={styles.grassCellInvisible}
+                                                        key={date}
+                                                        style={[
+                                                            styles.grassCell,
+                                                            { backgroundColor: bg },
+                                                        ]}
                                                     />
                                                 );
-                                            }
-
-                                            const level = levelMap.get(dateStrOrNull) ?? 0;
-                                            const bg =
-                                                level === 2
-                                                    ? "#3A4A98"
-                                                    : level === 1
-                                                        ? "#9ba4d8"
-                                                        : "#efefef";
-
-                                            return (
-                                                <View
-                                                    key={dateStrOrNull}
-                                                    style={[styles.grassCell, { backgroundColor: bg }]}
-                                                />
-                                            );
-                                        })}
-                                    </View>
-                                ))}
+                                            })}
+                                        </View>
+                                    ))}
                             </View>
                         ) : (
                             <Text style={{ color: "#999", fontSize: 12 }}>
@@ -434,80 +310,4 @@ export default function ProfileScreen({ navigation }: any) {
             </ScrollView>
         </SafeAreaView>
     );
-}
-
-/* ===== 로컬 스타일 ===== */
-
-const headerRowStyle = {
-    flexDirection: "row" as const,
-    justifyContent: "space-between" as const,
-    alignItems: "center" as const,
-    marginBottom: 12,
-};
-
-const tempStyles = StyleSheet.create({
-    tierButton: {
-        backgroundColor: "#6366F1",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 10,
-        marginBottom: 12,
-        alignSelf: "flex-start",
-    },
-    tierButtonText: {
-        color: "#FFF",
-        fontSize: 12,
-        fontWeight: "bold",
-        marginLeft: 6,
-    },
-});
-
-/**
-활동 잔디
- */
-// function buildGrassColumns12Weeks(startDate: string, endDate: string) {
-//     const start = new Date(startDate + "T00:00:00");
-//     const end = new Date(endDate + "T00:00:00");
-//
-//     const columns: (string | null)[][] = [];
-//
-//     for (let w = 0; w < 12; w++) {
-//         const col: (string | null)[] = [];
-//         for (let d = 0; d < 7; d++) {
-//             const cur = new Date(start);
-//             cur.setDate(start.getDate() + w * 7 + d);
-//
-//             if (cur > end) col.push(null);
-//             else col.push(cur.toISOString().slice(0, 10));
-//         }
-//         columns.push(col);
-//     }
-//
-//     return columns;
-// }
-
-function buildGrassColumns12Weeks(startDate: string, endDate: string) {
-    // ✅ 1) UTC 기준으로 파싱 (Z 붙이기)
-    const start = new Date(startDate + "T00:00:00Z");
-    const end = new Date(endDate + "T00:00:00Z");
-
-    const columns: (string | null)[][] = [];
-
-    for (let w = 0; w < 12; w++) {
-        const col: (string | null)[] = [];
-        for (let d = 0; d < 7; d++) {
-            // ✅ 2) start.getTime() 기반으로 날짜 더하기 (UTC/플랫폼 차이 최소화)
-            const cur = new Date(start.getTime() + (w * 7 + d) * 24 * 60 * 60 * 1000);
-
-            // ✅ 3) 비교도 time으로 (시간대 이슈 제거)
-            if (cur.getTime() > end.getTime()) col.push(null);
-            else col.push(cur.toISOString().slice(0, 10)); // ✅ UTC에서 만든 key
-        }
-        columns.push(col);
-    }
-
-    return columns;
 }

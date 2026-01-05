@@ -1,6 +1,7 @@
 package com.runboo.domain.auth.service;
 
 import com.runboo.domain.auth.dto.*;
+import com.runboo.domain.auth.entity.PasswordReset;
 import com.runboo.domain.auth.entity.RefreshToken;
 import com.runboo.domain.auth.repository.RefreshTokenRepository;
 import com.runboo.domain.user.dto.*;
@@ -28,7 +29,7 @@ public class AuthService {
     private final EmailAuthService emailAuthService;
     private final SocialOAuthService socialOAuthService;
     private final RefreshTokenRepository refreshTokenRepository;
-
+    private final PasswordResetService passwordResetService;
     /**
      * 로컬 회원가입
      */
@@ -207,4 +208,95 @@ public class AuthService {
         return jwtTokenProvider.createAccessToken(userId);
     }
 
+
+    /**
+     * 비밀번호 재설정 요청 (1단계)
+     */
+    @Transactional
+    public void requestPasswordReset(PasswordResetRequestDto request) {
+
+        userRepository.findByEmail(request.getEmail())
+                .ifPresent(user -> {
+                    // 소셜 계정은 내부적으로만 차단
+                    if (user.isSocialUser()) return;
+
+                    String code = passwordResetService.generateCode();
+                    passwordResetService.saveCode(request.getEmail(), code);
+                    passwordResetService.sendMail(request.getEmail(), code);
+                });
+
+        // 존재하지 않는 이메일도 항상 성공 처리
+    }
+    /**
+     * 비밀번호 재설정 코드 검증 (2단계)
+     *
+     * 처리 흐름
+     * 1. 이메일 + 코드 검증
+     * 2. 성공 시 resetToken 발급
+     * 3. 인증 코드 즉시 삭제 (재사용 방지)
+     */
+    @Transactional
+    public PasswordResetVerifyResponseDto verifyPasswordResetCode(
+            PasswordResetVerifyRequestDto request
+    ) {
+        // 1. 코드 검증 (만료 + 일치 여부)
+        PasswordReset passwordReset = passwordResetService.verifyCode(
+                request.getEmail(),
+                request.getCode()
+        );
+
+        // 2. 비밀번호 재설정 전용 토큰 발급
+        String resetToken = jwtTokenProvider.createPasswordResetToken(
+                passwordReset.getEmail()
+        );
+
+        // 3. 인증 코드 제거
+        //    - 같은 코드 재사용 방지
+        //    - resetToken만 유효한 상태로 전환
+        passwordResetService.delete(passwordReset.getEmail());
+
+        return new PasswordResetVerifyResponseDto(resetToken);
+    }
+    /**
+     * 비밀번호 재설정 (3단계)
+     * - resetToken 검증 후 새 비밀번호로 변경
+     */
+    @Transactional
+    public void resetPassword(String resetToken, PasswordResetChangeRequestDto request) {
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "비밀번호가 일치하지 않습니다."
+            );
+        }
+
+        String email = jwtTokenProvider.getEmailFromPasswordResetToken(resetToken);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "사용자를 찾을 수 없습니다."
+                ));
+
+        if (user.getSocialProvider() != SocialProvider.LOCAL) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다."
+            );
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "기존 비밀번호와 다른 비밀번호를 입력해 주세요."
+            );
+        }
+
+        user.changePassword(passwordEncoder.encode(request.getNewPassword()));
+
+        // 기존 로그인 세션 무효화
+        refreshTokenRepository.deleteByUserId(user.getId());
+    }
 }
+

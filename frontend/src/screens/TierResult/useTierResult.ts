@@ -1,96 +1,121 @@
-import { useState, useEffect, useCallback } from "react";
-import { Alert, View } from "react-native";
-import { evaluateTier } from "@/services/tier/tierService";
-import { TierData } from "@/types/tier";
-import {
-    TIER_NAME_MAP,
-    ServerTierName,
-    TierName,
-} from "./TierResult.constants";
+import { useState, useEffect, useRef } from "react";
+import { Alert, Share } from "react-native";
 import { captureRef } from "react-native-view-shot";
-import * as Sharing from "expo-sharing";
+import { updateUserTier, evaluateTier } from "@/services/tier/tierService";
+import {
+  TIER_THEMES,
+  TIER_NAME_MAP,
+  TierName,
+  ServerTierName,
+} from "./TierResult.constants";
 
-export const useTierResult = (
-    navigation: any,
-    route: any,
-    viewRef: React.RefObject<View | null>
-) => {
-    const [tierData, setTierData] = useState<TierData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+export const useTierResult = (navigation: any, route: any, viewRef: any) => {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [tierName, setTierName] = useState<TierName | null>(null);
+  const [tierData, setTierData] = useState<any>(null);
+  const hasSaved = useRef(false);
 
-    // ✅ 티어 평가에 필요한 최소 파라미터만 유지
-    const recordId = route?.params?.recordId;
-    const distanceType = route?.params?.distanceType || "5k";
+  // route.params에서 데이터 추출
+  const { recordId, distanceType, achievedTier } = route.params ?? {};
 
-    // 서버 티어명 → 프론트 티어 키 매핑
-    const tierName: TierName | null = tierData
-        ? TIER_NAME_MAP[tierData.name as ServerTierName]
-        : null;
+  useEffect(() => {
+    const initializeData = async () => {
+      const targetRecordId = recordId || 192;
+      // 5k, 10k 규격화
+      const distType = distanceType?.toLowerCase().includes("10")
+        ? "10k"
+        : "5k";
 
-    const fetchData = useCallback(async () => {
-        if (!recordId) {
-            setError("유효하지 않은 측정 기록입니다.");
-            setLoading(false);
-            return;
+      try {
+        setLoading(true);
+        setError(false);
+
+        // 🔍 [Step 1] 티어 데이터 조회 (화면 표시용)
+        const response = await evaluateTier({
+          recordId: targetRecordId,
+          distanceType: distType,
+        });
+
+        if (response && response.name) {
+          const serverName = response.name as ServerTierName;
+          const mappedTierName = TIER_NAME_MAP[serverName];
+
+          if (mappedTierName && TIER_THEMES[mappedTierName]) {
+            setTierData(response);
+            setTierName(mappedTierName);
+          } else {
+            setTierName("rubber"); // Fallback
+          }
+
+          // 🚀 [Step 2] 조회가 잘 되면 유저 티어 테이블에 최종 저장
+          if (!hasSaved.current) {
+            hasSaved.current = true;
+            await saveUserTierProcess(distType, achievedTier);
+          }
+        } else {
+          throw new Error("Invalid Response");
         }
-
-        try {
-            setLoading(true);
-            setError(null);
-
-            // ✅ 티어 평가만 수행
-            const tierResponse = await evaluateTier({
-                distanceType,
-                recordId,
-            });
-
-            console.log("받아온 티어 데이터:", tierResponse);
-            setTierData(tierResponse);
-        } catch (err: any) {
-            console.error("티어 평가 API 에러:", err);
-            setError("티어 정보를 불러오는 데 실패했습니다.");
-        } finally {
-            setLoading(false);
-        }
-    }, [recordId, distanceType]);
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    // 📸 공유 로직 (캡처 전용 책임)
-    const handleShare = async () => {
-        try {
-            if (!viewRef.current) return;
-
-            const uri = await captureRef(viewRef, {
-                format: "png",
-                quality: 0.9,
-            });
-
-            const isAvailable = await Sharing.isAvailableAsync();
-            if (!isAvailable) {
-                Alert.alert("알림", "공유 기능을 사용할 수 없는 기기입니다.");
-                return;
-            }
-
-            await Sharing.shareAsync(uri, {
-                mimeType: "image/png",
-                dialogTitle: "나의 러닝 기록 자랑하기",
-                UTI: "public.png",
-            });
-        } catch (error) {
-            console.error("공유 중 오류 발생:", error);
-            Alert.alert("오류", "이미지 생성 중 문제가 발생했습니다.");
-        }
+      } catch (e) {
+        console.error("❌ 티어 로드 실패:", e);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    return {
-        tierName,
-        tierData,
-        loading,
-        error,
-        handleShare,
-    };
+    initializeData();
+  }, [recordId]);
+
+  /**
+   * ✅ 거리별 티어 ID 매핑 로직
+   * 5k (Offset 0): 1(크리스탈)~6(맨발)
+   * 10k (Offset 6): 7(크리스탈)~12(맨발)
+   */
+  const saveUserTierProcess = async (distType: string, tierText: string) => {
+    try {
+      const is10k = distType.includes("10");
+      const formattedDist = is10k ? "KM_10" : "KM_5";
+      const offset = is10k ? 6 : 0; // 10k면 ID가 7부터 시작하도록 6을 더함
+
+      let relativeId = 6; // 기본값(맨발)
+
+      if (tierText.includes("크리스탈")) relativeId = 1;
+      else if (tierText.includes("구두")) relativeId = 2;
+      else if (tierText.includes("고무신")) relativeId = 3;
+      else if (tierText.includes("슬리퍼")) relativeId = 4;
+      else if (tierText.includes("짚신")) relativeId = 5;
+      else if (tierText.includes("맨발")) relativeId = 6;
+
+      const finalTierId = relativeId + offset;
+
+      console.log("====================================================");
+      console.log(`🚀 [SAVE] 서버 저장 데이터 확인`);
+      console.log(`📍 거리타입: ${formattedDist}`);
+      console.log(`📍 티어명: ${tierText}`);
+      console.log(
+        `📍 최종 티어 ID: ${finalTierId} (${is10k ? "10k 모드" : "5k 모드"})`
+      );
+      console.log("====================================================");
+
+      await updateUserTier(finalTierId, formattedDist);
+      console.log("✅ 유저 티어 저장 성공");
+    } catch (err) {
+      console.error("❌ 유저 티어 저장 실패:", err);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      const uri = await captureRef(viewRef, { format: "png", quality: 0.8 });
+      await Share.share({
+        url: uri,
+        message: "나의 러닝 티어를 확인해보세요!",
+      });
+    } catch (e) {
+      Alert.alert("공유 실패", "이미지를 생성할 수 없습니다.");
+    }
+  };
+
+  return { tierName, tierData, loading, error, handleShare };
 };

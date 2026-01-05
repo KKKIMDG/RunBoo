@@ -2,6 +2,8 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginContainer from '@/screens/Login/LoginContainer';
 import SignUpScreen from '@/screens/signup/SignupScreen';
+import PasswordResetRequestScreen from "@/screens/passwordReset/PasswordResetRequestScreen";
+import PasswordResetVerifyScreen from "@/screens/passwordReset/PasswordResetVerifyScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -20,6 +22,14 @@ export default function AuthStack({ onLoginSuccess }: any) {
             <Stack.Screen
                 name="SignUp"
                 component={SignUpScreen}
+            />
+            <Stack.Screen
+                name="PasswordReset"
+                component={PasswordResetRequestScreen}
+            />
+            <Stack.Screen
+                name="PasswordResetVerify"
+                component={PasswordResetVerifyScreen}
             />
         </Stack.Navigator>
     );

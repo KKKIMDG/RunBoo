@@ -76,9 +76,7 @@ export default function StatsScreen() {
                             <>
                                 <MonthlyChart monthly={stats.monthly} />
                                 <WeeklyChart weekly={stats.weekly} />
-                                <PersonalBestList
-                                    pb={stats.personalBests}
-                                />
+                                <PersonalBestList pb={stats.personalBests} />
                             </>
                         )
                     }

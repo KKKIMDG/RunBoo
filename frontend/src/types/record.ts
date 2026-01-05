@@ -42,14 +42,25 @@ export type DashboardStatsDto = {
 };
 
 export type GrassDayDto = {
-    date: string;       // "YYYY-MM-DD"
-    distanceM: number;
-    level: 0 | 1 | 2;
+  date: string; // "YYYY-MM-DD"
+  distanceM: number;
+  level: 0 | 1 | 2;
 };
 
 export type GrassResponseDto = {
-    weeks: number;
-    startDate: string;  // "YYYY-MM-DD"
-    endDate: string;    // "YYYY-MM-DD" (오늘)
-    days: GrassDayDto[];
+  weeks: number;
+  startDate: string; // "YYYY-MM-DD"
+  endDate: string; // "YYYY-MM-DD" (오늘)
+  days: GrassDayDto[];
 };
+export interface CreateRecordRequest {
+  userId?: number;
+  mode: "NORMAL" | "TIER";
+  distanceM: number;
+  durationSec: number;
+  avgPace: number;
+  calories: number;
+  routePolyline: string;
+  startedAt: string;
+  endedAt: string;
+}

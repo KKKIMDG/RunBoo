@@ -7,13 +7,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
-import { useMe } from "@/hooks/useMe";
+import { useUserMe } from "@/contexts/UserMeContext";
 
 export interface TopNavBarProps {
   onLeftPress?: () => void;
   onRightPress?: () => void;
-  profileImageUrl?: string | null;
 }
 
 export function TopNavBar({
@@ -21,36 +19,38 @@ export function TopNavBar({
                             onRightPress,
                           }: TopNavBarProps) {
   const [imageLoading, setImageLoading] = useState(false);
-  const { me, refetch } = useMe();
+  const { userMe, loading } = useUserMe();
 
   const profileImageSource =
-      typeof me?.profileImageUrl === "string" && me.profileImageUrl.length > 0
-          ? { uri: me.profileImageUrl }
+      typeof userMe?.profileImageUrl === "string" &&
+      userMe.profileImageUrl.length > 0
+          ? { uri: userMe.profileImageUrl }
           : require("@/assets/images/runboo.png");
 
-  useFocusEffect(
-      React.useCallback(() => {
-        refetch();
-      }, [refetch])
-  );
   return (
       <View style={styles.root}>
         {/* 왼쪽 프로필 버튼 */}
         <TouchableOpacity onPress={onLeftPress} activeOpacity={0.7}>
           <View style={styles.profileImageWrapper}>
-            <Image
-                source={profileImageSource}
-                style={styles.profileImage}
-                resizeMode="cover"
-                onLoadStart={() => setImageLoading(true)}
-                onLoadEnd={() => setImageLoading(false)}
-                onError={() => setImageLoading(false)}
-            />
+            {loading ? (
+                <ActivityIndicator size="small" color="#3A4A98" />
+            ) : (
+                <>
+                  <Image
+                      source={profileImageSource}
+                      style={styles.profileImage}
+                      resizeMode="cover"
+                      onLoadStart={() => setImageLoading(true)}
+                      onLoadEnd={() => setImageLoading(false)}
+                      onError={() => setImageLoading(false)}
+                  />
 
-            {imageLoading && (
-                <View style={styles.profileImage}>
-                  <ActivityIndicator size="small" color="#3A4A98" />
-                </View>
+                  {imageLoading && (
+                      <View style={styles.loadingOverlay}>
+                        <ActivityIndicator size="small" color="#3A4A98" />
+                      </View>
+                  )}
+                </>
             )}
           </View>
         </TouchableOpacity>
@@ -106,7 +106,13 @@ const styles = StyleSheet.create({
   profileImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
+  },
+
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.6)",
   },
 
   logoContainer: {

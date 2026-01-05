@@ -32,7 +32,7 @@ export default function RecordCard({ item }: { item: RecordDto }) {
             <Text style={s.sub}>{formatTimeRange(item.startedAt, item.endedAt)}</Text>
 
             <View style={s.rowBox}>
-                <Text style={s.label}>러닝 거리</Text>
+                <Text style={s.label}>런닝 거리</Text>
                 <Text style={s.value}>{formatKm(item.distanceM)}</Text>
             </View>
 
@@ -42,7 +42,7 @@ export default function RecordCard({ item }: { item: RecordDto }) {
             </View>
 
             <View style={s.rowBox}>
-                <Text style={s.label}>러닝 시간</Text>
+                <Text style={s.label}>런닝 시간</Text>
                 <Text style={s.value}>{formatDurationFromRange(item.startedAt, item.endedAt)}</Text>
             </View>
         </View>
@@ -69,20 +69,21 @@ const s = StyleSheet.create({
         color: "#111827"
     },
     badge: {
-        color: "#6B7280",
         fontSize: 12,
-        fontWeight: "700"
+        fontWeight: "900",
+        color: "#6B7280"
     },
     badgeGhost: {
-        color: "#3A4A98"
+        color: "#9e80c0"
     },
     badgeTier: {
-        color: "#fc1b1b"
+        color: "#54a54a"
     },
     sub: {
         marginTop: 4,
         marginBottom: 10,
-        color: "#6B7280"
+        color: "#6B7280",
+        fontWeight: "600"
     },
     rowBox: {
         backgroundColor: "#F7F8FC",
@@ -99,6 +100,6 @@ const s = StyleSheet.create({
     value: {
         color: "#111827",
         fontSize: 18,
-        fontWeight: "900"
+        fontWeight: "800"
     },
 });

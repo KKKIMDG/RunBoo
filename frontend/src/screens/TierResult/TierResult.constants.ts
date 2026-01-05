@@ -1,29 +1,30 @@
 // src/screens/TierResult/TierResult.constants.ts
-import { ColorValue } from 'react-native';
+import { ColorValue } from "react-native";
 
 export type TierName =
-  | 'barefoot'
-  | 'straw'
-  | 'slipper'
-  | 'rubber'
-  | 'shoes'
-  | 'crystal';
+  | "barefoot"
+  | "straw"
+  | "slipper"
+  | "rubber"
+  | "shoes"
+  | "crystal"
+  | "stop";
 
 export type ServerTierName =
-  | 'BAREFOOT'
-  | 'STRAW'
-  | 'SLIPPER'
-  | 'RUBBER'
-  | 'SHOES'
-  | 'CRYSTAL';
+  | "BAREFOOT"
+  | "STRAW"
+  | "SLIPPER"
+  | "RUBBER"
+  | "SHOES"
+  | "CRYSTAL";
 
 export const TIER_NAME_MAP: Record<ServerTierName, TierName> = {
-  BAREFOOT: 'barefoot',
-  STRAW: 'straw',
-  SLIPPER: 'slipper',
-  RUBBER: 'rubber',
-  SHOES: 'shoes',
-  CRYSTAL: 'crystal',
+  BAREFOOT: "barefoot",
+  STRAW: "straw",
+  SLIPPER: "slipper",
+  RUBBER: "rubber",
+  SHOES: "shoes",
+  CRYSTAL: "crystal",
 };
 
 export type TierTheme = {
@@ -34,33 +35,38 @@ export type TierTheme = {
 
 export const TIER_THEMES: Record<TierName, TierTheme> = {
   barefoot: {
-    label: '맨발',
-    colors: ['#F3E5D8', '#E2CFC0'],
-    point: '#8D6E63',
+    label: "맨발",
+    colors: ["#F3E5D8", "#E2CFC0"],
+    point: "#8D6E63",
   },
   straw: {
-    label: '짚신',
-    colors: ['#FFF9C4', '#F0E68C'],
-    point: '#FBC02D',
+    label: "짚신",
+    colors: ["#FFF9C4", "#F0E68C"],
+    point: "#FBC02D",
   },
   slipper: {
-    label: '슬리퍼',
-    colors: ['#F5F5F5', '#E0E0E0'],
-    point: '#9E9E9E',
+    label: "슬리퍼",
+    colors: ["#F5F5F5", "#E0E0E0"],
+    point: "#9E9E9E",
   },
   rubber: {
-    label: '고무신',
-    colors: ['#2C2C2C', '#0A0A0A'],
-    point: '#BDBDBD',
+    label: "고무신",
+    colors: ["#2C2C2C", "#0A0A0A"],
+    point: "#BDBDBD",
   },
   shoes: {
-    label: '구두',
-    colors: ['#FFD54F', '#FFB300'],
-    point: '#FFA000',
+    label: "구두",
+    colors: ["#FFD54F", "#FFB300"],
+    point: "#FFA000",
   },
   crystal: {
-    label: '크리스탈 운동화',
-    colors: ['#B3E5FC', '#4FC3F7'],
-    point: '#03A9F4',
+    label: "크리스탈 운동화",
+    colors: ["#B3E5FC", "#4FC3F7"],
+    point: "#03A9F4",
+  },
+  stop: {
+    label: "측정 중단",
+    colors: ["#E0E0E0", "#9E9E9E"], // 무채색 톤
+    point: "#616161",
   },
 };
