@@ -214,6 +214,12 @@ const TierRunningScreen = () => {
               withVerticalLabels={false}
               withHorizontalLabels={false}
             />
+            <View style={styles.chartLabels}>
+              <Text style={styles.chartLabelText}>시작</Text>
+              <Text style={styles.chartLabelText}>
+                현재: {formatPace(currentPace)}/km
+              </Text>
+            </View>
           </View>
 
           {/* 지도 섹션 및 토글 버튼 */}

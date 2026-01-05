@@ -31,7 +31,6 @@ export const useTierRunningScreen = () => {
   const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
   const [paceHistory, setPaceHistory] = useState<number[]>([]);
 
-  // 수정: 지도의 중심점을 맞추기 위한 최신 위치 상태 추가
   const [lastLocation, setLastLocation] = useState<Coordinate | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -96,14 +95,16 @@ export const useTierRunningScreen = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     locationSub.current?.remove();
 
-    const avgPaceSec = distance > 0 ? time / (distance / 1000) : 0;
-    const calories = Math.floor(distance * 0.05);
+    // 목표 거리를 초과하지 않도록 보정 (사용자 경험 유지)
+    const finalDistance = Math.min(distance, targetDistance);
+    const avgPaceSec = finalDistance > 0 ? time / (finalDistance / 1000) : 0;
+    const calories = Math.floor(finalDistance * 0.05);
 
     try {
       const requestData = {
         userId: userId ? Number(userId) : 0,
         mode: "TIER" as const,
-        distanceM: Math.floor(distance),
+        distanceM: Math.floor(finalDistance),
         durationSec: time,
         avgPace: Math.floor(avgPaceSec),
         calories,
@@ -126,7 +127,7 @@ export const useTierRunningScreen = () => {
             text: "확인",
             onPress: () => {
               navigation.navigate("RunResult", {
-                distanceM: distance,
+                distanceM: finalDistance,
                 durationSec: time,
                 avgPaceSec,
                 calories,
@@ -153,12 +154,12 @@ export const useTierRunningScreen = () => {
               recordId: finalRecordId,
               distanceType: distanceTypeKey,
               stats: {
-                distance: (distance / 1000).toFixed(2),
+                distance: (finalDistance / 1000).toFixed(2),
                 time: utils.formatTime(time),
                 pace: utils.formatPace(avgPaceSec),
               },
               achievedTier: tierData.displayName,
-              distanceM: distance,
+              distanceM: finalDistance,
               durationSec: time,
               avgPaceSec,
               calories,
@@ -197,7 +198,6 @@ export const useTierRunningScreen = () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") return;
 
-    // 수정: 초기 위치 가져오기
     const initialPos = await Location.getCurrentPositionAsync({});
     setLastLocation({
       latitude: initialPos.coords.latitude,
@@ -205,7 +205,10 @@ export const useTierRunningScreen = () => {
     });
 
     locationSub.current = await Location.watchPositionAsync(
-      { accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 3 },
+      {
+        accuracy: Location.Accuracy.BestForNavigation,
+        distanceInterval: 3, // 실제 러닝 측정을 위해 3m 간격으로 복구
+      },
       (loc) => {
         const { latitude, longitude } = loc.coords;
         const newCoord = { latitude, longitude };
@@ -218,7 +221,8 @@ export const useTierRunningScreen = () => {
               latitude,
               longitude
             );
-            // 튐 방지 필터링 (초당 30m 이상 이동 시 무시)
+
+            // 실제 이동 거리(d)를 그대로 반영
             if (d > 0.5 && d < 30) {
               setDistance((cur) => cur + d);
             }
@@ -226,7 +230,6 @@ export const useTierRunningScreen = () => {
           return [...prev, newCoord];
         });
 
-        // 수정: 최신 위치 업데이트 (지도의 Region 이동용)
         setLastLocation(newCoord);
       }
     );
@@ -243,7 +246,7 @@ export const useTierRunningScreen = () => {
       currentPace,
       routeCoordinates,
       paceHistory,
-      lastLocation, // 추가
+      lastLocation,
     },
     actions: {
       pauseRun: () => setIsPaused(true),
