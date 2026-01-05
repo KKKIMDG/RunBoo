@@ -37,9 +37,8 @@ const RunningScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const mapRef = useRef<MapView>(null);
 
-  // 음성 관련 상태
   const [isMale, setIsMale] = useState(false);
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true); // ✅ 음성 활성화 여부
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
 
   const { state, actions, utils } = useRunningScreen();
 
@@ -67,29 +66,23 @@ const RunningScreen = () => {
   } = actions;
   const { formatTime, formatPace } = utils;
 
-  // AI 음성 피드백 훅
   const { checkAndSpeak, speakStart, speakPause, speakResume, speakStop } =
     useRunningVoiceFeedback({
       isMale: isMale,
       targetDistance: targetDistance,
     });
 
-  // ✅ 음성 토글 핸들러: 끄는 순간 모든 음성 즉시 중단
   const toggleVoice = () => {
-    if (isVoiceEnabled) {
-      Speech.stop();
-    }
+    if (isVoiceEnabled) Speech.stop();
     setIsVoiceEnabled(!isVoiceEnabled);
   };
 
-  // 화면 이탈 시 음성 중지
   useEffect(() => {
     return () => {
       Speech.stop();
     };
   }, []);
 
-  // 시작 음성 감지 (활성화 시에만)
   const prevIsReady = useRef(isReady);
   useEffect(() => {
     if (isVoiceEnabled && prevIsReady.current === true && isReady === false) {
@@ -98,14 +91,12 @@ const RunningScreen = () => {
     prevIsReady.current = isReady;
   }, [isReady, isVoiceEnabled]);
 
-  // 거리 기반 음성 피드백 (활성화 시에만)
   useEffect(() => {
     if (isVoiceEnabled && !isPaused && !isReady && distance > 0) {
       checkAndSpeak(distance);
     }
   }, [distance, isPaused, isReady, isVoiceEnabled]);
 
-  // 정지/재개 음성 감지 (활성화 시에만)
   const prevIsPaused = useRef(isPaused);
   useEffect(() => {
     if (isVoiceEnabled && !isReady && prevIsPaused.current !== isPaused) {
@@ -115,7 +106,6 @@ const RunningScreen = () => {
     prevIsPaused.current = isPaused;
   }, [isPaused, isReady, isVoiceEnabled]);
 
-  // 1. [유지] 카메라 이동 로직
   useEffect(() => {
     onLocationUpdate.current = (coords) => {
       if (isFollowing && mapRef.current) {
@@ -146,7 +136,6 @@ const RunningScreen = () => {
     }
   };
 
-  // 2. [유지] 지도 메모이제이션
   const renderedMap = useMemo(
     () => (
       <MapView
@@ -177,7 +166,6 @@ const RunningScreen = () => {
     [initialLocation]
   );
 
-  // [유지] 차트 데이터
   const chartData = useMemo(
     () => ({
       labels: [],
@@ -192,7 +180,6 @@ const RunningScreen = () => {
     [paceHistory]
   );
 
-  // [유지] 차트 설정
   const chartConfig = {
     backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
     backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
@@ -202,16 +189,15 @@ const RunningScreen = () => {
     propsForDots: { r: "0" },
   };
 
-  // ✅ 측정 종료 핸들러 수정
   const handleStopLongPress = () => {
-    // 1. 진행 중인 음성 즉시 중단
-    Speech.stop();
-
-    // 2. 음성 활성화 상태라면 종료 멘트 출력 (선택 사항)
-    if (isVoiceEnabled) speakStop(distance);
-
-    // 3. 측정 중단 및 결과 저장 로직 실행
-    stopRun();
+    if (isVoiceEnabled) {
+      // ✅ 하던 말을 훅 내부 speak에서 끊어주므로 바로 호출
+      speakStop(distance, () => {
+        stopRun();
+      });
+    } else {
+      stopRun();
+    }
   };
 
   return (
@@ -242,7 +228,6 @@ const RunningScreen = () => {
             </Text>
           </View>
 
-          {/* ✅ 우측 상단 음성 토글 섹션 */}
           <View style={{ flexDirection: "row", gap: 8 }}>
             <TouchableOpacity
               onPress={() => setIsMale(!isMale)}
@@ -287,7 +272,7 @@ const RunningScreen = () => {
           <StatBox
             icon={
               <MaterialCommunityIcons
-                name="map-marker-distance"
+                name="flag-checkered"
                 size={24}
                 color="#4A6EA9"
               />
