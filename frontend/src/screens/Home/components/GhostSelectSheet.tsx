@@ -102,12 +102,6 @@ function safeDate10(iso: string) {
     return `${yy}.${mm}.${dd}`;
 }
 
-/**
- * ✅ SELF_WEEKLY_AVG 날짜 표기:
- * createdAt(=주 시작일로 들어온 값) 기준으로 "MM.DD ~ MM.DD" 형태로 표시
- *
- * 예) 2026-01-05T00:00:00Z(월요일) -> "01.05 ~ 01.11"
- */
 function safeWeekRangeLabel(weekStartIso: string) {
     if (!weekStartIso) return "-";
     const start = new Date(weekStartIso);
