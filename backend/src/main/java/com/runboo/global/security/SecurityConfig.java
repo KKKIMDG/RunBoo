@@ -40,7 +40,10 @@ public class SecurityConfig {
                                 "/api/auth/token/reissue",
                                 "/api/auth/email/verify",
                                 "/api/auth/email/verify/check",
-                                "/api/**",
+                                "/api/auth/password/reset-request",
+                                "/api/auth/password/verify",
+                                "/api/auth/password/reset",
+
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",

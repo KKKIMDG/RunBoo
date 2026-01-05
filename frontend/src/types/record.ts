@@ -55,7 +55,7 @@ export type GrassResponseDto = {
 };
 export interface CreateRecordRequest {
   userId?: number;
-  mode: "NORMAL" | "TIER";
+  mode: "NORMAL" | "TIER" | "GHOST";
   distanceM: number;
   durationSec: number;
   avgPace: number;

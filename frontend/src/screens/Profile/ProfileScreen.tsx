@@ -114,7 +114,7 @@ export default function ProfileScreen({ navigation }: any) {
             )}
           </View>
 
-          {/* ===== 주요 지표 (배경 박스 제거) ===== */}
+          {/* ===== 주요 지표 ===== */}
           <View style={styles.metricsRow}>
             {/* 5KM 티어 */}
             <View style={styles.metricBox}>
@@ -148,10 +148,10 @@ export default function ProfileScreen({ navigation }: any) {
               <Text style={[styles.metricLabel, { marginTop: 4 }]}>10KM</Text>
             </View>
 
-            {/* 총 거리 */}
+            {/* 총 거리 데이터 반영 */}
             <View style={styles.metricBox}>
               <Text style={styles.metricValue}>
-                <Text style={styles.metricValue}>임시데이터</Text>
+                {profile.userMe?.totalDistance?.toFixed(1) ?? "0.0"}
               </Text>
               <Text style={styles.metricSubLabel}>총 KM</Text>
             </View>
@@ -196,7 +196,7 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* ===== 요약 통계 ===== */}
+        {/* ===== 요약 통계 (연속 일수 & 배지 갯수) ===== */}
         <View style={styles.statsSummaryRow}>
           <View style={styles.miniStatCard}>
             <View style={styles.miniStatIconBox}>
@@ -223,10 +223,26 @@ export default function ProfileScreen({ navigation }: any) {
 
         {/* ===== 활동 잔디 ===== */}
         <View style={styles.card}>
-          <View style={styles.headerRow}>
-            <Text style={[styles.headerTitle, { fontSize: 16 }]}>
-              활동 잔디
-            </Text>
+          <View style={styles.grassTitleRow}>
+            <Text style={styles.grassTitle}>활동 잔디</Text>
+
+            {/* 오른쪽 범례 (dev 브례 합침) */}
+            <View style={styles.grassLegend}>
+              <View style={styles.grassLegendItem}>
+                <View style={[styles.grassLegendDot, { backgroundColor: "#efefef" }]} />
+                <Text style={styles.grassLegendText}>없음</Text>
+              </View>
+
+              <View style={styles.grassLegendItem}>
+                <View style={[styles.grassLegendDot, { backgroundColor: "#9ba4d8" }]} />
+                <Text style={styles.grassLegendText}>5km미만</Text>
+              </View>
+
+              <View style={styles.grassLegendItem}>
+                <View style={[styles.grassLegendDot, { backgroundColor: "#3A4A98" }]} />
+                <Text style={styles.grassLegendText}>5km이상</Text>
+              </View>
+            </View>
           </View>
 
           <View style={styles.grassGrid}>

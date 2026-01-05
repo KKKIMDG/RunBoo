@@ -11,7 +11,6 @@ import {
     ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 
 import type { GhostProfileDto } from "@/types/ghost";
 import { Colors } from "@/constants/theme";
@@ -23,7 +22,7 @@ type Props = {
     loading: boolean;
     data: GhostProfileDto[];
     onClose: () => void;
-    onSelect?: (gp: GhostProfileDto) => void;
+    onSelect?: (gp: GhostProfileDto) => void; // ✅ 부모가 navigate 처리
     onRefresh?: () => void;
 };
 
@@ -66,7 +65,7 @@ type IoniconName =
 
 function getTitleBySlot(slot: SlotType) {
     if (slot === "SELF_BEST") return "내 최고 기록";
-    if (slot === "SELF_YESTERDAY") return "어제 기록";
+    if (slot === "SELF_YESTERDAY") return "직전 기록";
     if (slot === "SELF_WEEKLY_AVG") return "이번 주 평균";
     if (slot === "RANKING_NATIONAL_1") return "전국 1위";
     if (slot === "RANKING_NATIONAL_2") return "전국 2위";
@@ -83,11 +82,10 @@ function getIconBySlot(slot: SlotType): IoniconName {
         slot === "RANKING_NATIONAL_1" ||
         slot === "RANKING_NATIONAL_2" ||
         slot === "RANKING_NATIONAL_3"
-    ) return "trophy-outline";
-    if (
-        slot === "RANKING_NATIONAL_4" ||
-        slot === "RANKING_NATIONAL_5"
-    ) return "medal-outline";
+    )
+        return "trophy-outline";
+    if (slot === "RANKING_NATIONAL_4" || slot === "RANKING_NATIONAL_5")
+        return "medal-outline";
     return "location-outline";
 }
 
@@ -102,6 +100,26 @@ function safeDate10(iso: string) {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     return `${yy}.${mm}.${dd}`;
+}
+
+function safeWeekRangeLabel(weekStartIso: string) {
+    if (!weekStartIso) return "-";
+    const start = new Date(weekStartIso);
+    if (isNaN(start.getTime())) return "-";
+
+    // start ~ start+6일
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+
+    const sYY = String(start.getFullYear());
+    const sMM = String(start.getMonth() + 1).padStart(2, "0");
+    const sDD = String(start.getDate()).padStart(2, "0");
+
+    const eYY = String(end.getFullYear());
+    const eMM = String(end.getMonth() + 1).padStart(2, "0");
+    const eDD = String(end.getDate()).padStart(2, "0");
+
+    return `${sYY}.${sMM}.${sDD} ~ ${eYY}.${eMM}.${eDD}`;
 }
 
 type TabKey = "self" | "ranking";
@@ -121,8 +139,6 @@ export default function GhostSelectSheet({
                                              onClose,
                                              onSelect,
                                          }: Props) {
-    const navigation = useNavigation<any>();
-
     const base = Colors[scheme] as any;
     const c = {
         background: base?.background ?? "#ffffff",
@@ -181,14 +197,8 @@ export default function GhostSelectSheet({
     const rows = tab === "self" ? selfRows : rankingRows;
 
     const handleSelect = (gp: GhostProfileDto) => {
-        // 1) 시트 닫기
         onClose?.();
-
-        // 2) 부모 콜백도 필요하면 호출
-        onSelect?.(gp);
-
-        // 3) ✅ 고스트 런 화면으로 이동 + params 전달
-        navigation.navigate("GhostRun", { ghost: gp });
+        onSelect?.(gp); // ✅ 부모(HomeScreen)가 navigate 처리
     };
 
     return (
@@ -230,9 +240,7 @@ export default function GhostSelectSheet({
                                 size={16}
                                 color={tab === "ranking" ? "#fff" : c.text}
                             />
-                            <Text
-                                style={[s.pillText, { color: tab === "ranking" ? "#fff" : c.text }]}
-                            >
+                            <Text style={[s.pillText, { color: tab === "ranking" ? "#fff" : c.text }]}>
                                 랭킹
                             </Text>
                         </TouchableOpacity>
@@ -281,6 +289,12 @@ export default function GhostSelectSheet({
                                     );
                                 }
 
+                                // ✅ SELF_WEEKLY_AVG만 기간으로 표기
+                                const subText =
+                                    item.slot === "SELF_WEEKLY_AVG"
+                                        ? safeWeekRangeLabel(gp.createdAt)
+                                        : safeDate10(gp.createdAt);
+
                                 return (
                                     <TouchableOpacity
                                         style={[s.item, { borderColor: c.border }]}
@@ -294,7 +308,7 @@ export default function GhostSelectSheet({
                                         />
                                         <View style={{ flex: 1, marginLeft: 12 }}>
                                             <Text style={s.itemTitle}>{item.title}</Text>
-                                            <Text style={s.itemSub}>{safeDate10(gp.createdAt)}</Text>
+                                            <Text style={s.itemSub}>{subText}</Text>
                                         </View>
                                         <View style={{ alignItems: "flex-end" }}>
                                             <Text style={s.itemTitle}>{formatKm(gp.targetDistanceKm)}</Text>

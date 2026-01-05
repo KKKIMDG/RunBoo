@@ -10,8 +10,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Random;
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -25,17 +24,17 @@ public class PasswordResetService {
      * 6자리 숫자 코드 생성
      */
     public String generateCode() {
-        return String.format("%06d", new Random().nextInt(1_000_000));
+        return String.format("%06d", new SecureRandom().nextInt(1_000_000));
     }
 
     /**
      * 재설정 코드 저장
      * - 동일 이메일 재요청 시 덮어씀
-     * - 유효시간 10분
+     * - 유효시간 5분
      */
     public void saveCode(String email, String code) {
         repository.deleteById(email);
-        repository.save(PasswordReset.create(email, code, 10));
+        repository.save(PasswordReset.create(email, code, 5));
     }
 
     /**
@@ -75,7 +74,7 @@ public class PasswordResetService {
 
               <p style="margin-top:16px;font-size:14px;color:#374151;">
                 비밀번호 재설정을 위해 아래 인증 코드를 입력해주세요.<br/>
-                <b>10분 이내</b>에만 유효합니다.
+                <b>5분 이내</b>에만 유효합니다.
               </p>
 
               <div style="
@@ -93,6 +92,7 @@ public class PasswordResetService {
 
               <p style="font-size:12px;color:#6b7280;">
                 본 요청을 하지 않았다면 이 메일을 무시하세요.
+                인증 코드는 타인에게 공유하지 마세요.
               </p>
 
               <p style="font-size:11px;color:#9ca3af;margin-top:24px;">
