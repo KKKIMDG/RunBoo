@@ -202,8 +202,15 @@ const RunningScreen = () => {
     propsForDots: { r: "0" },
   };
 
+  // ✅ 측정 종료 핸들러 수정
   const handleStopLongPress = () => {
+    // 1. 진행 중인 음성 즉시 중단
+    Speech.stop();
+
+    // 2. 음성 활성화 상태라면 종료 멘트 출력 (선택 사항)
     if (isVoiceEnabled) speakStop(distance);
+
+    // 3. 측정 중단 및 결과 저장 로직 실행
     stopRun();
   };
 
