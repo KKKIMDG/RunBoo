@@ -240,10 +240,26 @@ export default function ProfileScreen({ navigation }: any) {
 
                 {/* ===== 활동 잔디 ===== */}
                 <View style={styles.card}>
-                    <View style={styles.headerRow}>
-                        <Text style={[styles.headerTitle, { fontSize: 16 }]}>
-                            활동 잔디
-                        </Text>
+                    <View style={styles.grassTitleRow}>
+                        <Text style={styles.grassTitle}>활동 잔디</Text>
+
+                        {/* 오른쪽 범례(이미지처럼) */}
+                        <View style={styles.grassLegend}>
+                            <View style={styles.grassLegendItem}>
+                                <View style={[styles.grassLegendDot, { backgroundColor: "#efefef" }]} />
+                                <Text style={styles.grassLegendText}>없음</Text>
+                            </View>
+
+                            <View style={styles.grassLegendItem}>
+                                <View style={[styles.grassLegendDot, { backgroundColor: "#9ba4d8" }]} />
+                                <Text style={styles.grassLegendText}>5km미만</Text>
+                            </View>
+
+                            <View style={styles.grassLegendItem}>
+                                <View style={[styles.grassLegendDot, { backgroundColor: "#3A4A98" }]} />
+                                <Text style={styles.grassLegendText}>5km이상</Text>
+                            </View>
+                        </View>
                     </View>
 
                     <View style={styles.grassGrid}>

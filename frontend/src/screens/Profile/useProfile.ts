@@ -7,197 +7,226 @@ import { useUserMe } from "@/contexts/UserMeContext";
 import { useBadge } from "@/screens/Badge/useBadge";
 import { useGrass } from "@/screens/Profile/useGrass";
 
-import { updateMyNickname, updateMyProfileImage } from "@/services/user/userService";
+import {
+    updateMyNickname,
+    updateMyProfileImage,
+} from "@/services/user/userService";
 import { fetchCurrentRunningStreak } from "@/services/record/recordsService";
 
+/* =======================
+   날짜 유틸 (로컬 기준)
+======================= */
+function toYmdLocal(d: Date) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
+
 export function useProfile(weeks: number = 12) {
-  /* =======================
-     기본 데이터
-  ======================= */
-  const { userMe, loading: meLoading, refetch } = useUserMe();
-  const { badges, badgeCount, loading: badgeLoading } = useBadge();
-  const { data: grassData, levelMap, loading: grassLoading } = useGrass(weeks);
+    /* =======================
+       기본 데이터
+    ======================= */
+    const { userMe, loading: meLoading, refetch } = useUserMe();
+    const { badges, badgeCount, loading: badgeLoading } = useBadge();
+    const { data: grassData, levelMap, loading: grassLoading } = useGrass(weeks);
 
-  /* =======================
-     프로필 상태
-  ======================= */
-  const [isEditingNickname, setIsEditingNickname] = useState(false);
-  const [nicknameInput, setNicknameInput] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [imageLoading, setImageLoading] = useState(false);
+    /* =======================
+       프로필 상태
+    ======================= */
+    const [isEditingNickname, setIsEditingNickname] = useState(false);
+    const [nicknameInput, setNicknameInput] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [imageLoading, setImageLoading] = useState(false);
 
-  /* =======================
-     연속 러닝
-  ======================= */
-  const [streak, setStreak] = useState<number | null>(null);
-  const [streakLoading, setStreakLoading] = useState(false);
+    /* =======================
+       연속 러닝
+    ======================= */
+    const [streak, setStreak] = useState<number | null>(null);
+    const [streakLoading, setStreakLoading] = useState(false);
 
-  /* =======================
-     파생 데이터
-  ======================= */
-  const profileImageSource =
-      typeof userMe?.profileImageUrl === "string" && userMe.profileImageUrl.length > 0
-          ? { uri: userMe.profileImageUrl }
-          : require("@/assets/images/runboo.png");
+    /* =======================
+       파생 데이터
+    ======================= */
+    const profileImageSource =
+        typeof userMe?.profileImageUrl === "string" &&
+        userMe.profileImageUrl.length > 0
+            ? { uri: userMe.profileImageUrl }
+            : require("@/assets/images/runboo.png");
 
-  /* =======================
-     effect
-  ======================= */
-  useEffect(() => {
-    if (userMe?.nickname) {
-      setNicknameInput(userMe.nickname);
-    }
-  }, [userMe?.nickname]);
+    /* =======================
+       effect
+    ======================= */
+    useEffect(() => {
+        if (userMe?.nickname) {
+            setNicknameInput(userMe.nickname);
+        }
+    }, [userMe?.nickname]);
 
-  useEffect(() => {
-    if (!userMe) return;
+    useEffect(() => {
+        if (!userMe) return;
 
-    const loadStreak = async () => {
-      try {
-        setStreakLoading(true);
-        const value = await fetchCurrentRunningStreak();
-        setStreak(value);
-      } finally {
-        setStreakLoading(false);
-      }
+        const loadStreak = async () => {
+            try {
+                setStreakLoading(true);
+                const value = await fetchCurrentRunningStreak();
+                setStreak(value);
+            } finally {
+                setStreakLoading(false);
+            }
+        };
+
+        loadStreak();
+    }, [userMe]);
+
+    /* =======================
+       닉네임 저장
+    ======================= */
+    const saveNickname = async () => {
+        if (!nicknameInput.trim()) return;
+
+        try {
+            setSaving(true);
+            await updateMyNickname(nicknameInput.trim());
+            await refetch();
+            setIsEditingNickname(false);
+        } finally {
+            setSaving(false);
+        }
     };
 
-    loadStreak();
-  }, [userMe]);
+    /* =======================
+       이미지 선택
+    ======================= */
+    const pickImage = async () => {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) return null;
 
-  /* =======================
-     닉네임 저장
-  ======================= */
-  const saveNickname = async () => {
-    if (!nicknameInput.trim()) return;
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
 
-    try {
-      setSaving(true);
-      await updateMyNickname(nicknameInput.trim());
-      await refetch();
-      setIsEditingNickname(false);
-    } finally {
-      setSaving(false);
-    }
-  };
+        if (result.canceled) return null;
+        return result.assets[0];
+    };
 
-  /* =======================
-     이미지 선택
-  ======================= */
-  const pickImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return null;
+    /* =======================
+       이미지 업로드
+    ======================= */
+    const uploadProfileImage = async (
+        image: ImagePicker.ImagePickerAsset
+    ) => {
+        if (!userMe?.userId) throw new Error("사용자 정보 없음");
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+        const filePath = `${userMe.userId}_${Date.now()}.jpg`;
+        const buffer = await (await fetch(image.uri)).arrayBuffer();
 
-    if (result.canceled) return null;
-    return result.assets[0];
-  };
+        await supabase.storage.from("profile-images").upload(filePath, buffer, {
+            upsert: true,
+            contentType: image.mimeType ?? "image/jpeg",
+        });
 
-  /* =======================
-     이미지 업로드
-  ======================= */
-  const uploadProfileImage = async (image: ImagePicker.ImagePickerAsset) => {
-    if (!userMe?.userId) throw new Error("사용자 정보 없음");
+        const { data } = supabase.storage
+            .from("profile-images")
+            .getPublicUrl(filePath);
 
-    const filePath = `${userMe.userId}_${Date.now()}.jpg`;
-    const buffer = await (await fetch(image.uri)).arrayBuffer();
+        return data.publicUrl;
+    };
 
-    await supabase.storage.from("profile-images").upload(filePath, buffer, {
-      upsert: true,
-      contentType: image.mimeType ?? "image/jpeg",
-    });
+    /* =======================
+       프로필 이미지 변경
+    ======================= */
+    const changeProfileImage = async () => {
+        if (!userMe) return;
 
-    const { data } = supabase.storage
-        .from("profile-images")
-        .getPublicUrl(filePath);
+        const image = await pickImage();
+        if (!image) return;
 
-    return data.publicUrl;
-  };
+        try {
+            setSaving(true);
+            setImageLoading(true);
 
-  /* =======================
-     프로필 이미지 변경
-  ======================= */
-  const changeProfileImage = async () => {
-    if (!userMe) return;
+            const imageUrl = await uploadProfileImage(image);
+            await updateMyProfileImage(imageUrl);
+            await refetch();
+        } finally {
+            setSaving(false);
+            setImageLoading(false);
+        }
+    };
 
-    const image = await pickImage();
-    if (!image) return;
+    /* =======================
+       잔디 계산 (핵심 수정)
+       - UTC 완전 제거
+       - 로컬 YYYY-MM-DD만 사용
+    ======================= */
+    const buildGrassColumns12Weeks = (
+        startDate: string,
+        endDate: string
+    ) => {
+        const start = new Date(startDate + "T00:00:00");
+        const end = new Date(endDate + "T23:59:59"); // 오늘 포함 보장
+        const columns: (string | null)[][] = [];
 
-    try {
-      setSaving(true);
-      setImageLoading(true);
+        for (let w = 0; w < weeks; w++) {
+            const col: (string | null)[] = [];
 
-      const imageUrl = await uploadProfileImage(image);
-      await updateMyProfileImage(imageUrl);
-      await refetch();
-    } finally {
-      setSaving(false);
-      setImageLoading(false);
-    }
-  };
+            for (let d = 0; d < 7; d++) {
+                const cur = new Date(start);
+                cur.setDate(start.getDate() + w * 7 + d);
 
-  /* =======================
-     잔디 계산
-  ======================= */
-  const buildGrassColumns12Weeks = (startDate: string, endDate: string) => {
-    const start = new Date(startDate + "T00:00:00");
-    const end = new Date(endDate + "T00:00:00");
-    const columns: (string | null)[][] = [];
+                if (cur > end) {
+                    col.push(null);
+                } else {
+                    col.push(toYmdLocal(cur)); // ✅ 로컬 기준 날짜
+                }
+            }
 
-    for (let w = 0; w < weeks; w++) {
-      const col: (string | null)[] = [];
-      for (let d = 0; d < 7; d++) {
-        const cur = new Date(start);
-        cur.setDate(start.getDate() + w * 7 + d);
-        col.push(cur > end ? null : cur.toISOString().slice(0, 10));
-      }
-      columns.push(col);
-    }
-    return columns;
-  };
+            columns.push(col);
+        }
 
-  /* =======================
-     반환
-  ======================= */
-  return {
-    /* user */
-    userMe,
-    meLoading,
-    profileImageSource,
+        return columns;
+    };
 
-    /* nickname */
-    isEditingNickname,
-    setIsEditingNickname,
-    nicknameInput,
-    setNicknameInput,
-    saveNickname,
+    /* =======================
+       반환
+    ======================= */
+    return {
+        /* user */
+        userMe,
+        meLoading,
+        profileImageSource,
 
-    /* image */
-    changeProfileImage,
-    imageLoading,
+        /* nickname */
+        isEditingNickname,
+        setIsEditingNickname,
+        nicknameInput,
+        setNicknameInput,
+        saveNickname,
 
-    /* badge */
-    badges,
-    badgeCount,
-    badgeLoading,
+        /* image */
+        changeProfileImage,
+        imageLoading,
 
-    /* streak */
-    streak,
-    streakLoading,
+        /* badge */
+        badges,
+        badgeCount,
+        badgeLoading,
 
-    /* grass */
-    grassData,
-    levelMap,
-    grassLoading,
-    buildGrassColumns12Weeks,
+        /* streak */
+        streak,
+        streakLoading,
 
-    /* common */
-    saving,
-  };
+        /* grass */
+        grassData,
+        levelMap,
+        grassLoading,
+        buildGrassColumns12Weeks,
+
+        /* common */
+        saving,
+    };
 }

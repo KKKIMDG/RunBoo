@@ -265,4 +265,39 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 6,
   },
+    grassTitleRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+
+    grassTitle: {
+        fontSize: 16,
+        fontWeight: "800",
+        color: "#000",
+    },
+
+    grassLegend: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10, // RN 0.71+면 OK, 아니면 아래 대안 참고
+    },
+
+    grassLegendItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+
+    grassLegendDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 4, // 이미지처럼 살짝 둥근 네모 느낌
+    },
+
+    grassLegendText: {
+        fontSize: 12,
+        color: "#8E8E93", // iOS 보조 텍스트 느낌
+        fontWeight: "600",
+    },
 });
