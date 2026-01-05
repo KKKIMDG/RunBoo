@@ -80,7 +80,7 @@ function computeSelfGhosts(userId: number, records: any[]): any[] {
         (r) => (r?.distanceM ?? 0) > 0 && (r?.durationSec ?? 0) > 0
     );
 
-    // 1) ✅ 직전 기록 = endedAt 기준 가장 최근 1개
+    // 1) 직전 기록 = endedAt 기준 가장 최근 1개
     const lastOne =
         list.length === 0
             ? null
@@ -88,15 +88,23 @@ function computeSelfGhosts(userId: number, records: any[]): any[] {
                 (a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime()
             )[0];
 
-    // 2) ✅ 최고 기록 = avgPace 가장 작은 1개
+    // 2) ✅ 최고 기록 = TIER 모드 중 avgPace 가장 작은 1개
     const bestOne =
         list.length === 0
             ? null
             : [...list]
-            .filter((r) => (r.avgPace ?? 0) > 0)
-            .sort((a, b) => (a.avgPace ?? Infinity) - (b.avgPace ?? Infinity))[0] ?? null;
+            .filter(
+                (r) =>
+                    r.mode === "TIER" &&
+                    (r.avgPace ?? 0) > 0
+            )
+            .sort(
+                (a, b) =>
+                    (a.avgPace ?? Infinity) -
+                    (b.avgPace ?? Infinity)
+            )[0] ?? null;
 
-    // 3) ✅ 이번 주 평균(가중 평균: 총시간/총거리)
+    // 3) 이번 주 평균(가중 평균: 총시간/총거리)
     const today = new Date();
     const weekStart = startOfWeekMondayLocal(today); // 로컬 기준 월요일 00:00
     const weekEnd = addDaysLocal(weekStart, 7);
