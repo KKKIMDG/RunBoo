@@ -47,8 +47,8 @@ public class User {
     @Column(name = "state")
     private UserState userState;
 
-    @Column(name = "delete_at")
-    private LocalDateTime deleteAt;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @Column(name = "is_blind", nullable = false, columnDefinition = "boolean default false")
     private boolean isBlind = false;
@@ -98,4 +98,12 @@ public class User {
     public void changeBlindStatus(boolean isBlind) {
         this.isBlind = isBlind;
     }
+
+    public void withdraw() {
+        if (this.userState == UserState.DELETED) return;
+
+        this.userState = UserState.DELETED;
+        this.deletedAt = LocalDateTime.now();
+    }
+
 }

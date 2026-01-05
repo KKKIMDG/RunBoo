@@ -278,6 +278,26 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                     <Ionicons name="log-out-outline" size={20} color="#FF6467" />
                     <Text style={styles.logoutText}>로그아웃</Text>
                 </TouchableOpacity>
+
+                {/* 여백 */}
+                <View style={{ height: 32 }} />
+
+                {/* 계정 탈퇴 */}
+                <TouchableOpacity
+                    style={{ marginTop: 12, alignSelf: 'center' }}
+                    onPress={() => navigation.navigate('Withdraw')}
+                >
+                    <Text
+                        style={{
+                            fontSize: 13,
+                            color: '#9CA3AF',
+                            textDecorationLine: 'underline',
+                        }}
+                    >
+                        계정 탈퇴하기
+                    </Text>
+                </TouchableOpacity>
+
             </ScrollView>
         </SafeAreaView>
     );

@@ -13,7 +13,6 @@ import { useChallenge, Challenge } from "./useChallenge";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useNavigation } from "@react-navigation/native";
 
-// 난이도별 스타일 정의
 const getLevelStyle = (level: string) => {
   switch (level) {
     case "초급":
@@ -32,11 +31,9 @@ const ChallengeScreen = () => {
   const colorScheme = useColorScheme() ?? "light";
   const styles = getStyles(colorScheme);
 
-  // ✅ 훅에서 필요한 상태와 함수를 가져옵니다.
   const { challenges, loading, status, toggleStatus } =
     useChallenge(navigation);
 
-  // 완료 아이템 렌더링
   const renderCompletedItem = ({ item }: { item: Challenge }) => (
     <View style={styles.completedCard}>
       <View style={styles.badgeIconBox}>
@@ -44,7 +41,6 @@ const ChallengeScreen = () => {
       </View>
       <View style={styles.cardInfo}>
         <Text style={styles.cardTitle}>{item.title}</Text>
-        {/* 훅에서 완료 날짜 포맷팅 로직이 추가되면 더 정확해집니다. 현재는 고정 텍스트 유지 혹은 단순 표시 */}
         <Text style={styles.cardDate}>챌린지 달성 완료</Text>
         <Text style={styles.cardReward}>획득 배지: {item.reward}</Text>
       </View>
@@ -52,7 +48,6 @@ const ChallengeScreen = () => {
     </View>
   );
 
-  // 진행 중 아이템 렌더링
   const renderProgressItem = ({ item }: { item: Challenge }) => (
     <View style={styles.challengeCard}>
       <View style={styles.cardHeader}>
@@ -75,7 +70,6 @@ const ChallengeScreen = () => {
           </Text>
         </View>
         <View style={styles.progressBarBg}>
-          {/* ✅ 훅에서 계산된 item.percent를 그대로 사용합니다. */}
           <View
             style={[styles.progressBarFill, { width: `${item.percent}%` }]}
           />
@@ -112,6 +106,42 @@ const ChallengeScreen = () => {
     </View>
   );
 
+  // ✅ 데이터가 없을 때 보여줄 컴포넌트 추가
+  const renderEmptyComponent = () => (
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 100,
+      }}
+    >
+      <Ionicons
+        name="sparkles-outline"
+        size={48}
+        color="#3A4A98"
+        style={{ marginBottom: 16 }}
+      />
+      <Text
+        style={{
+          fontSize: 18,
+          fontWeight: "bold",
+          color: "#333",
+          marginBottom: 8,
+        }}
+      >
+        {status === "IN_PROGRESS"
+          ? "모든 과제를 완료하였습니다!"
+          : "아직 완료한 과제가 없습니다."}
+      </Text>
+      <Text style={{ fontSize: 14, color: "#868E96" }}>
+        {status === "IN_PROGRESS"
+          ? "새로운 도전을 기다려주세요."
+          : "도전과제를 수행하고 배지를 획득하세요."}
+      </Text>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -122,7 +152,6 @@ const ChallengeScreen = () => {
           </Text>
         </View>
 
-        {/* 탭 버튼: status 상태에 따라 활성화 */}
         <View style={styles.tabSwitcher}>
           <TouchableOpacity
             style={[
@@ -176,7 +205,6 @@ const ChallengeScreen = () => {
           />
         ) : (
           <FlatList
-            // ✅ 훅에서 이미 status에 맞춰 필터링된 데이터를 가져오므로 추가 필터링이 필요 없습니다.
             data={challenges}
             renderItem={
               status === "COMPLETED" ? renderCompletedItem : renderProgressItem
@@ -187,15 +215,16 @@ const ChallengeScreen = () => {
               { paddingBottom: 100 },
             ]}
             showsVerticalScrollIndicator={false}
+            // ✅ 빈 화면 처리 추가
+            ListEmptyComponent={renderEmptyComponent}
             ListHeaderComponent={
-              status === "COMPLETED" ? (
+              status === "COMPLETED" && challenges.length > 0 ? (
                 <View style={styles.summaryCard}>
                   <View style={styles.summaryHeader}>
                     <Ionicons name="trophy-outline" size={24} color="#000" />
                     <Text style={styles.summaryHeaderText}>달성 현황</Text>
                   </View>
                   <View style={styles.summaryValueContainer}>
-                    {/* ✅ 완료된 챌린지 개수를 실시간으로 표시합니다. */}
                     <Text style={styles.summaryValue}>{challenges.length}</Text>
                     <Text style={styles.summaryLabel}>완료</Text>
                   </View>

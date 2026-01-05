@@ -5,18 +5,22 @@ import { Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useKeepAwake } from "expo-keep-awake";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { encodePath, getDistance, Coordinate } from "@/utils/runUtils";
-import { API_BASE_URL } from "@env";
 import type { GhostProfileDto } from "@/types/ghost";
+import { createRecord } from "@/services/record/recordsService";
+
+// ✅ 저장할 때만 +9시간 보정해서 ISO(UTC)로 보내기
+const toIsoPlus9 = (d: Date) =>
+    new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString();
 
 export function useGhostRunScreen() {
     useKeepAwake();
 
-    // ✅ MainStack에 GhostRun이 등록돼있으므로 Root 타입에 묶지 않음 (꼬임 방지)
     const navigation = useNavigation<any>();
     const route = useRoute<any>();
 
+    // ✅ params에서 userId / ghost 받기
+    const userId = route?.params?.userId;
     const ghost: GhostProfileDto | undefined = route?.params?.ghost;
 
     // 고스트 기준값 (fallback 포함)
@@ -53,7 +57,9 @@ export function useGhostRunScreen() {
 
     // progress (0~1)
     const progress =
-        ghostTotalDistanceM > 0 ? Math.max(0, Math.min(1, distanceM / ghostTotalDistanceM)) : 0;
+        ghostTotalDistanceM > 0
+            ? Math.max(0, Math.min(1, distanceM / ghostTotalDistanceM))
+            : 0;
 
     // 페이스 비교(+)면 내가 느림, (-)면 내가 빠름
     const paceDiffSec = (currentPaceSec || 0) - ghostAvgPaceSec;
@@ -85,10 +91,13 @@ export function useGhostRunScreen() {
         return sec > 0 ? `고스트보다 ${abs}초 느림` : `고스트보다 ${abs}초 빠름`;
     };
 
-    // 카운트다운 (✅ 3초 필요 반영)
+    // 카운트다운
     useEffect(() => {
         if (isReady && countdown > 0) {
-            countdownTimerRef.current = setTimeout(() => setCountdown((p: number) => p - 1), 1000);
+            countdownTimerRef.current = setTimeout(
+                () => setCountdown((p: number) => p - 1),
+                1000
+            );
         } else if (isReady && countdown === 0) {
             setIsReady(false);
             startRun();
@@ -106,11 +115,11 @@ export function useGhostRunScreen() {
                     const newTime = prev + 1;
 
                     if (distanceM > 0) {
-                        const pace = newTime / (distanceM / 1000); // sec/km
+                        const pace = newTime / (distanceM / 1000);
                         setCurrentPaceSec(pace);
 
                         if (newTime % 5 === 0) {
-                            setPaceHistoryMin((arr) => [...arr, pace / 60]); // min/km
+                            setPaceHistoryMin((arr) => [...arr, pace / 60]);
                         }
                     }
 
@@ -147,7 +156,6 @@ export function useGhostRunScreen() {
                         const last = prev[prev.length - 1];
                         const dist = getDistance(last.latitude, last.longitude, latitude, longitude);
 
-                        // 튐 방지
                         if (dist > 0 && dist < 30) {
                             setDistanceM((d) => d + dist);
                         }
@@ -160,6 +168,8 @@ export function useGhostRunScreen() {
 
     // 제어
     const startRun = () => {
+        // 러닝 시작시간은 그냥 찍어두고(UTC든 뭐든 상관없음),
+        // ✅ 저장할 때만 +9 보정해서 보낼거임
         startedAtRef.current = new Date().toISOString();
         setIsRunning(true);
         setIsPaused(false);
@@ -176,6 +186,7 @@ export function useGhostRunScreen() {
         startLocationTracking();
     };
 
+    // ✅ 저장
     const stopRun = async () => {
         setIsRunning(false);
         setIsPaused(false);
@@ -185,34 +196,51 @@ export function useGhostRunScreen() {
         const avgPaceSec = distanceM > 0 ? time / (distanceM / 1000) : 0;
         const calories = Math.floor(distanceM * 0.05);
 
-        const userIdStr = await AsyncStorage.getItem("userId");
+        const finalUserId = userId ? Number(userId) : 0;
+        if (!finalUserId) {
+            Alert.alert(
+                "오류",
+                "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)"
+            );
+            navigation.navigate("RunResult", {
+                distanceM,
+                durationSec: time,
+                avgPaceSec,
+                calories,
+                routeCoordinates,
+            });
+            return;
+        }
+
+        // ✅ 저장 시점에만 +9 보정해서 보낼 startedAt / endedAt 만들기
+        const startedAtDate =
+            startedAtRef.current ? new Date(startedAtRef.current) : new Date(Date.now() - time * 1000);
 
         const requestData = {
-            userId: userIdStr ? parseInt(userIdStr) : 0,
-            mode: "GHOST",
-            distanceM,
+            userId: finalUserId,
+            mode: "GHOST" as const,
+            distanceM: Math.floor(distanceM),
             durationSec: time,
             avgPace: Math.floor(avgPaceSec),
             calories,
             routePolyline: encodePath(routeCoordinates),
-            startedAt: startedAtRef.current ?? new Date(Date.now() - time * 1000).toISOString(),
-            endedAt: new Date().toISOString(),
+
+            // ✅ 핵심: 저장할 때만 +9
+            startedAt: toIsoPlus9(startedAtDate),
+            endedAt: toIsoPlus9(new Date()),
         };
 
-        try {
-            const url = `${API_BASE_URL}/api/records`;
-            const res = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(requestData),
-            });
+        console.log("=========================================");
+        console.log("🚀 [DEBUG] 고스트 기록 저장 요청 전송 데이터:");
+        console.log(JSON.stringify(requestData, null, 2));
+        console.log("=========================================");
 
-            if (!res.ok) {
-                const txt = await res.text();
-                Alert.alert("저장 실패", txt || "서버에 기록을 저장하지 못했습니다.");
-            }
-        } catch (e) {
-            Alert.alert("에러", "서버와 연결할 수 없습니다.");
+        try {
+            const response = await createRecord(requestData);
+            console.log("✅ [DEBUG] 고스트 저장 서버 응답:", response);
+        } catch (error: any) {
+            console.error("❌ [DEBUG] 고스트 저장 실패 에러:", error);
+            Alert.alert("저장 실패", `기록을 저장하지 못했습니다. (${error?.message || "네트워크 에러"})`);
         }
 
         navigation.navigate("RunResult", {

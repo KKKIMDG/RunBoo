@@ -22,6 +22,10 @@ import GhostSelectSheet from "./components/GhostSelectSheet";
 import { fetchGhostProfiles } from "@/services/ghost/ghostService";
 import type { GhostProfileDto } from "@/types/ghost";
 
+// ✅ records 조회
+import { fetchMyRecords } from "@/services/record/recordsService";
+import type { RecordDto } from "@/types/record";
+
 type HomeScreenProps = {
     navigation: { navigate: (screen: string, params?: any) => void };
 };
@@ -56,9 +60,114 @@ const ModeTab: FC<{
     );
 };
 
+// 월요일 시작 (한국식)
+function startOfWeekMondayLocal(now = new Date()) {
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    const day = d.getDay(); // 0=일,1=월,...6=토
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    d.setDate(d.getDate() + diffToMonday);
+    return d;
+}
+
+function addDaysLocal(date: Date, days: number) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d;
+}
+
+function computeSelfGhosts(userId: number, records: any[]): any[] {
+    const list = (records ?? []).filter(
+        (r) => (r?.distanceM ?? 0) > 0 && (r?.durationSec ?? 0) > 0
+    );
+
+    // 1) 직전 기록 = endedAt 기준 가장 최근 1개
+    const lastOne =
+        list.length === 0
+            ? null
+            : [...list].sort(
+                (a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime()
+            )[0];
+
+    // 2) ✅ 최고 기록 = TIER 모드 중 avgPace 가장 작은 1개
+    const bestOne =
+        list.length === 0
+            ? null
+            : [...list]
+            .filter(
+                (r) =>
+                    r.mode === "TIER" &&
+                    (r.avgPace ?? 0) > 0
+            )
+            .sort(
+                (a, b) =>
+                    (a.avgPace ?? Infinity) -
+                    (b.avgPace ?? Infinity)
+            )[0] ?? null;
+
+    // 3) 이번 주 평균(가중 평균: 총시간/총거리)
+    const today = new Date();
+    const weekStart = startOfWeekMondayLocal(today); // 로컬 기준 월요일 00:00
+    const weekEnd = addDaysLocal(weekStart, 7);
+
+    const weekRecords = list.filter((r) => {
+        const t = new Date(r.startedAt).getTime();
+        return t >= weekStart.getTime() && t < weekEnd.getTime();
+    });
+
+    const weekTotalDistanceM = weekRecords.reduce((sum, r) => sum + (r.distanceM ?? 0), 0);
+    const weekTotalDurationSec = weekRecords.reduce((sum, r) => sum + (r.durationSec ?? 0), 0);
+    const weekAvgPaceSec =
+        weekTotalDistanceM > 0 ? weekTotalDurationSec / (weekTotalDistanceM / 1000) : 0;
+
+    const result: any[] = [];
+
+    // ✅ SELF_BEST
+    if (bestOne) {
+        result.push({
+            id: 0,
+            userId,
+            runRecordId: bestOne.id,
+            type: "SELF_BEST",
+            targetDistanceKm: bestOne.distanceM / 1000,
+            avgPace: Math.floor(bestOne.avgPace),
+            createdAt: bestOne.startedAt,
+        });
+    }
+
+    // 직전 기록
+    if (lastOne) {
+        result.push({
+            id: 0,
+            userId,
+            runRecordId: lastOne.id,
+            type: "SELF_YESTERDAY",
+            targetDistanceKm: lastOne.distanceM / 1000,
+            avgPace: Math.floor(lastOne.avgPace),
+            createdAt: lastOne.startedAt,
+        });
+    }
+
+    // ✅ SELF_WEEKLY_AVG
+    if (weekRecords.length > 0 && weekTotalDistanceM > 0) {
+        result.push({
+            id: 0,
+            userId,
+            runRecordId: 0,
+            type: "SELF_WEEKLY_AVG",
+            targetDistanceKm: weekTotalDistanceM / 1000,
+            avgPace: Math.floor(weekAvgPaceSec),
+            createdAt: weekStart.toISOString(),
+        });
+    }
+
+    return result;
+}
+
 const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     // ✅ 내 정보에서 userId 및 isBlind 정보 확보
     const { me } = useMe();
+    // ✅ 내 정보에서 userId 확보
 
     // 1. MapView 제어를 위한 Ref 생성
     const mapRef = useRef<MapView>(null);
@@ -66,6 +175,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     // ✅ 주변 러너 데이터 가져오기
     const isFocused = useIsFocused();
     const { nearbyRunners } = useNearbyRunners(isFocused);
+    // ✅ 주변 러너 데이터 가져오기
 
     // ✅ 홈 스크린 로직 가져오기
     const {
@@ -147,32 +257,53 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         }
     };
 
+    // ✅ 고스트 데이터 로딩 로직 변경:
+    // - 랭킹: 기존 ghost_profile(fetchGhostProfiles) 유지
+    // - 내 기록: run_records(fetchMyRecords) 기반으로 프론트 계산해서 SELF_* 생성
     const loadGhostProfiles = async () => {
+        if (!me?.userId) {
+            Alert.alert("알림", "사용자 정보를 불러오는 중입니다.");
+            return;
+        }
+
         setGhostLoading(true);
         try {
-            const data = await fetchGhostProfiles();
-            setGhostProfiles(data);
+            // 1) 랭킹은 기존대로 ghost_profile에서 유지
+            const ghostProfileData = await fetchGhostProfiles();
+
+            const rankingOnly = (ghostProfileData ?? []).filter((gp) => {
+                const t = String(gp?.type ?? "").toUpperCase();
+                return t.startsWith("RANKING_");
+            });
+
+            // 2) 내 기록은 run_records 전부 조회 후 프론트에서 계산
+            const myRecords = await fetchMyRecords();
+            const selfComputed = computeSelfGhosts(me.userId, myRecords);
+
+            // 3) 합쳐서 시트에 제공 (SELF_* + RANKING_*)
+            setGhostProfiles([...selfComputed, ...rankingOnly]);
         } finally {
             setGhostLoading(false);
         }
     };
 
+    // ✅ “고스트 선택” 누를 때마다 최신 기록으로 다시 계산하길 원했으니까
+    // 매번 loadGhostProfiles() 호출
     const openGhostSheet = async () => {
         setGhostSheetOpen(true);
-        if (!ghostLoading && ghostProfiles.length === 0) {
-            await loadGhostProfiles();
-        }
+        await loadGhostProfiles();
     };
 
     const handleSelectGhost = (gp: GhostProfileDto) => {
         setGhostSheetOpen(false);
+        // ✅ 고스트 모드도 userId 전달
         navigation.navigate("GhostRun", {
             ghost: gp,
             userId: me?.userId,
         });
     };
 
-    // ✅ 일반 러닝 시작 핸들러
+    // ✅ [수정] 일반 러닝 시작 핸들러: userId를 반드시 포함
     const onStartNormalRun = () => {
         if (!me?.userId) {
             Alert.alert("알림", "사용자 정보를 불러오는 중입니다.");
@@ -184,6 +315,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         });
     };
 
+    // ✅ [수정] 티어 러닝 시작 핸들러: userId를 반드시 포함
     const onStartTierRun = () => {
         if (!me?.userId) {
             Alert.alert("알림", "사용자 정보를 불러오는 중입니다.");

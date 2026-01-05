@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,5 +52,15 @@ public class UserTierService {
         }
 
         return UserTierResponse.from(savedUserTier);
+    }
+
+    public List<Long> getUserTierIds(Long userId) {
+        // 1. 해당 유저 아이디로 모든 UserTier 엔티티 조회
+        List<UserTier> userTiers = userTierRepository.findByUserId(userId);
+
+        // 2. UserTier 엔티티에서 Tier의 ID만 추출하여 리스트로 변환
+        return userTiers.stream()
+                .map(userTier -> userTier.getTier().getTierId())
+                .collect(Collectors.toList());
     }
 }

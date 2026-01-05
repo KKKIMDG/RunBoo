@@ -7,19 +7,33 @@ import { useUserMe } from "@/contexts/UserMeContext";
 import { useBadge } from "@/screens/Badge/useBadge";
 import { useGrass } from "@/screens/Profile/useGrass";
 
-import { updateMyNickname, updateMyProfileImage } from "@/services/user/userService";
+import {
+  updateMyNickname,
+  updateMyProfileImage,
+} from "@/services/user/userService";
 import { fetchCurrentRunningStreak } from "@/services/record/recordsService";
+import { getUserTierIds } from "@/services/tier/tierService"; // dabin 추가: 서비스 임포트
+
+/* =======================
+   날짜 유틸 (로컬 기준) - dev 추가
+======================= */
+function toYmdLocal(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 export function useProfile(weeks: number = 12) {
   /* =======================
-     기본 데이터
+      기본 데이터
   ======================= */
   const { userMe, loading: meLoading, refetch } = useUserMe();
   const { badges, badgeCount, loading: badgeLoading } = useBadge();
   const { data: grassData, levelMap, loading: grassLoading } = useGrass(weeks);
 
   /* =======================
-     프로필 상태
+      프로필 상태
   ======================= */
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [nicknameInput, setNicknameInput] = useState("");
@@ -27,21 +41,28 @@ export function useProfile(weeks: number = 12) {
   const [imageLoading, setImageLoading] = useState(false);
 
   /* =======================
-     연속 러닝
+      연속 러닝
   ======================= */
   const [streak, setStreak] = useState<number | null>(null);
   const [streakLoading, setStreakLoading] = useState(false);
 
   /* =======================
-     파생 데이터
+      티어 데이터 (dabin 추가)
   ======================= */
-  const profileImageSource =
-      typeof userMe?.profileImageUrl === "string" && userMe.profileImageUrl.length > 0
-          ? { uri: userMe.profileImageUrl }
-          : require("@/assets/images/runboo.png");
+  const [tier5kId, setTier5kId] = useState<number | null>(null);
+  const [tier10kId, setTier10kId] = useState<number | null>(null);
+  const [tierLoading, setTierLoading] = useState(false);
 
   /* =======================
-     effect
+      파생 데이터
+  ======================= */
+  const profileImageSource =
+    typeof userMe?.profileImageUrl === "string" && userMe.profileImageUrl.length > 0
+      ? { uri: userMe.profileImageUrl }
+      : require("@/assets/images/runboo.png");
+
+  /* =======================
+      Effect
   ======================= */
   useEffect(() => {
     if (userMe?.nickname) {
@@ -52,25 +73,45 @@ export function useProfile(weeks: number = 12) {
   useEffect(() => {
     if (!userMe) return;
 
-    const loadStreak = async () => {
+    const loadProfileData = async () => {
       try {
         setStreakLoading(true);
-        const value = await fetchCurrentRunningStreak();
-        setStreak(value);
+        setTierLoading(true);
+
+        // 1. 연속 러닝 스트릭 로드 (공통)
+        const streakValue = await fetchCurrentRunningStreak();
+        setStreak(streakValue);
+
+        // 2. 티어 ID 리스트 로드 및 분리 저장 (dabin 추가 로직)
+        const tierIds = await getUserTierIds();
+        console.log("전체 티어 ID 리스트:", tierIds);
+
+        if (tierIds && tierIds.length >= 2) {
+          const t5k = tierIds[0];
+          const t10k = tierIds[1];
+          setTier5kId(t5k);
+          setTier10kId(t10k);
+          console.log(`티어 할당 완료 - 5K: ${t5k}, 10K: ${t10k}`);
+        } else if (tierIds && tierIds.length === 1) {
+          setTier5kId(tierIds[0]);
+          console.log(`티어 할당 완료 (5K만 존재): ${tierIds[0]}`);
+        }
+      } catch (error) {
+        console.error("데이터 로드 실패:", error);
       } finally {
         setStreakLoading(false);
+        setTierLoading(false);
       }
     };
 
-    loadStreak();
+    loadProfileData();
   }, [userMe]);
 
   /* =======================
-     닉네임 저장
+      닉네임 저장
   ======================= */
   const saveNickname = async () => {
     if (!nicknameInput.trim()) return;
-
     try {
       setSaving(true);
       await updateMyNickname(nicknameInput.trim());
@@ -82,7 +123,7 @@ export function useProfile(weeks: number = 12) {
   };
 
   /* =======================
-     이미지 선택
+      이미지 선택
   ======================= */
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -100,7 +141,7 @@ export function useProfile(weeks: number = 12) {
   };
 
   /* =======================
-     이미지 업로드
+      이미지 업로드
   ======================= */
   const uploadProfileImage = async (image: ImagePicker.ImagePickerAsset) => {
     if (!userMe?.userId) throw new Error("사용자 정보 없음");
@@ -113,26 +154,21 @@ export function useProfile(weeks: number = 12) {
       contentType: image.mimeType ?? "image/jpeg",
     });
 
-    const { data } = supabase.storage
-        .from("profile-images")
-        .getPublicUrl(filePath);
-
+    const { data } = supabase.storage.from("profile-images").getPublicUrl(filePath);
     return data.publicUrl;
   };
 
   /* =======================
-     프로필 이미지 변경
+      프로필 이미지 변경
   ======================= */
   const changeProfileImage = async () => {
     if (!userMe) return;
-
     const image = await pickImage();
     if (!image) return;
 
     try {
       setSaving(true);
       setImageLoading(true);
-
       const imageUrl = await uploadProfileImage(image);
       await updateMyProfileImage(imageUrl);
       await refetch();
@@ -143,11 +179,11 @@ export function useProfile(weeks: number = 12) {
   };
 
   /* =======================
-     잔디 계산
+      잔디 계산 (dev 브랜치 최적화 버전)
   ======================= */
   const buildGrassColumns12Weeks = (startDate: string, endDate: string) => {
     const start = new Date(startDate + "T00:00:00");
-    const end = new Date(endDate + "T00:00:00");
+    const end = new Date(endDate + "T23:59:59"); // 오늘 포함 보장
     const columns: (string | null)[][] = [];
 
     for (let w = 0; w < weeks; w++) {
@@ -155,7 +191,12 @@ export function useProfile(weeks: number = 12) {
       for (let d = 0; d < 7; d++) {
         const cur = new Date(start);
         cur.setDate(start.getDate() + w * 7 + d);
-        col.push(cur > end ? null : cur.toISOString().slice(0, 10));
+
+        if (cur > end) {
+          col.push(null);
+        } else {
+          col.push(toYmdLocal(cur)); // ✅ 로컬 기준 날짜 사용
+        }
       }
       columns.push(col);
     }
@@ -163,7 +204,7 @@ export function useProfile(weeks: number = 12) {
   };
 
   /* =======================
-     반환
+      반환
   ======================= */
   return {
     /* user */
@@ -190,6 +231,11 @@ export function useProfile(weeks: number = 12) {
     /* streak */
     streak,
     streakLoading,
+
+    /* tier (dabin 추가) */
+    tier5kId,
+    tier10kId,
+    tierLoading,
 
     /* grass */
     grassData,

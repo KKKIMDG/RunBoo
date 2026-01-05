@@ -31,6 +31,8 @@ export const useTierRunningScreen = () => {
   const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
   const [paceHistory, setPaceHistory] = useState<number[]>([]);
 
+  const [lastLocation, setLastLocation] = useState<Coordinate | null>(null);
+
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const locationSub = useRef<Location.LocationSubscription | null>(null);
 
@@ -93,14 +95,16 @@ export const useTierRunningScreen = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     locationSub.current?.remove();
 
-    const avgPaceSec = distance > 0 ? time / (distance / 1000) : 0;
-    const calories = Math.floor(distance * 0.05);
+    // 목표 거리를 초과하지 않도록 보정 (사용자 경험 유지)
+    const finalDistance = Math.min(distance, targetDistance);
+    const avgPaceSec = finalDistance > 0 ? time / (finalDistance / 1000) : 0;
+    const calories = Math.floor(finalDistance * 0.05);
 
     try {
       const requestData = {
         userId: userId ? Number(userId) : 0,
         mode: "TIER" as const,
-        distanceM: Math.floor(distance),
+        distanceM: Math.floor(finalDistance),
         durationSec: time,
         avgPace: Math.floor(avgPaceSec),
         calories,
@@ -109,17 +113,13 @@ export const useTierRunningScreen = () => {
         endedAt: new Date().toISOString(),
       };
 
-      // 🚀 1. 새로운 기록 저장
       await createRecord(requestData);
 
-      // 🚀 2. 저장 직후 목록을 불러와서 '가장 큰 ID'를 방금 생성된 ID로 특정
       const records = await fetchMyRecords();
       if (!records || records.length === 0)
         throw new Error("기록을 찾을 수 없습니다.");
 
-      // ✅ 현재 테이블 내의 Max ID가 방금 저장된 레코드의 ID입니다.
       const finalRecordId = Math.max(...records.map((r: any) => r.id));
-      console.log("✅ [DEBUG] 방금 측정된 최신 Record ID:", finalRecordId);
 
       if (isStopped) {
         Alert.alert("알림", "측정을 중단합니다. 기록 페이지로 이동합니다.", [
@@ -127,7 +127,7 @@ export const useTierRunningScreen = () => {
             text: "확인",
             onPress: () => {
               navigation.navigate("RunResult", {
-                distanceM: distance,
+                distanceM: finalDistance,
                 durationSec: time,
                 avgPaceSec,
                 calories,
@@ -139,7 +139,6 @@ export const useTierRunningScreen = () => {
         return;
       }
 
-      // 완주 시 티어 평가
       const evaluationReq: TierEvaluationRequest = {
         recordId: finalRecordId,
         distanceType: distanceTypeKey,
@@ -155,12 +154,12 @@ export const useTierRunningScreen = () => {
               recordId: finalRecordId,
               distanceType: distanceTypeKey,
               stats: {
-                distance: (distance / 1000).toFixed(2),
+                distance: (finalDistance / 1000).toFixed(2),
                 time: utils.formatTime(time),
                 pace: utils.formatPace(avgPaceSec),
               },
               achievedTier: tierData.displayName,
-              distanceM: distance,
+              distanceM: finalDistance,
               durationSec: time,
               avgPaceSec,
               calories,
@@ -198,10 +197,22 @@ export const useTierRunningScreen = () => {
   const startTracking = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") return;
+
+    const initialPos = await Location.getCurrentPositionAsync({});
+    setLastLocation({
+      latitude: initialPos.coords.latitude,
+      longitude: initialPos.coords.longitude,
+    });
+
     locationSub.current = await Location.watchPositionAsync(
-      { accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 1 },
+      {
+        accuracy: Location.Accuracy.BestForNavigation,
+        distanceInterval: 3, // 실제 러닝 측정을 위해 3m 간격으로 복구
+      },
       (loc) => {
         const { latitude, longitude } = loc.coords;
+        const newCoord = { latitude, longitude };
+
         setRouteCoordinates((prev) => {
           if (prev.length > 0) {
             const d = getDistance(
@@ -210,10 +221,16 @@ export const useTierRunningScreen = () => {
               latitude,
               longitude
             );
-            if (d > 0 && d < 30) setDistance((cur) => cur + d);
+
+            // 실제 이동 거리(d)를 그대로 반영
+            if (d > 0.5 && d < 30) {
+              setDistance((cur) => cur + d);
+            }
           }
-          return [...prev, { latitude, longitude }];
+          return [...prev, newCoord];
         });
+
+        setLastLocation(newCoord);
       }
     );
   };
@@ -229,6 +246,7 @@ export const useTierRunningScreen = () => {
       currentPace,
       routeCoordinates,
       paceHistory,
+      lastLocation,
     },
     actions: {
       pauseRun: () => setIsPaused(true),

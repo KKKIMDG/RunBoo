@@ -73,12 +73,15 @@ public class UserController {
 
     /**
      * 계정 탈퇴
-     * DELETE /api/users/me
+     * POST /api/users/me/withdraw
      */
-    @DeleteMapping("/me")
-    public ResponseEntity<Void> withdraw() {
-        userService.withdraw();
-        return ResponseEntity.ok().build();
+    @PostMapping("/me/withdraw")
+    public ResponseEntity<Void> withdraw(
+            @RequestBody(required = false) WithdrawRequest req
+    ) {
+        System.out.println("UserController.withdraw 실행!");
+        userService.withdraw(req);
+        return ResponseEntity.noContent().build();
     }
     /**
      * 블라인드 모드 변경 (ON/OFF)

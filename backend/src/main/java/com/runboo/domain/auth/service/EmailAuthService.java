@@ -5,13 +5,13 @@ import com.runboo.domain.auth.repository.EmailVerificationRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.SimpleMailMessage;
+
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 /**
  * 이메일 인증 처리 전용 서비스
@@ -39,7 +39,7 @@ public class EmailAuthService {
      * - 앞자리가 0일 수 있음
      */
     public String generateCode() {
-        return String.format("%06d", new Random().nextInt(1_000_000));
+        return String.format("%06d", new SecureRandom().nextInt(1_000_000));
     }
 
     /**
