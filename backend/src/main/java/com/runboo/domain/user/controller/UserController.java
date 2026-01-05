@@ -83,5 +83,16 @@ public class UserController {
         userService.withdraw(req);
         return ResponseEntity.noContent().build();
     }
-
+    /**
+     * 블라인드 모드 변경 (ON/OFF)
+     * PATCH /api/users/me/blind
+     */
+    @PatchMapping("/me/blind")
+    public ResponseEntity<Void> changeBlindStatus(
+            @RequestBody UserBlindRequestDto request
+    ) {
+        // 서비스에 요청: "내 아이디의 블라인드 상태를 이걸로 바꿔줘"
+        userService.updateBlindStatus(request.isBlind());
+        return ResponseEntity.ok().build();
+    }
 }

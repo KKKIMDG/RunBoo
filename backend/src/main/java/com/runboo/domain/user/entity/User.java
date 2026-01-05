@@ -44,12 +44,14 @@ public class User {
     private LocalDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
-
     @Column(name = "state")
     private UserState userState;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Column(name = "is_blind", nullable = false, columnDefinition = "boolean default false")
+    private boolean isBlind = false;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserCourse> userCourses = new ArrayList<>();
@@ -92,6 +94,9 @@ public class User {
     }
     public void changePassword(String encodedPassword) {
         this.password = encodedPassword;
+    }
+    public void changeBlindStatus(boolean isBlind) {
+        this.isBlind = isBlind;
     }
 
     public void withdraw() {

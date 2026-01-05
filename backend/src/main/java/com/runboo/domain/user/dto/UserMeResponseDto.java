@@ -9,7 +9,8 @@ public record UserMeResponseDto(
         String email,
         String nickname,
         String profileImageUrl,
-        SocialProvider provider
+        SocialProvider provider,
+        boolean isBlind
 ) {
     public static UserMeResponseDto from(User user) {
         return new UserMeResponseDto(
@@ -17,7 +18,8 @@ public record UserMeResponseDto(
                 user.getEmail(),
                 user.getNickname(),
                 user.getProfileImageUrl(),
-                user.getSocialProvider()
+                user.getSocialProvider(),
+                user.isBlind()
         );
     }
 

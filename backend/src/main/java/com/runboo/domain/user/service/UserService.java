@@ -10,6 +10,7 @@ import com.runboo.domain.user.enums.SocialProvider;
 import com.runboo.domain.user.repository.UserRepository;
 import com.runboo.global.security.SecurityUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final RedisTemplate<String, String> redisTemplate;
+    private static final String REDIS_RUNNER_KEY = "active_runners";
 
     /**
      * 내 정보 조회
@@ -116,7 +119,6 @@ public class UserService {
         user.withdraw();
     }
 
-
     /**
      * 공통 유저 조회 메서드
      */
@@ -126,5 +128,15 @@ public class UserService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("유저를 찾을 수 없습니다. userId=" + userId)
                 );
+    }
+    @Transactional
+    public void updateBlindStatus(boolean isBlind) {
+        User user = getCurrentUser();
+
+        user.changeBlindStatus(isBlind);
+
+        if (isBlind) {
+            redisTemplate.opsForGeo().remove(REDIS_RUNNER_KEY, user.getId().toString());
+        }
     }
 }

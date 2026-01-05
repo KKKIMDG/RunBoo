@@ -1,9 +1,7 @@
-// frontend/src/screens/home/HomeScreen.tsx
-
-import React, { FC, useState } from "react";
+import React, { FC, useRef, useState, useEffect } from "react"; // ✅ useEffect 추가
 import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps";
 
@@ -15,6 +13,9 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
 import { useNearbyRunners } from "@/hooks/useNearbyRunners";
 import { useMe } from "@/hooks/useMe";
+
+// API Service
+import { updateBlindStatus } from "@/services/user/userService"; // ✅ 위에서 만든 함수 import (경로 확인 필요)
 
 // Ghost
 import GhostSelectSheet from "./components/GhostSelectSheet";
@@ -164,12 +165,17 @@ function computeSelfGhosts(userId: number, records: any[]): any[] {
 }
 
 const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
-    // ✅ 내 정보에서 userId 확보
+    // ✅ 내 정보에서 userId 및 isBlind 정보 확보
     const { me } = useMe();
+    // ✅ 내 정보에서 userId 확보
+
+    // 1. MapView 제어를 위한 Ref 생성
+    const mapRef = useRef<MapView>(null);
 
     // ✅ 주변 러너 데이터 가져오기
     const isFocused = useIsFocused();
     const { nearbyRunners } = useNearbyRunners(isFocused);
+    // ✅ 주변 러너 데이터 가져오기
 
     // ✅ 홈 스크린 로직 가져오기
     const {
@@ -194,6 +200,23 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         handleOpenFullMap,
     } = useHomeScreen();
 
+    // 🚀 부드러운 카메라 이동 함수
+    const handleMoveToCurrentLocation = () => {
+        if (location && mapRef.current) {
+            mapRef.current.animateCamera({
+                center: {
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                },
+                zoom: 16,
+                pitch: 0,
+                heading: 0,
+            }, { duration: 500 });
+        } else {
+            Alert.alert("알림", "현재 위치를 불러올 수 없습니다.");
+        }
+    };
+
     const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
     const styles = getStyles(colorScheme);
     const colors = Colors[colorScheme];
@@ -203,6 +226,36 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     const [ghostSheetOpen, setGhostSheetOpen] = useState(false);
     const [ghostLoading, setGhostLoading] = useState(false);
     const [ghostProfiles, setGhostProfiles] = useState<GhostProfileDto[]>([]);
+
+    /** 👁️ 블라인드 모드 상태 (내 위치 숨기기) */
+    const [isBlind, setIsBlind] = useState(false);
+
+    /** ✅ [추가] 초기 상태 동기화: 앱 켜질 때 서버에 저장된 내 설정(me.isBlind) 불러오기 */
+    useEffect(() => {
+        if (me) {
+            // 백엔드 UserMeResponseDto에 isBlind 필드가 있다고 가정
+            setIsBlind(me.isBlind);
+        }
+    }, [me]);
+
+    /** 👁️ [수정] 블라인드 모드 토글 핸들러 (API 연동) */
+    const toggleBlindMode = async () => {
+        const newValue = !isBlind;
+
+        // 1. UI 먼저 변경 (반응 속도 향상)
+        setIsBlind(newValue);
+
+        try {
+            // 2. 서버에 변경 요청 전송
+            await updateBlindStatus(newValue);
+
+        } catch (error) {
+            // 4. 실패 시 원상복구
+            console.error("블라인드 모드 변경 실패:", error);
+            setIsBlind(!newValue);
+            Alert.alert("오류", "설정 변경에 실패했습니다. 다시 시도해주세요.");
+        }
+    };
 
     // ✅ 고스트 데이터 로딩 로직 변경:
     // - 랭킹: 기존 ghost_profile(fetchGhostProfiles) 유지
@@ -311,9 +364,10 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                 <View style={styles.mapBox}>
                     {location ? (
                         <MapView
+                            ref={mapRef}
                             provider={PROVIDER_GOOGLE}
                             style={styles.map}
-                            region={{
+                            initialRegion={{
                                 latitude: location.coords.latitude,
                                 longitude: location.coords.longitude,
                                 latitudeDelta: 0.01,
@@ -332,28 +386,14 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                                     title={runner.nickname}
                                     anchor={{ x: 0.5, y: 0.5 }}
                                 >
-                                    <View
-                                        style={{
-                                            width: 36,
-                                            height: 36,
-                                            borderRadius: 18,
-                                            backgroundColor: "white",
-                                            borderWidth: 2,
-                                            borderColor: "#4A6EA9",
-                                            justifyContent: "center",
-                                            alignItems: "center",
-                                            shadowColor: "#000",
-                                            shadowOpacity: 0.3,
-                                            elevation: 4,
-                                        }}
-                                    >
+                                    <View style={styles.markerContainer}>
                                         {runner.profileImageUrl ? (
                                             <Image
                                                 source={{ uri: runner.profileImageUrl }}
-                                                style={{ width: 32, height: 32, borderRadius: 16 }}
+                                                style={styles.markerImage}
                                             />
                                         ) : (
-                                            <Ionicons name="person" size={20} color="#4A6EA9" />
+                                            <Ionicons name="person" size={24} color="#4A6EA9" />
                                         )}
                                     </View>
                                 </Marker>
@@ -367,8 +407,24 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                         </View>
                     )}
 
-                    <TouchableOpacity style={styles.zoomBtn}>
-                        <Ionicons name="eye-outline" size={22} color={colors.text} />
+                    {/* ✅ 블라인드(눈) 버튼: API 연동됨 */}
+                    <TouchableOpacity
+                        style={styles.zoomBtn}
+                        onPress={toggleBlindMode}
+                    >
+                        <Ionicons
+                            name={isBlind ? "eye-off-outline" : "eye-outline"}
+                            size={22}
+                            color={isBlind ? "#999" : colors.text}
+                        />
+                    </TouchableOpacity>
+
+                    {/* ✅ 내 위치로 이동 버튼: 구글 지도 스타일 */}
+                    <TouchableOpacity
+                        style={styles.myLocationBtn}
+                        onPress={handleMoveToCurrentLocation}
+                    >
+                        <MaterialIcons name="my-location" size={24} color={colors.text} />
                     </TouchableOpacity>
 
                     <View style={styles.mapBottomRow}>

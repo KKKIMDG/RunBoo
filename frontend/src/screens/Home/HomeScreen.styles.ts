@@ -6,22 +6,15 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         flex: 1,
         backgroundColor: Colors[scheme].background,
         ...Platform.select({
-            web: {
-                height: '100%' as any,
-            },
-            default: {
-                flex: 1,
-            }
+            web: { height: '100%' as any },
+            default: { flex: 1 }
         })
     },
     content: {
         flex: 1,
         paddingHorizontal: 20,
         paddingTop: 10,
-        paddingBottom: Platform.select({
-            ios: 75,
-            default: 85,
-        }),
+        paddingBottom: Platform.select({ ios: 75, default: 85 }),
     },
     tabContainer: {
         flexDirection: 'row',
@@ -78,6 +71,8 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         color: Colors[scheme].icon,
         fontSize: 16,
     },
+
+    // 👁️ 눈 모양 버튼 (줌/보기)
     zoomBtn: {
         position: 'absolute',
         top: 16,
@@ -93,7 +88,30 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 3.84,
+        zIndex: 5,
     },
+
+    // 📍 내 위치 버튼 (눈 버튼 바로 아래)
+    myLocationBtn: {
+        position: 'absolute',
+        top: 70, // 눈 버튼(top:16 + height:44 + margin:10) 바로 아래
+        right: 16,
+        width: 44,
+        height: 44,
+        borderRadius: 22, // 둥근 원형
+        backgroundColor: Colors[scheme].card, // 테마 배경색 (흰색/검은색)
+
+        justifyContent: 'center',
+        alignItems: 'center',
+
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3.84,
+        elevation: 5,
+        zIndex: 10,
+    },
+
     mapBottomRow: {
         position: 'absolute',
         bottom: 16,
@@ -103,15 +121,13 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    // ✅ [수정/추가] 지도 하단 버튼 공통 스타일 (흰색 둥근 배경)
     mapBottomButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.95)', // 가독성을 위해 불투명도 높임
+        backgroundColor: Colors[scheme].card,
         paddingHorizontal: 14,
         paddingVertical: 8,
         borderRadius: 20,
-        // 그림자 효과
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.15,
@@ -129,9 +145,32 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 14,
     },
-    buttonSection: {
-        marginBottom: 0,
+
+    // ✅ [MapFullScreen과 동일하게 맞춘 마커 스타일]
+    markerContainer: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'white',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#4A6EA9', // 파란 테두리
+        overflow: 'hidden',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 5,
     },
+    markerImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        resizeMode: 'cover',
+    },
+
+    buttonSection: { marginBottom: 0 },
     blackButton: {
         width: '100%',
         height: 52,
@@ -144,19 +183,12 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         paddingHorizontal: 24,
         position: 'relative',
     },
-    startBtn: {
-        height: 58,
-        marginBottom: 0,
-    },
+    startBtn: { height: 58, marginBottom: 0 },
     buttonTextMain: {
         color: Colors[scheme].background,
         fontSize: 16,
         fontWeight: 'bold',
         textAlign: 'center',
-    },
-    chevronIcon: {
-        position: 'absolute',
-        right: 20,
     },
     buttonContentCentered: {
         flexDirection: 'row',

@@ -7,6 +7,7 @@ export type UserMeResponseDto = {
     userId: number;
     nickname: string;
     profileImageUrl: string | null;
+    isBlind: boolean;
 };
 
 async function getAuthHeaders() {
