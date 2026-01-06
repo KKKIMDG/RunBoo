@@ -2,6 +2,7 @@
 
 import { api } from '@/services/api';
 import { UserSetting } from '@/types/userSetting';
+import { Notification } from '@/types/notification';
 
 export const userSettingService = {
 
@@ -17,5 +18,17 @@ export const userSettingService = {
         payload: Partial<UserSetting>
     ): Promise<void> => {
         await api.patch('/api/users/me/settings', payload);
+    },
+
+    /** =====================
+     *  알림 설정 변경 (단일 타입)
+     *  ===================== */
+    updateNotificationPreference: async (
+        payload: {
+            type: Notification;
+            enabled: boolean;
+        }
+    ): Promise<void> => {
+        await api.post('/api/users/me/notification-preferences', payload);
     },
 };

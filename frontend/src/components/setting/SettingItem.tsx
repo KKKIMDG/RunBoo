@@ -18,13 +18,14 @@ interface SelectOption<T = any> {
 }
 
 interface SettingItemProps {
-    icon: keyof typeof Ionicons.glyphMap;
+    icon?: keyof typeof Ionicons.glyphMap;
     label: string;
     value?: string;
     isLast?: boolean;
+    disabled?: boolean;
 
     /** link | switch | text | select */
-    type?: 'link' | 'switch' | 'text' | 'select';
+    type?: 'link' | 'switch' | 'text' | 'select' | 'expand';
 
     /** switch */
     isEnabled?: boolean;
@@ -100,6 +101,7 @@ export default function SettingItem({
                                         isLast,
                                         type = 'link',
                                         isEnabled = false,
+                                        disabled = false,
                                         onToggle,
                                         onPress,
                                         options,
@@ -127,6 +129,7 @@ export default function SettingItem({
 
     const isDisabled = type === 'text';
     const Wrapper = type === 'switch' ? View : TouchableOpacity;
+    const showChevron = type === 'select' || type === 'expand';
 
     return (
         <View ref={itemRef}>
@@ -145,20 +148,23 @@ export default function SettingItem({
                             if (type === 'select') {
                                 if (!options || !onSelect || !onOpenSelect) return;
 
-                                onToggleOpen?.();
+                                itemRef.current?.measureInWindow((x, y, width, height) => {
+                                    onToggleOpen?.();
+                                    onOpenSelect({
+                                        x,
+                                        y,
+                                        width,
+                                        height,
+                                        options,
+                                        onSelect,
+                                    });
+                                });
+                                return;
+                            }
 
-                                itemRef.current?.measureInWindow(
-                                    (x, y, width, height) => {
-                                        onOpenSelect({
-                                            x,
-                                            y,
-                                            width,
-                                            height,
-                                            options,
-                                            onSelect,
-                                        });
-                                    }
-                                );
+                            if (type === 'expand') {
+                                onToggleOpen?.();
+                                return;
                             }
                         },
                     }
@@ -180,13 +186,16 @@ export default function SettingItem({
                     {type === 'switch' ? (
                         /**
                          * 스위치 hit area 확장
-                         * - row 전체는 아님
                          * - 스위치 주변만 넉넉하게 터치 가능
                          */
                         <TouchableOpacity
                             activeOpacity={0.8}
+                            disabled={disabled}
                             onPress={() => onToggle?.(!isEnabled)}
-                            style={styles.switchHitArea}
+                            style={[
+                                styles.switchHitArea,
+                                disabled && { opacity: 0.4 },
+                            ]}
                         >
                             <CustomSmallSwitch
                                 active={isEnabled}
@@ -199,13 +208,9 @@ export default function SettingItem({
                                 <Text style={styles.valueText}>{value}</Text>
                             )}
 
-                            {type === 'select' && (
+                            {showChevron && (
                                 <Animated.View style={{ transform: [{ rotate }] }}>
-                                    <Ionicons
-                                        name="chevron-down"
-                                        size={18}
-                                        color="#ADB5BD"
-                                    />
+                                    <Ionicons name="chevron-down" size={18} color="#ADB5BD" />
                                 </Animated.View>
                             )}
 
