@@ -1,5 +1,3 @@
-//frontend/src/screens/records/components/Segmented.tsx
-
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
@@ -10,49 +8,74 @@ type Props = {
     onChange: (v: "left" | "right") => void;
 };
 
-export default function Segmented({ leftLabel, rightLabel, value, onChange }: Props) {
+export default function Segmented({
+                                      leftLabel,
+                                      rightLabel,
+                                      value,
+                                      onChange,
+                                  }: Props) {
+    const leftActive = value === "left";
+    const rightActive = value === "right";
+
     return (
         <View style={s.wrap}>
             <TouchableOpacity
-                style={[s.item, value === "left" && s.active]}
+                activeOpacity={0.9}
                 onPress={() => onChange("left")}
-                activeOpacity={0.85}
+                style={[s.btn, leftActive && s.btnActive]}
             >
-                <Text style={[s.text, value === "left" && s.activeText]}>{leftLabel}</Text>
+                <Text style={[s.txt, leftActive && s.txtActive]}>{leftLabel}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-                style={[s.item, value === "right" && s.active]}
+                activeOpacity={0.9}
                 onPress={() => onChange("right")}
-                activeOpacity={0.85}
+                style={[s.btn, rightActive && s.btnActive]}
             >
-                <Text style={[s.text, value === "right" && s.activeText]}>{rightLabel}</Text>
+                <Text style={[s.txt, rightActive && s.txtActive]}>{rightLabel}</Text>
             </TouchableOpacity>
         </View>
     );
 }
 
 const s = StyleSheet.create({
+    // ✅ ChallengeScreen의 tabSwitcher 느낌
     wrap: {
         flexDirection: "row",
-        backgroundColor: "#EEF1F7",
+        backgroundColor: "transparent",
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: "#EEF1F7",
         padding: 4,
-        borderRadius: 14,
     },
-    item: {
+
+    btn: {
         flex: 1,
-        paddingVertical: 8,
-        borderRadius: 12,
+        height: 44,
+        borderRadius: 20,
         alignItems: "center",
+        justifyContent: "center",
+        padding: 7,
+        marginTop: 2,
+        marginBottom: 2,
     },
-    active: {
-        backgroundColor: "#3A4A98"
+
+    btnActive: {
+        backgroundColor: "#3A4A98",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 2,
     },
-    text: {
-        color: "#687076",
-        fontWeight: "700"
+
+    txt: {
+        fontSize: 14,
+        fontWeight: "600",
+        color: "#6B7280",
     },
-    activeText: {
-        color: "white"
+
+    txtActive: {
+        color: "#FFF",
     },
 });

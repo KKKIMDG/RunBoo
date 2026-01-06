@@ -24,7 +24,6 @@ import type { GhostProfileDto } from "@/types/ghost";
 
 // ✅ records 조회
 import { fetchMyRecords } from "@/services/record/recordsService";
-import type { RecordDto } from "@/types/record";
 
 type HomeScreenProps = {
     navigation: { navigate: (screen: string, params?: any) => void };
@@ -331,7 +330,6 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         <SafeAreaView style={styles.safeArea}>
             <TopNavBar
                 onLeftPress={() => navigation.navigate("Profile")}
-                profileImageUrl={me?.profileImageUrl}
             />
 
             <View style={styles.content}>

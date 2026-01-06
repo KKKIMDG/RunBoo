@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,6 @@ import {
   useColorScheme,
   Dimensions,
   Alert,
-  ToastAndroid,
-  Platform,
-  SafeAreaView,
   StyleSheet,
 } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
@@ -26,6 +23,9 @@ import { useRunningScreen } from "./useRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
 import { StatBox } from "@/components/StatBox";
 import { RootStackParamList } from "@/navigation/root/RootNavigator";
+import { useRunningVoiceFeedback } from "@/hooks/useRunningVoiceFeedback";
+import * as Speech from "expo-speech";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
@@ -37,6 +37,9 @@ const RunningScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const mapRef = useRef<MapView>(null);
 
+  const [isMale, setIsMale] = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+
   const { state, actions, utils } = useRunningScreen();
 
   const {
@@ -44,12 +47,13 @@ const RunningScreen = () => {
     time,
     distance,
     currentPace,
-    routeCoordinates, // ✅ 좌표는 계속 수집됨
+    routeCoordinates,
     paceHistory,
     isReady,
     countdown,
     isFollowing,
     initialLocation,
+    targetDistance,
   } = state;
 
   const {
@@ -62,7 +66,46 @@ const RunningScreen = () => {
   } = actions;
   const { formatTime, formatPace } = utils;
 
-  // 실시간 지도 카메라 이동 로직
+  const { checkAndSpeak, speakStart, speakPause, speakResume, speakStop } =
+    useRunningVoiceFeedback({
+      isMale: isMale,
+      targetDistance: targetDistance,
+    });
+
+  const toggleVoice = () => {
+    if (isVoiceEnabled) Speech.stop();
+    setIsVoiceEnabled(!isVoiceEnabled);
+  };
+
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
+
+  const prevIsReady = useRef(isReady);
+  useEffect(() => {
+    if (isVoiceEnabled && prevIsReady.current === true && isReady === false) {
+      speakStart();
+    }
+    prevIsReady.current = isReady;
+  }, [isReady, isVoiceEnabled]);
+
+  useEffect(() => {
+    if (isVoiceEnabled && !isPaused && !isReady && distance > 0) {
+      checkAndSpeak(distance);
+    }
+  }, [distance, isPaused, isReady, isVoiceEnabled]);
+
+  const prevIsPaused = useRef(isPaused);
+  useEffect(() => {
+    if (isVoiceEnabled && !isReady && prevIsPaused.current !== isPaused) {
+      if (isPaused) speakPause();
+      else speakResume();
+    }
+    prevIsPaused.current = isPaused;
+  }, [isPaused, isReady, isVoiceEnabled]);
+
   useEffect(() => {
     onLocationUpdate.current = (coords) => {
       if (isFollowing && mapRef.current) {
@@ -93,10 +136,35 @@ const RunningScreen = () => {
     }
   };
 
-  // ✅ 종료 시 수집된 routeCoordinates를 결과 화면으로 전달
-  const handleStopLongPress = () => {
-    stopRun();
-  };
+  const renderedMap = useMemo(
+    () => (
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        provider={PROVIDER_GOOGLE}
+        showsUserLocation={true}
+        loadingEnabled={true}
+        onPanDrag={() => {
+          if (isFollowing) setIsFollowing(false);
+        }}
+        initialRegion={
+          initialLocation
+            ? {
+                ...initialLocation,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005,
+              }
+            : {
+                latitude: 37.5665,
+                longitude: 126.978,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005,
+              }
+        }
+      />
+    ),
+    [initialLocation]
+  );
 
   const chartData = useMemo(
     () => ({
@@ -119,6 +187,17 @@ const RunningScreen = () => {
     color: (opacity = 1) => `rgba(74,110,169,${opacity})`,
     labelColor: () => (isDarkMode ? "#FFF" : "#333"),
     propsForDots: { r: "0" },
+  };
+
+  const handleStopLongPress = () => {
+    if (isVoiceEnabled) {
+      // ✅ 하던 말을 훅 내부 speak에서 끊어주므로 바로 호출
+      speakStop(distance, () => {
+        stopRun();
+      });
+    } else {
+      stopRun();
+    }
   };
 
   return (
@@ -148,6 +227,40 @@ const RunningScreen = () => {
               {isPaused ? "일시정지" : "러닝 중"}
             </Text>
           </View>
+
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => setIsMale(!isMale)}
+              style={customStyles.genderToggle}
+            >
+              <Text style={{ fontSize: 12, color: "#4A6EA9" }}>
+                {isMale ? "남성" : "여성"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={toggleVoice}
+              style={[
+                customStyles.genderToggle,
+                { backgroundColor: isVoiceEnabled ? "#4A6EA9" : "#E0E0E0" },
+              ]}
+            >
+              <Ionicons
+                name={isVoiceEnabled ? "volume-high" : "volume-mute"}
+                size={14}
+                color={isVoiceEnabled ? "#FFF" : "#666"}
+              />
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: isVoiceEnabled ? "#FFF" : "#666",
+                  marginLeft: 4,
+                }}
+              >
+                {isVoiceEnabled ? "음성 ON" : "음성 OFF"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.statsContainer}>
@@ -159,7 +272,7 @@ const RunningScreen = () => {
           <StatBox
             icon={
               <MaterialCommunityIcons
-                name="map-marker-distance"
+                name="flag-checkered"
                 size={24}
                 color="#4A6EA9"
               />
@@ -207,28 +320,7 @@ const RunningScreen = () => {
         </View>
 
         <View style={styles.mapContainer}>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            provider={PROVIDER_GOOGLE}
-            showsUserLocation={true}
-            loadingEnabled={true}
-            initialRegion={
-              initialLocation
-                ? {
-                    ...initialLocation,
-                    latitudeDelta: 0.002,
-                    longitudeDelta: 0.002,
-                  }
-                : undefined
-            }
-            onPanDrag={() => {
-              if (isFollowing) setIsFollowing(false);
-            }}
-          >
-            {/* ✅ [수정] 실행 중에는 Polyline을 렌더링하지 않음 */}
-          </MapView>
-
+          {renderedMap}
           <TouchableOpacity
             style={[
               customStyles.focusButton,
@@ -279,21 +371,25 @@ const customStyles = StyleSheet.create({
     padding: 10,
     borderRadius: 30,
     elevation: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
     borderWidth: 1,
     borderColor: "#E0E0E0",
   },
-  focusButtonActive: {
-    backgroundColor: "#4A6EA9",
-    borderColor: "#4A6EA9",
-  },
+  focusButtonActive: { backgroundColor: "#4A6EA9", borderColor: "#4A6EA9" },
   stopSquare: {
     width: 24,
     height: 24,
     backgroundColor: "white",
     borderRadius: 4,
+  },
+  genderToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#4A6EA9",
   },
 });
 

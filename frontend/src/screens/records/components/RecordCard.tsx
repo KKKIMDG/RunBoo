@@ -51,7 +51,7 @@ export default function RecordCard({ item }: { item: RecordDto }) {
 
 const s = StyleSheet.create({
     card: {
-        backgroundColor: "white",
+        backgroundColor: "#F5F7FB",
         borderRadius: 18,
         padding: 14,
         marginBottom: 12,
@@ -86,7 +86,7 @@ const s = StyleSheet.create({
         fontWeight: "600"
     },
     rowBox: {
-        backgroundColor: "#F7F8FC",
+        backgroundColor: "#FFF",
         borderRadius: 14,
         paddingVertical: 10,
         paddingHorizontal: 12,

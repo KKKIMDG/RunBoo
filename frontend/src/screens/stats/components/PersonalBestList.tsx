@@ -81,7 +81,7 @@ export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
 
 const s = StyleSheet.create({
     card: {
-        backgroundColor: "white",
+        backgroundColor: "#F5F7FB",
         borderRadius: 18,
         padding: 14,
         borderWidth: 1,
@@ -93,7 +93,7 @@ const s = StyleSheet.create({
         marginBottom: 14,
     },
     row: {
-        backgroundColor: "#F2F3F5",
+        backgroundColor: "#FFF",
         borderRadius: 16,
         paddingVertical: 12,
         paddingHorizontal: 14,

@@ -77,7 +77,7 @@ export default function WeeklyChart({ weekly }: { weekly: WeeklySummaryDto }) {
 
 const s = StyleSheet.create({
     card: {
-        backgroundColor: "white",
+        backgroundColor: "#F5F7FB",
         borderRadius: 18,
         padding: 14,
         borderWidth: 1,

@@ -44,7 +44,7 @@ export default function MonthlyChart({ monthly }: { monthly: MonthlySummaryDto }
 
 const s = StyleSheet.create({
     card: {
-        backgroundColor: "white",
+        backgroundColor: "#F5F7FB",
         borderRadius: 18,
         padding: 14,
         borderWidth: 1,
@@ -72,7 +72,7 @@ const s = StyleSheet.create({
     },
     box: {
         flex: 1,
-        backgroundColor: "#F7F8FC",
+        backgroundColor: "#FFF",
         borderRadius: 14,
         padding: 12,
         alignItems: "center",

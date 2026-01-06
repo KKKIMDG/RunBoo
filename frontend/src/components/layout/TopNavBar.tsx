@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
   StyleSheet,
   View,
@@ -18,8 +18,8 @@ export function TopNavBar({
                             onLeftPress,
                             onRightPress,
                           }: TopNavBarProps) {
+  const { userMe } = useUserMe(); // ✅ loading 제거
   const [imageLoading, setImageLoading] = useState(false);
-  const { userMe, loading } = useUserMe();
 
   const profileImageSource =
       typeof userMe?.profileImageUrl === "string" &&
@@ -27,30 +27,29 @@ export function TopNavBar({
           ? { uri: userMe.profileImageUrl }
           : require("@/assets/images/runboo.png");
 
+  // 이미지 소스가 바뀌면 로딩 상태 초기화
+  useEffect(() => {
+    setImageLoading(false);
+  }, [profileImageSource]);
+
   return (
       <View style={styles.root}>
         {/* 왼쪽 프로필 버튼 */}
         <TouchableOpacity onPress={onLeftPress} activeOpacity={0.7}>
           <View style={styles.profileImageWrapper}>
-            {loading ? (
-                <ActivityIndicator size="small" color="#3A4A98" />
-            ) : (
-                <>
-                  <Image
-                      source={profileImageSource}
-                      style={styles.profileImage}
-                      resizeMode="cover"
-                      onLoadStart={() => setImageLoading(true)}
-                      onLoadEnd={() => setImageLoading(false)}
-                      onError={() => setImageLoading(false)}
-                  />
+            <Image
+                source={profileImageSource}
+                style={styles.profileImage}
+                resizeMode="cover"
+                onLoadStart={() => setImageLoading(true)}
+                onLoadEnd={() => setImageLoading(false)}
+                onError={() => setImageLoading(false)}
+            />
 
-                  {imageLoading && (
-                      <View style={styles.loadingOverlay}>
-                        <ActivityIndicator size="small" color="#3A4A98" />
-                      </View>
-                  )}
-                </>
+            {imageLoading && (
+                <View style={styles.loadingOverlay}>
+                  <ActivityIndicator size="small" color="#3A4A98" />
+                </View>
             )}
           </View>
         </TouchableOpacity>
