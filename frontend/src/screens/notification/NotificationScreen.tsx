@@ -5,7 +5,7 @@ import {
     Text,
     TouchableOpacity,
     FlatList,
-    ActivityIndicator, ScrollView,
+    ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,80 +13,64 @@ import { useNavigation } from "@react-navigation/native";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { getStyles } from "./Notification.styles";
-
-export type NotificationItem = {
-    id: string;
-    title: string;
-    message: string;
-    createdAt: string;
-    isRead: boolean;
-    type: "RECORD" | "CHALLENGE" | "SOCIAL";
-};
-
-const MOCK_DATA: NotificationItem[] = [
-    {
-        id: "1",
-        title: "새로운 기록 달성! 🏆",
-        message: "5km를 28분 만에 주파했어요! 개인 최고 기록입니다.",
-        createdAt: "5분 전",
-        isRead: false,
-        type: "RECORD",
-    },
-    {
-        id: "2",
-        title: "스피드러너님이 함께 달리기를 제안했어요",
-        message: "내일 오전 7시에 함께 달려볼까요?",
-        createdAt: "15분 전",
-        isRead: false,
-        type: "SOCIAL",
-    },
-    {
-        id: "3",
-        title: "챌린지 달성 🎉",
-        message: "첫 러닝 챌린지를 완료했어요!",
-        createdAt: "1시간 전",
-        isRead: true,
-        type: "CHALLENGE",
-    },
-];
+import { useNotifications } from "./useNotifications";
+import type { NotificationItem } from "@/types/notification";
 
 const NotificationScreen = () => {
     const navigation = useNavigation<any>();
     const scheme = useColorScheme() ?? "light";
     const styles = getStyles(scheme);
 
+    /** UI 탭 상태 */
     const [tab, setTab] = useState<"ALL" | "UNREAD">("ALL");
-    const [loading] = useState(false);
 
-    const unreadCount = MOCK_DATA.filter((n) => !n.isRead).length;
+    /** 알림 데이터 */
+    const {
+        notifications,
+        loading,
+        markAsRead,
+        markAllAsRead,
+    } = useNotifications();
+
+    const unreadCount = notifications.filter(n => !n.read).length;
 
     const filteredData =
         tab === "ALL"
-            ? MOCK_DATA
-            : MOCK_DATA.filter((item) => !item.isRead);
+            ? notifications
+            : notifications.filter(n => !n.read);
 
     const renderItem = ({ item }: { item: NotificationItem }) => (
-        <View style={[styles.card, !item.isRead && styles.cardUnread]}>
-            <View style={styles.iconBox}>
-                <Ionicons
-                    name={
-                        item.type === "RECORD"
-                            ? "trophy"
-                            : item.type === "CHALLENGE"
-                                ? "medal"
-                                : "walk"
-                    }
-                    size={22}
-                    color="#3A4A98"
-                />
-            </View>
+        <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+                if (!item.read) {
+                    markAsRead(item.id);
+                }
+                // TODO: type별 이동 처리
+            }}
+        >
+            <View style={[styles.card, !item.read && styles.cardUnread]}>
+                <View style={styles.iconBox}>
+                    <Ionicons
+                        name={
+                            item.type === "RUN_RESULT"
+                                ? "trophy"
+                                : item.type === "CHALLENGE"
+                                    ? "medal"
+                                    : "notifications"
+                        }
+                        size={22}
+                        color="#3A4A98"
+                    />
+                </View>
 
-            <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardMessage}>{item.message}</Text>
-                <Text style={styles.cardDate}>{item.createdAt}</Text>
+                <View style={styles.cardContent}>
+                    <Text style={styles.cardTitle}>{item.title}</Text>
+                    <Text style={styles.cardMessage}>{item.body}</Text>
+                    <Text style={styles.cardDate}>{item.createdAt}</Text>
+                </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 
     const renderEmpty = () => (
@@ -113,13 +97,11 @@ const NotificationScreen = () => {
                 >
                     <Ionicons name="chevron-back" size={20} color="#000" />
                 </TouchableOpacity>
-
                 <Text style={styles.headerTitle}>알림</Text>
             </View>
 
-            {/* ================= 전환 영역 ================= */}
+            {/* ================= 전환 영역 (고정) ================= */}
             <View style={styles.switchSection}>
-                {/* 탭 */}
                 <View style={styles.tabSwitcher}>
                     <TouchableOpacity
                         style={[
@@ -162,19 +144,18 @@ const NotificationScreen = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* 구분선 */}
                 <View style={styles.dividerStandalone} />
 
-                {/* 모두 읽음 */}
-                <View style={styles.readAllRow}>
-                    <TouchableOpacity>
-                        <Text style={styles.readAllText}>모두 읽음</Text>
-                    </TouchableOpacity>
-                </View>
+                {unreadCount > 0 && (
+                    <View style={styles.readAllRow}>
+                        <TouchableOpacity onPress={markAllAsRead}>
+                            <Text style={styles.readAllText}>모두 읽음</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
 
-            {/* ================= 리스트 ================= */}
-            <ScrollView>
+            {/* ================= 리스트 (스크롤 영역) ================= */}
             {loading ? (
                 <ActivityIndicator
                     size="large"
@@ -185,13 +166,12 @@ const NotificationScreen = () => {
                 <FlatList
                     data={filteredData}
                     renderItem={renderItem}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => String(item.id)}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.listContent}
                     ListEmptyComponent={renderEmpty}
                 />
             )}
-            </ScrollView>
         </SafeAreaView>
     );
 };
