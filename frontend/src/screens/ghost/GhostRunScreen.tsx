@@ -554,13 +554,21 @@ export default function GhostRunScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[s.stopBtn, { backgroundColor: colors.danger, marginLeft: 14, opacity: isFinished ? 0.6 : 1 }]}
-                    onPress={handleStopPress}
+                    style={[
+                        s.stopBtn,
+                        { backgroundColor: colors.danger, marginLeft: 14, opacity: isFinished ? 0.6 : 1 },
+                    ]}
+                    onPress={() => {
+                        speak("종료하려면 3초 이상 길게 누르세요.");
+                    }}
+                    onLongPress={handleStopPress}
+                    delayLongPress={3000}
                     activeOpacity={0.85}
                     disabled={isFinished}
                 >
                     <Ionicons name={"stop" as IoniconName} size={22} color={"white"} />
                 </TouchableOpacity>
+
             </View>
         </SafeAreaView>
     );
