@@ -163,7 +163,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                                 </View>
                                 <View style={{ paddingLeft: 30 }}>
                                     <SettingItem
-                                        label="기록 달성 알림"
+                                        label="기록 달성"
                                         type="switch"
                                         disabled={!settings.pushEnabled}
                                         isEnabled={settings.notificationPreferences.RUN_RESULT}
@@ -172,7 +172,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                                         }
                                     />
                                     <SettingItem
-                                        label="챌린지 알림"
+                                        label="챌린지"
                                         type="switch"
                                         disabled={!settings.pushEnabled}
                                         isEnabled={settings.notificationPreferences.CHALLENGE}
