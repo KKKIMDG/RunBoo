@@ -57,22 +57,25 @@ export function useNotificationScreen() {
             await readNotification(item.id);
         }
 
+        const parent = navigation.getParent(); //BottomTabNavigator
+        if (!parent) return;
+
         // 타입별 이동
         switch (item.type) {
             case "RUN_RESULT":
-                navigation.navigate("RunResult");
+                navigation.navigate("MainTabs", { screen: "Record" });
                 break;
 
             case "CHALLENGE":
-                navigation.navigate("Challenge");
+                navigation.navigate("MainTabs", { screen: "Challenge" });
                 break;
 
             case "REMINDER":
-                navigation.navigate("Run");
+                navigation.navigate("MainTabs", { screen: "Home" });
                 break;
 
             case "EVENT":
-                navigation.navigate("Notice");
+                navigation.navigate("MainTabs", { screen: "Course" });
                 break;
         }
     };

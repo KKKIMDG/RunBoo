@@ -14,6 +14,7 @@ import { useNotificationScreen } from "./useNotificationScreen";
 import type { NotificationItem } from "@/types/notification";
 import { formatRelativeTime } from "@/utils/time";
 import {useNavigation} from "@react-navigation/native";
+import { NotificationIconMap } from "@/constants/notificationIconMap";
 
 const NotificationScreen = () => {
     const scheme = useColorScheme() ?? "light";
@@ -43,13 +44,7 @@ const NotificationScreen = () => {
             >
                 <View style={styles.iconBox}>
                     <Ionicons
-                        name={
-                            item.type === "RUN_RESULT"
-                                ? "trophy"
-                                : item.type === "CHALLENGE"
-                                    ? "medal"
-                                    : "notifications"
-                        }
+                        name={NotificationIconMap[item.type]}
                         size={22}
                         color="#3A4A98"
                     />
