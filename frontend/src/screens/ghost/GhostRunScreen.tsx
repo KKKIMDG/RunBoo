@@ -80,17 +80,6 @@ export default function GhostRunScreen() {
     const markRight = totalKm > 0 ? `${totalKm.toFixed(1)}km` : "-";
     const markMid = totalKm > 0 ? `${midKm.toFixed(1)}km` : "-";
 
-    /**
-     * ✅ "처음~현재" 전 구간 누적 그래프
-     * - paceHistoryMin이 제자리 push로 바뀌어도 상관없이
-     * - 우리가 rtPaceData를 누적 append로 직접 관리
-     *
-     * 전략:
-     * 1) time이 0(또는 매우 작음)으로 리셋되면 새 러닝 시작으로 판단하고 rtPaceData 초기화
-     * 2) 매 틱마다 "현재 페이스(currentPaceSec)"를 그래프 배열 끝에 추가
-     *    (단, 같은 값이 너무 잦은 틱으로 중복되면 계단처럼 길어지므로, 직전 값과 같으면 스킵)
-     * 3) 최소 2포인트 보장 (chart-kit용)
-     */
     const [rtPaceData, setRtPaceData] = useState<number[]>([0, 0]);
     const lastAddedRef = useRef<number | null>(null);
     const startedRef = useRef(false);
@@ -136,12 +125,6 @@ export default function GhostRunScreen() {
         });
     }, [isReady, isPaused, time, currentPaceSec]);
 
-    /**
-     * ✅ 만약 paceHistoryMin이 “진짜 기록 배열”이라면,
-     * 러닝 종료 후(또는 중간)에도 거기 값이 더 신뢰할만할 수 있어서
-     * paceHistoryMin이 더 길어졌을 때는 rtPaceData를 그걸로 "동기화"해주는 옵션을 넣어둠.
-     * (제자리 push여도 길이만 늘어나면 감지 가능)
-     */
     const lastLenRef = useRef<number>(0);
     useEffect(() => {
         if (!Array.isArray(paceHistoryMin)) return;

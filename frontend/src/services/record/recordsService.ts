@@ -55,7 +55,6 @@ export const createRecord = async (requestData: CreateRecordRequest) => {
 
 export async function fetchMonthlyAnalysis(): Promise<string> {
     const res = await api.get("/api/records/analysis/monthly");
-
     if (res && typeof res === 'object' && 'message' in res) {
         return (res as any).message;
     }
