@@ -39,7 +39,7 @@ export const fetchNearbyRunnersAPI = async (
         if (!response.ok) {
             // 에러 상태 코드 확인용 로그
             console.log('Server Error Status:', response.status);
-            throw new Error('주변 러너 조회 실패');
+            throw new Error();
         }
 
         return await response.json();

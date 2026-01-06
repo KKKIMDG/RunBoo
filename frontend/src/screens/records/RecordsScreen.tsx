@@ -24,6 +24,7 @@ import { fetchMyRecords, fetchDashboardStats } from "@/services/record/recordsSe
 import type { RecordDto, DashboardStatsDto } from "@/types/record";
 
 import { styles as s } from "./RecordsScreen.style";
+import AiAnalysisCard from "./components/AiAnalysisCard";
 
 type TopTab = "record" | "stats";
 type Mode = "NORMAL" | "GHOST" | "TIER";
@@ -234,6 +235,9 @@ export default function RecordsScreen() {
                                         <MonthlyChart monthly={stats.monthly} />
                                         <WeeklyChart weekly={stats.weekly} />
                                         <PersonalBestList pb={stats.personalBests} />
+                                        <View style={{ marginBottom: 20 }}>
+                                            <AiAnalysisCard />
+                                        </View>
                                     </>
                                 )
                             }

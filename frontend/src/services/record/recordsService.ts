@@ -45,3 +45,12 @@ export async function fetchNationalRankingTop5(): Promise<RecordDto[]> {
 export const createRecord = async (requestData: CreateRecordRequest) => {
     return api.post("/api/records", requestData);
 };
+
+export async function fetchMonthlyAnalysis(): Promise<string> {
+    const res = await api.get("/api/records/analysis/monthly");
+
+    if (res && typeof res === 'object' && 'message' in res) {
+        return (res as any).message;
+    }
+    return res as string;
+}
