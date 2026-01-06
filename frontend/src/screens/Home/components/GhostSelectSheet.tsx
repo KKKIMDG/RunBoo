@@ -1,6 +1,6 @@
 // frontend/src/screens/ghost/components/GhostSelectSheet.tsx
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
     View,
     Text,
@@ -13,8 +13,10 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import type { GhostProfileDto } from "@/types/ghost";
+import type { RecordDto } from "@/types/record";
 import { Colors } from "@/constants/theme";
 import { formatPaceSecToText, formatKm } from "@/screens/ghost/format";
+import { fetchNationalRankingTop5 } from "@/services/record/recordsService";
 
 type Props = {
     visible: boolean;
@@ -131,6 +133,42 @@ type Row = {
     profile: GhostProfileDto | null;
 };
 
+function hasAnyRanking(list: GhostProfileDto[]) {
+    return (list ?? []).some((gp) => {
+        const t = normalizeType((gp as any)?.type);
+        return (
+            t === "RANKING_NATIONAL_1" ||
+            t === "RANKING_NATIONAL_2" ||
+            t === "RANKING_NATIONAL_3" ||
+            t === "RANKING_NATIONAL_4" ||
+            t === "RANKING_NATIONAL_5"
+        );
+    });
+}
+
+// RecordDto -> GhostProfileDto(RANKING_NATIONAL_1~5)
+function toRankingGhostProfiles(top: RecordDto[]): GhostProfileDto[] {
+    const list = (top ?? []).slice(0, 5);
+
+    return list.map((r: any, idx) => {
+        const rank = idx + 1;
+
+        // 백엔드 RecordDto: distanceM(Double), avgPace(Integer), startedAt(LocalDateTime), endedAt(LocalDateTime), mode(String)
+        const distanceM = Number(r?.distanceM ?? 0);
+        const avgPace = Number(r?.avgPace ?? 0);
+        const iso = String(r?.startedAt ?? r?.createdAt ?? "");
+
+        return {
+            id: -(1000 + rank), // 프론트 임시 id (겹치지만 않게)
+            runRecordId: r?.id ?? null,
+            type: `RANKING_NATIONAL_${rank}`,
+            targetDistanceKm: distanceM / 1000,
+            avgPace,
+            createdAt: iso || new Date().toISOString(),
+        } as any;
+    });
+}
+
 export default function GhostSelectSheet({
                                              visible,
                                              scheme,
@@ -151,16 +189,63 @@ export default function GhostSelectSheet({
 
     const [tab, setTab] = useState<TabKey>("self");
 
+    // ✅ 랭킹 로컬 데이터 (부모가 안 내려줘도 여기서 조회해서 채움)
+    const [rankingLocalLoading, setRankingLocalLoading] = useState(false);
+    const [rankingLocal, setRankingLocal] = useState<GhostProfileDto[]>([]);
+
+    // ✅ 랭킹 탭 + 시트 열림 + 부모 data에 랭킹 없음 → TOP5 조회
+    useEffect(() => {
+        let alive = true;
+
+        async function loadRanking() {
+            if (!visible) return;
+            if (tab !== "ranking") return;
+
+            // 부모가 이미 랭킹을 내려주면 로컬은 비움
+            if (hasAnyRanking(data ?? [])) {
+                if (alive) setRankingLocal([]);
+                return;
+            }
+
+            // 이미 로컬에 있으면 중복 호출 방지
+            if ((rankingLocal ?? []).length > 0) return;
+
+            try {
+                if (alive) setRankingLocalLoading(true);
+                const top5 = await fetchNationalRankingTop5();
+                const converted = toRankingGhostProfiles(top5);
+                if (alive) setRankingLocal(converted);
+            } finally {
+                if (alive) setRankingLocalLoading(false);
+            }
+        }
+
+        loadRanking();
+
+        return () => {
+            alive = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [visible, tab, data]);
+
+    // ✅ 렌더에 쓸 최종 데이터: (부모 data) + (로컬 랭킹)
+    const mergedData = useMemo(() => {
+        const baseList = data ?? [];
+        if (hasAnyRanking(baseList)) return baseList;
+        if ((rankingLocal ?? []).length === 0) return baseList;
+        return [...baseList, ...rankingLocal];
+    }, [data, rankingLocal]);
+
     const byType = useMemo(() => {
         const map = new Map<GhostType, GhostProfileDto>();
-        for (const gp of data ?? []) {
+        for (const gp of mergedData ?? []) {
             const t = normalizeType((gp as any)?.type);
             if (t !== "UNKNOWN" && !map.has(t)) {
                 map.set(t, gp);
             }
         }
         return map;
-    }, [data]);
+    }, [mergedData]);
 
     function pickOne(t: GhostType) {
         return byType.get(t) ?? null;
@@ -200,6 +285,9 @@ export default function GhostSelectSheet({
         onClose?.();
         onSelect?.(gp); // ✅ 부모(HomeScreen)가 navigate 처리
     };
+
+    // ✅ 전체 로딩: 부모 로딩 + 랭킹 로컬 로딩
+    const isBusy = loading || rankingLocalLoading;
 
     return (
         <Modal visible={visible} transparent animationType="fade">
@@ -246,7 +334,7 @@ export default function GhostSelectSheet({
                         </TouchableOpacity>
                     </View>
 
-                    {loading ? (
+                    {isBusy ? (
                         <View style={s.loadingBox}>
                             <ActivityIndicator />
                         </View>

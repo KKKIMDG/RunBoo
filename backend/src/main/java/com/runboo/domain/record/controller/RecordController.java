@@ -50,6 +50,12 @@ public class RecordController {
         return recordService.getCurrentRunningStreak(user.getUserId());
     }
 
+    // 5) 전국 랭킹 TOP5 (TIER만, avgPace 빠른 순)
+    @GetMapping("/ranking/national")
+    public List<RecordDto> getNationalRankingTierTop5() {
+        return recordService.getNationalRankingTierTop5();
+    }
+
     @PostMapping
     public ResponseEntity<String> createRecord(@AuthenticationPrincipal CustomUserDetails user, @RequestBody RunRecordRequestDto requestDto) {
 

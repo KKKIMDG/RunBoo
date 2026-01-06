@@ -187,9 +187,23 @@ public class RecordService {
                 .orElse(null);
 
         RecordDto bestPace = all.stream()
-                .filter(r -> r.getAvgPace() != null)
-                .min(Comparator.comparingDouble(Record::getAvgPace))
-                .map(RecordDto::new)
+                .filter(r -> r.getDistanceM() != null && r.getDistanceM() > 0)
+                .map(r -> {
+                    Integer pace = r.getAvgPace();
+                    if (pace == null) {
+                        long sec = calcDurationSec(r);
+                        if (sec <= 0) return null;
+
+                        double km = r.getDistanceM() / 1000.0;
+                        if (km <= 0) return null;
+
+                        pace = (int) Math.round(sec / km);
+                    }
+                    return new AbstractMap.SimpleEntry<>(r, pace);
+                })
+                .filter(Objects::nonNull)
+                .min(Comparator.comparingInt(AbstractMap.SimpleEntry::getValue)) // ✅ int 비교
+                .map(e -> new RecordDto(e.getKey()))
                 .orElse(null);
 
         RecordDto mostCalories = all.stream()
@@ -262,5 +276,14 @@ public class RecordService {
         }
 
         return streak;
+    }
+
+    // 전국 랭킹 TOP5 (mode=TIER, avgPace 빠른 순)
+    public List<RecordDto> getNationalRankingTierTop5() {
+        return recordRepository
+                .findTop5ByModeAndAvgPaceGreaterThanOrderByAvgPaceAsc("TIER", 0)
+                .stream()
+                .map(RecordDto::new)
+                .toList();
     }
 }
