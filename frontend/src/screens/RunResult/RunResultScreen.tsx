@@ -6,7 +6,6 @@ import {
   Image,
   ScrollView,
   useColorScheme,
-  Alert,
   StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,7 +15,7 @@ import {
   MaterialCommunityIcons,
   FontAwesome5,
 } from "@expo/vector-icons";
-import MapView, { Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from "react-native-maps"; // ✅ Marker 추가
 
 import ViewShot, { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -46,6 +45,7 @@ const RunResultScreen = () => {
 
   const shareRef = useRef<View>(null);
   const storyRef = useRef<any>(null);
+  const mapRef = useRef<MapView>(null);
 
   const formatTime = (totalSeconds: number) => {
     const h = Math.floor(totalSeconds / 3600);
@@ -72,12 +72,46 @@ const RunResultScreen = () => {
   const midCoord =
     routeCoordinates.length > 0 ? routeCoordinates[midIdx] : null;
 
-  // 초기 로드 시 줌 레벨
-  const MAP_ZOOM_LEVEL = 0.015;
+  // ✅ 시작점과 종료점 추출
+  const startCoord = routeCoordinates.length > 0 ? routeCoordinates[0] : null;
+  const endCoord =
+    routeCoordinates.length > 0
+      ? routeCoordinates[routeCoordinates.length - 1]
+      : null;
 
   const handleGoHome = () => {
     navigation.reset({ index: 0, routes: [{ name: "MainStack" as never }] });
   };
+
+  const handleFocusRoute = () => {
+    if (routeCoordinates && routeCoordinates.length > 0 && mapRef.current) {
+      mapRef.current.fitToCoordinates(routeCoordinates, {
+        edgePadding: { top: 60, right: 60, bottom: 60, left: 60 },
+        animated: true,
+      });
+    }
+  };
+
+  const blurredMapStyle = [
+    {
+      elementType: "geometry",
+      stylers: [{ color: isDarkMode ? "#242f3e" : "#f0f0f0" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [
+        { visibility: "on" },
+        { color: isDarkMode ? "#38414e" : "#ffffff" },
+        { weight: 1.5 },
+      ],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: isDarkMode ? "#17263c" : "#c9d1d9" }],
+    },
+  ];
 
   const handleShare = async () => {
     try {
@@ -95,42 +129,10 @@ const RunResultScreen = () => {
     }
   };
 
-  const StoryCapture = () => {
-    const bg = isDarkMode ? "#070A12" : "#F6F7FB";
-    const strong = isDarkMode ? "#FFFFFF" : "#111111";
-    return (
-      <View style={{ position: "absolute", left: -9999 }}>
-        <ViewShot
-          ref={storyRef}
-          style={{ width: 360, height: 640, backgroundColor: bg }}
-        >
-          <View style={{ flex: 1, padding: 20, alignItems: "center" }}>
-            <Image
-              source={require("@/assets/images/runboo.png")}
-              style={{ width: 80, height: 80, borderRadius: 40 }}
-              resizeMode="contain"
-            />
-            <Text
-              style={{
-                color: strong,
-                fontSize: 24,
-                fontWeight: "900",
-                marginTop: 10,
-              }}
-            >
-              러닝 완료!
-            </Text>
-          </View>
-        </ViewShot>
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: isDarkMode ? "#000" : "#fff" }}
     >
-      <StoryCapture />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -148,7 +150,6 @@ const RunResultScreen = () => {
             <Text style={styles.subtitleText}>Run Boo!</Text>
           </View>
 
-          {/* 요약 데이터 */}
           <View style={styles.summaryContainer}>
             <View style={styles.summaryItem}>
               <MaterialCommunityIcons
@@ -176,30 +177,87 @@ const RunResultScreen = () => {
             </View>
           </View>
 
-          {/* 지도 영역 - 유동적으로 조작 가능하도록 수정 */}
           <View style={styles.mapContainer}>
-            {routeCoordinates.length > 0 && midCoord ? (
-              <MapView
-                style={styles.map}
-                provider={PROVIDER_GOOGLE}
-                // ✅ 유동적 조작 활성화
-                scrollEnabled={true}
-                zoomEnabled={true}
-                rotateEnabled={true}
-                pitchEnabled={true}
-                initialRegion={{
-                  latitude: midCoord.latitude,
-                  longitude: midCoord.longitude,
-                  latitudeDelta: MAP_ZOOM_LEVEL,
-                  longitudeDelta: MAP_ZOOM_LEVEL,
-                }}
-              >
-                <Polyline
-                  coordinates={routeCoordinates}
-                  strokeColor="#4A6EA9"
-                  strokeWidth={5}
+            {routeCoordinates && routeCoordinates.length > 0 && midCoord ? (
+              <View style={StyleSheet.absoluteFill}>
+                <MapView
+                  ref={mapRef}
+                  style={StyleSheet.absoluteFill}
+                  provider={PROVIDER_GOOGLE}
+                  onMapReady={handleFocusRoute}
+                  customMapStyle={blurredMapStyle}
+                  initialRegion={{
+                    latitude: midCoord.latitude,
+                    longitude: midCoord.longitude,
+                    latitudeDelta: 0.015,
+                    longitudeDelta: 0.015,
+                  }}
+                >
+                  {/* ✅ 화려한 폴리라인: 테두리 효과를 위해 흰색 배경 선을 먼저 그림 */}
+                  <Polyline
+                    coordinates={routeCoordinates}
+                    strokeColor="#FFFFFF"
+                    strokeWidth={14}
+                  />
+                  {/* 실제 경로 선 */}
+                  <Polyline
+                    coordinates={routeCoordinates}
+                    strokeColor="#4A6EA9"
+                    strokeWidth={8}
+                  />
+
+                  {/* ✅ 시작점 마커 */}
+                  {startCoord && (
+                    <Marker coordinate={startCoord} anchor={{ x: 0.5, y: 0.5 }}>
+                      <View style={localStyles.markerCircle}>
+                        <View
+                          style={[
+                            localStyles.markerInner,
+                            { backgroundColor: "#4CAF50" },
+                          ]}
+                        />
+                      </View>
+                    </Marker>
+                  )}
+
+                  {/* ✅ 종료점 마커 */}
+                  {endCoord && (
+                    <Marker coordinate={endCoord} anchor={{ x: 0.5, y: 0.5 }}>
+                      <View style={localStyles.markerCircle}>
+                        <View
+                          style={[
+                            localStyles.markerInner,
+                            { backgroundColor: "#FF3B30" },
+                          ]}
+                        />
+                      </View>
+                    </Marker>
+                  )}
+                </MapView>
+
+                <View
+                  style={[
+                    StyleSheet.absoluteFill,
+                    {
+                      backgroundColor: isDarkMode
+                        ? "rgba(0,0,0,0.15)"
+                        : "rgba(255,255,255,0.1)",
+                    },
+                  ]}
+                  pointerEvents="none"
                 />
-              </MapView>
+
+                <TouchableOpacity
+                  style={localStyles.focusButton}
+                  onPress={handleFocusRoute}
+                >
+                  <MaterialCommunityIcons
+                    name="altimeter"
+                    size={24}
+                    color="#4A6EA9"
+                  />
+                </TouchableOpacity>
+              </View>
             ) : (
               <Text style={styles.mapPlaceholderText}>
                 경로 정보가 없습니다.
@@ -207,7 +265,6 @@ const RunResultScreen = () => {
             )}
           </View>
 
-          {/* 추가 정보 */}
           <View style={styles.bottomInfoContainer}>
             <View style={styles.bottomInfoCard}>
               <Text style={styles.bottomInfoLabel}>칼로리</Text>
@@ -222,7 +279,6 @@ const RunResultScreen = () => {
           </View>
         </View>
 
-        {/* 버튼 */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
             <Ionicons name="share-social-outline" size={24} color="#FFF" />
@@ -239,11 +295,7 @@ const RunResultScreen = () => {
 };
 
 const localStyles = StyleSheet.create({
-  profileSection: {
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 10,
-  },
+  profileSection: { alignItems: "center", marginTop: 20, marginBottom: 10 },
   imageWrapper: {
     width: 120,
     height: 120,
@@ -254,9 +306,34 @@ const localStyles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 10,
   },
-  mainImage: {
-    width: "100%",
-    height: "100%",
+  mainImage: { width: "100%", height: "100%" },
+  focusButton: {
+    position: "absolute",
+    bottom: 16,
+    right: 16,
+    backgroundColor: "#FFFFFF",
+    padding: 10,
+    borderRadius: 30,
+    elevation: 5,
+  },
+  // ✅ 마커 스타일 추가
+  markerCircle: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  markerInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 });
 

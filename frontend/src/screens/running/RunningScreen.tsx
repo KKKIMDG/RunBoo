@@ -9,7 +9,7 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
-import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE, MapStyleElement } from "react-native-maps"; // ✅ MapStyleElement 추가
 import { LineChart } from "react-native-chart-kit";
 import {
   Ionicons,
@@ -18,6 +18,7 @@ import {
 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Location from "expo-location";
 
 import { useRunningScreen } from "./useRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
@@ -72,6 +73,41 @@ const RunningScreen = () => {
       targetDistance: targetDistance,
     });
 
+  // ✅ 타입 오류를 해결한 지도 스타일 정의
+  const blurredMapStyle: MapStyleElement[] = [
+    {
+      elementType: "geometry",
+      stylers: [{ color: isDarkMode ? "#242f3e" : "#f0f0f0" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [
+        { visibility: "on" },
+        { color: isDarkMode ? "#38414e" : "#ffffff" },
+        { weight: 1.5 },
+      ],
+    },
+    {
+      featureType: "road",
+      elementType: "labels.text.fill", // ✅ 수정됨
+      stylers: [{ color: isDarkMode ? "#9ca5b3" : "#757575" }],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: isDarkMode ? "#17263c" : "#c9d1d9" }],
+    },
+    {
+      featureType: "landscape.man_made",
+      elementType: "geometry", // ✅ 안전하게 elementType 추가
+      stylers: [
+        { visibility: "on" },
+        { color: isDarkMode ? "#2c3e50" : "#e0e0e0" },
+      ],
+    },
+  ];
+
   const toggleVoice = () => {
     if (isVoiceEnabled) Speech.stop();
     setIsVoiceEnabled(!isVoiceEnabled);
@@ -121,49 +157,95 @@ const RunningScreen = () => {
     };
   }, [isFollowing]);
 
-  const handleFocusPress = () => {
-    toggleFollowing();
-    if (!isFollowing && routeCoordinates.length > 0) {
-      const last = routeCoordinates[routeCoordinates.length - 1];
-      mapRef.current?.animateToRegion(
+  useEffect(() => {
+    if (initialLocation && mapRef.current) {
+      mapRef.current.animateToRegion(
         {
-          ...last,
+          ...initialLocation,
           latitudeDelta: 0.002,
           longitudeDelta: 0.002,
         },
-        500
+        1000
       );
+    }
+  }, [initialLocation]);
+
+  const handleFocusPress = async () => {
+    if (!isFollowing) {
+      setIsFollowing(true);
+      try {
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        mapRef.current?.animateToRegion(
+          {
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+            latitudeDelta: 0.002,
+            longitudeDelta: 0.002,
+          },
+          500
+        );
+      } catch (e) {
+        if (routeCoordinates.length > 0) {
+          const last = routeCoordinates[routeCoordinates.length - 1];
+          mapRef.current?.animateToRegion(
+            {
+              ...last,
+              latitudeDelta: 0.002,
+              longitudeDelta: 0.002,
+            },
+            500
+          );
+        }
+      }
+    } else {
+      setIsFollowing(false);
     }
   };
 
   const renderedMap = useMemo(
     () => (
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        provider={PROVIDER_GOOGLE}
-        showsUserLocation={true}
-        loadingEnabled={true}
-        onPanDrag={() => {
-          if (isFollowing) setIsFollowing(false);
-        }}
-        initialRegion={
-          initialLocation
-            ? {
-                ...initialLocation,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              }
-            : {
-                latitude: 37.5665,
-                longitude: 126.978,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              }
-        }
-      />
+      <View style={StyleSheet.absoluteFill}>
+        <MapView
+          ref={mapRef}
+          style={StyleSheet.absoluteFill}
+          provider={PROVIDER_GOOGLE}
+          showsUserLocation={true}
+          loadingEnabled={true}
+          customMapStyle={blurredMapStyle}
+          onPanDrag={() => {
+            if (isFollowing) setIsFollowing(false);
+          }}
+          initialRegion={
+            initialLocation
+              ? {
+                  ...initialLocation,
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
+                }
+              : {
+                  latitude: 37.5665,
+                  longitude: 126.978,
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
+                }
+          }
+        />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: isDarkMode
+                ? "rgba(0,0,0,0.15)"
+                : "rgba(255,255,255,0.1)",
+            },
+          ]}
+          pointerEvents="none"
+        />
+      </View>
     ),
-    [initialLocation]
+    [initialLocation, isDarkMode]
   );
 
   const chartData = useMemo(
@@ -191,10 +273,9 @@ const RunningScreen = () => {
 
   const handleStopLongPress = () => {
     if (isVoiceEnabled) {
-      // ✅ 하던 말을 훅 내부 speak에서 끊어주므로 바로 호출
-      speakStop(distance, () => {
-        stopRun();
-      });
+      // 콜백에 넣지 않고 즉시 호출
+      speakStop(distance);
+      stopRun(); // 음성이 끝나길 기다리지 않고 바로 저장 로직 실행
     } else {
       stopRun();
     }
@@ -373,6 +454,7 @@ const customStyles = StyleSheet.create({
     elevation: 5,
     borderWidth: 1,
     borderColor: "#E0E0E0",
+    zIndex: 10,
   },
   focusButtonActive: { backgroundColor: "#4A6EA9", borderColor: "#4A6EA9" },
   stopSquare: {
