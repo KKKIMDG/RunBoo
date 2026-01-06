@@ -112,21 +112,27 @@ const RunResultScreen = () => {
     },
   ];
 
-  const handleShare = async () => {
-    try {
-      if (storyRef.current) {
-        const uri = await captureRef(storyRef, {
-          format: "png",
-          quality: 1.0,
-          width: 1080,
-          height: 1920,
-        });
-        await Sharing.shareAsync(uri);
-      }
-    } catch (error) {
-      console.error("공유 실패:", error);
-    }
-  };
+    // 수정된 공유 핸들러
+    const handleShare = async () => {
+        try {
+            if (storyRef.current) {
+                // captureRef에 ref 객체(storyRef.current)를 직접 전달
+                // captureRef에 ref 객체(storyRef.current)를 직접 전달
+                const uri = await captureRef(storyRef, {
+                    format: "png",
+                    quality: 1.0,
+                    result: "tmpfile",
+                });
+                await Sharing.shareAsync(uri, {
+                    mimeType: 'image/png',
+                    dialogTitle: '나의 러닝 기록 공유하기',
+                    UTI: 'public.png'
+                });
+            }
+        } catch (error) {
+            console.error("공유 실패:", error);
+        }
+    };
 
   return (
     <SafeAreaView
@@ -136,7 +142,11 @@ const RunResultScreen = () => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View ref={shareRef} collapsable={false}>
+          <ViewShot
+              ref={storyRef}
+              options={{ format: "png", quality: 1.0 }}
+              style={{ backgroundColor: isDarkMode ? "#000" : "#fff" }}
+          >
           <View style={localStyles.profileSection}>
             <View style={localStyles.imageWrapper}>
               <Image
@@ -297,7 +307,7 @@ const RunResultScreen = () => {
               </Text>
             </View>
           </View>
-        </View>
+        </ViewShot>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
