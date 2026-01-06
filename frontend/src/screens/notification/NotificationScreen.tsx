@@ -141,13 +141,17 @@ const NotificationScreen = () => {
 
                 <View style={styles.dividerStandalone} />
 
-                {unreadCount > 0 && (
-                    <View style={styles.readAllRow}>
-                        <TouchableOpacity onPress={markAllAsRead}>
-                            <Text style={styles.readAllText}>모두 읽음</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                <View style={styles.readAllRow}>
+                    <TouchableOpacity
+                        onPress={unreadCount === 0 ? undefined : markAllAsRead}
+                        disabled={unreadCount === 0}
+                        activeOpacity={unreadCount === 0 ? 1 : 0.7}
+                    >
+                        <Text style={[styles.readAllText,
+                            unreadCount === 0 && styles.readAllTextDisabled,
+                        ]}>모두 읽음</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* ================= 리스트 ================= */}

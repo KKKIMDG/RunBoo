@@ -57,7 +57,7 @@ export function useNotificationScreen() {
             await readNotification(item.id);
         }
 
-        // 🔥 타입별 이동
+        // 타입별 이동
         switch (item.type) {
             case "RUN_RESULT":
                 navigation.navigate("RunResult");

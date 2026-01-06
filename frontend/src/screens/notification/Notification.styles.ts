@@ -97,6 +97,9 @@ export const getStyles = (scheme: "light" | "dark") =>
             color: "#212529",
             paddingVertical: 8,
         },
+        readAllTextDisabled: {
+            color: '#ADB5BD',      // 회색
+        },
 
         /* ================= 리스트 ================= */
         listContent: {
