@@ -9,7 +9,7 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
-import MapView, { PROVIDER_GOOGLE, MapStyleElement } from "react-native-maps"; // ✅ MapStyleElement 추가
+import MapView, { PROVIDER_GOOGLE, MapStyleElement } from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
 import {
   Ionicons,
@@ -73,7 +73,6 @@ const RunningScreen = () => {
       targetDistance: targetDistance,
     });
 
-  // ✅ 타입 오류를 해결한 지도 스타일 정의
   const blurredMapStyle: MapStyleElement[] = [
     {
       elementType: "geometry",
@@ -90,7 +89,7 @@ const RunningScreen = () => {
     },
     {
       featureType: "road",
-      elementType: "labels.text.fill", // ✅ 수정됨
+      elementType: "labels.text.fill",
       stylers: [{ color: isDarkMode ? "#9ca5b3" : "#757575" }],
     },
     {
@@ -100,7 +99,7 @@ const RunningScreen = () => {
     },
     {
       featureType: "landscape.man_made",
-      elementType: "geometry", // ✅ 안전하게 elementType 추가
+      elementType: "geometry",
       stylers: [
         { visibility: "on" },
         { color: isDarkMode ? "#2c3e50" : "#e0e0e0" },
@@ -157,15 +156,16 @@ const RunningScreen = () => {
     };
   }, [isFollowing]);
 
+  // ✅ 핵심 수정: 초기 위치가 잡히면 즉시 카메라를 사용자 위치로 이동
   useEffect(() => {
     if (initialLocation && mapRef.current) {
       mapRef.current.animateToRegion(
         {
           ...initialLocation,
-          latitudeDelta: 0.002,
+          latitudeDelta: 0.002, // 줌 레벨을 더 가깝게 조정
           longitudeDelta: 0.002,
         },
-        1000
+        500 // 이동 속도
       );
     }
   }, [initialLocation]);
@@ -177,6 +177,7 @@ const RunningScreen = () => {
         const loc = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
+
         mapRef.current?.animateToRegion(
           {
             latitude: loc.coords.latitude,
@@ -217,6 +218,7 @@ const RunningScreen = () => {
           onPanDrag={() => {
             if (isFollowing) setIsFollowing(false);
           }}
+          // initialRegion을 initialLocation으로 동기화
           initialRegion={
             initialLocation
               ? {
@@ -245,7 +247,7 @@ const RunningScreen = () => {
         />
       </View>
     ),
-    [initialLocation, isDarkMode]
+    [initialLocation, isDarkMode] // initialLocation이 바뀌면 새로 그리도록 의존성 추가
   );
 
   const chartData = useMemo(
@@ -273,9 +275,8 @@ const RunningScreen = () => {
 
   const handleStopLongPress = () => {
     if (isVoiceEnabled) {
-      // 콜백에 넣지 않고 즉시 호출
       speakStop(distance);
-      stopRun(); // 음성이 끝나길 기다리지 않고 바로 저장 로직 실행
+      stopRun();
     } else {
       stopRun();
     }

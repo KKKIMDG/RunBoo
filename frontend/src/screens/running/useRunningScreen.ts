@@ -105,17 +105,16 @@ export const useRunningScreen = () => {
       {
         accuracy: Location.Accuracy.BestForNavigation,
         timeInterval: 1000,
-        distanceInterval: 1, // 미세 데이터 수집 후 필터링에서 거름
+        distanceInterval: 1,
       },
       (newLocation) => {
         const { latitude, longitude, accuracy, speed } = newLocation.coords;
 
-        // 1. 정확도 필터: 오차 범위가 12m 이상이면 무시 (노이즈 방지)
-        if (accuracy && accuracy > 12) return;
+        // 1. 정확도 필터: 오차 범위가 너무 크면 무시
+        if (accuracy && accuracy > 15) return;
 
-        // 2. 속도 필터: 시속 약 1.8km/h (0.5m/s) 미만의 움직임은 정지로 간주
-        // 휴대폰만 흔드는 동작은 보통 낮은 속도로 잡힙니다.
-        if (speed !== null && speed < 0.5) return;
+        // 2. ✅ 비정상 속도 필터: 시속 약 25km/h (7.0m/s)를 넘으면 차량/자전거로 간주하여 제외
+        if (speed !== null && speed > 7.0) return;
 
         if (lastRawLocation.current) {
           const rawDist = getDistance(
@@ -125,19 +124,21 @@ export const useRunningScreen = () => {
             longitude
           );
 
-          // 3. 거리 필터: 이전 좌표와 현재 좌표 거리가 2m 이상일 때만 위치 이동 인정
-          if (rawDist >= 2 && rawDist < 15) {
+          // 3. ✅ 거리 기반 필터:
+          // 제자리 떨림(1.5m 미만)은 무시하되, 사람이 이동 가능한 범위(1.5m ~ 10m/s)는 합산
+          if (rawDist >= 1.5 && rawDist < 10) {
             setDistance((prev) => prev + rawDist);
 
-            if (speed && speed > 0.5) {
+            // 페이스 계산 (속도가 0.2m/s 이상인 아주 느린 걸음부터 계산)
+            if (speed && speed > 0.2) {
               setCurrentPace(1000 / speed);
             }
 
-            // 지도 표시용 좌표 업데이트 (부드럽게 보정)
             let displayLat = latitude;
             let displayLng = longitude;
 
             if (lastDisplayedLocation.current) {
+              // 지그재그 방지를 위한 Smoothing (0.6:0.4)
               displayLat =
                 lastDisplayedLocation.current.latitude * 0.6 + latitude * 0.4;
               displayLng =

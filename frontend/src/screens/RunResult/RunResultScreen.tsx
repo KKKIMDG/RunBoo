@@ -15,7 +15,7 @@ import {
   MaterialCommunityIcons,
   FontAwesome5,
 } from "@expo/vector-icons";
-import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from "react-native-maps"; // ✅ Marker 추가
+import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from "react-native-maps";
 
 import ViewShot, { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -72,7 +72,6 @@ const RunResultScreen = () => {
   const midCoord =
     routeCoordinates.length > 0 ? routeCoordinates[midIdx] : null;
 
-  // ✅ 시작점과 종료점 추출
   const startCoord = routeCoordinates.length > 0 ? routeCoordinates[0] : null;
   const endCoord =
     routeCoordinates.length > 0
@@ -193,20 +192,42 @@ const RunResultScreen = () => {
                     longitudeDelta: 0.015,
                   }}
                 >
-                  {/* ✅ 화려한 폴리라인: 테두리 효과를 위해 흰색 배경 선을 먼저 그림 */}
+                  {/* 1. ✅ 바닥 그림자 레이어: 경로의 깊이감을 줌 */}
                   <Polyline
                     coordinates={routeCoordinates}
-                    strokeColor="#FFFFFF"
-                    strokeWidth={14}
-                  />
-                  {/* 실제 경로 선 */}
-                  <Polyline
-                    coordinates={routeCoordinates}
-                    strokeColor="#4A6EA9"
-                    strokeWidth={8}
+                    strokeColor="rgba(0,0,0,0.1)"
+                    strokeWidth={16}
                   />
 
-                  {/* ✅ 시작점 마커 */}
+                  {/* 2. ✅ 메인 발광 레이어 (Semi-transparent): 겹칠수록 밝아짐 */}
+                  <Polyline
+                    coordinates={routeCoordinates}
+                    strokeColor={
+                      isDarkMode
+                        ? "rgba(100, 150, 255, 0.4)"
+                        : "rgba(74, 110, 169, 0.4)"
+                    }
+                    strokeWidth={10}
+                  />
+
+                  {/* 3. ✅ 핵심 경로 레이어 (High Brightness): 겹치는 곳을 더 밝게 표현 */}
+                  <Polyline
+                    coordinates={routeCoordinates}
+                    strokeColor={
+                      isDarkMode
+                        ? "rgba(180, 210, 255, 0.6)"
+                        : "rgba(120, 160, 220, 0.5)"
+                    }
+                    strokeWidth={6}
+                  />
+
+                  {/* 4. ✅ 센터 하이라이트: 아주 얇은 선으로 경로의 중심을 잡음 */}
+                  <Polyline
+                    coordinates={routeCoordinates}
+                    strokeColor="rgba(255, 255, 255, 0.7)"
+                    strokeWidth={2}
+                  />
+
                   {startCoord && (
                     <Marker coordinate={startCoord} anchor={{ x: 0.5, y: 0.5 }}>
                       <View style={localStyles.markerCircle}>
@@ -220,7 +241,6 @@ const RunResultScreen = () => {
                     </Marker>
                   )}
 
-                  {/* ✅ 종료점 마커 */}
                   {endCoord && (
                     <Marker coordinate={endCoord} anchor={{ x: 0.5, y: 0.5 }}>
                       <View style={localStyles.markerCircle}>
@@ -316,7 +336,6 @@ const localStyles = StyleSheet.create({
     borderRadius: 30,
     elevation: 5,
   },
-  // ✅ 마커 스타일 추가
   markerCircle: {
     width: 16,
     height: 16,
