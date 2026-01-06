@@ -8,6 +8,7 @@ import {
   Dimensions,
   Alert,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import MapView, { PROVIDER_GOOGLE, MapStyleElement } from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
@@ -57,14 +58,8 @@ const RunningScreen = () => {
     targetDistance,
   } = state;
 
-  const {
-    pauseRun,
-    resumeRun,
-    stopRun,
-    toggleFollowing,
-    setIsFollowing,
-    onLocationUpdate,
-  } = actions;
+  const { pauseRun, resumeRun, stopRun, setIsFollowing, onLocationUpdate } =
+    actions;
   const { formatTime, formatPace } = utils;
 
   const { checkAndSpeak, speakStart, speakPause, speakResume, speakStop } =
@@ -73,6 +68,7 @@ const RunningScreen = () => {
       targetDistance: targetDistance,
     });
 
+  // ✅ 결과 화면과 동일한 지도 스타일 정의
   const blurredMapStyle: MapStyleElement[] = [
     {
       elementType: "geometry",
@@ -156,16 +152,15 @@ const RunningScreen = () => {
     };
   }, [isFollowing]);
 
-  // ✅ 핵심 수정: 초기 위치가 잡히면 즉시 카메라를 사용자 위치로 이동
   useEffect(() => {
     if (initialLocation && mapRef.current) {
       mapRef.current.animateToRegion(
         {
           ...initialLocation,
-          latitudeDelta: 0.002, // 줌 레벨을 더 가깝게 조정
+          latitudeDelta: 0.002,
           longitudeDelta: 0.002,
         },
-        500 // 이동 속도
+        500
       );
     }
   }, [initialLocation]);
@@ -177,7 +172,6 @@ const RunningScreen = () => {
         const loc = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
-
         mapRef.current?.animateToRegion(
           {
             latitude: loc.coords.latitude,
@@ -218,7 +212,6 @@ const RunningScreen = () => {
           onPanDrag={() => {
             if (isFollowing) setIsFollowing(false);
           }}
-          // initialRegion을 initialLocation으로 동기화
           initialRegion={
             initialLocation
               ? {
@@ -247,9 +240,10 @@ const RunningScreen = () => {
         />
       </View>
     ),
-    [initialLocation, isDarkMode] // initialLocation이 바뀌면 새로 그리도록 의존성 추가
+    [initialLocation, isDarkMode, isFollowing]
   );
 
+  // ✅ 차트 데이터 (기존 코드 유지)
   const chartData = useMemo(
     () => ({
       labels: [],
@@ -264,6 +258,7 @@ const RunningScreen = () => {
     [paceHistory]
   );
 
+  // ✅ 차트 설정 (기존 코드 유지)
   const chartConfig = {
     backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
     backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
@@ -275,8 +270,9 @@ const RunningScreen = () => {
 
   const handleStopLongPress = () => {
     if (isVoiceEnabled) {
-      speakStop(distance);
-      stopRun();
+      speakStop(distance, () => {
+        stopRun();
+      });
     } else {
       stopRun();
     }
@@ -372,6 +368,7 @@ const RunningScreen = () => {
           />
         </View>
 
+        {/* ✅ 차트 부분 (기존 UI 유지) */}
         <View style={styles.chartCard}>
           <View style={styles.chartTitleContainer}>
             <Ionicons
@@ -402,7 +399,23 @@ const RunningScreen = () => {
         </View>
 
         <View style={styles.mapContainer}>
-          {renderedMap}
+          {/* ✅ [수정] initialLocation이 없을 때 로딩 처리 */}
+          {!initialLocation ? (
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                {
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: isDarkMode ? "#1e1e1e" : "#f0f0f0",
+                },
+              ]}
+            >
+              <ActivityIndicator size="large" color="#4A6EA9" />
+            </View>
+          ) : (
+            renderedMap
+          )}
           <TouchableOpacity
             style={[
               customStyles.focusButton,
