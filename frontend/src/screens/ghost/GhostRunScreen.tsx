@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
+import * as Speech from "expo-speech";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
@@ -52,13 +53,17 @@ export default function GhostRunScreen() {
     const {
         isReady,
         countdown,
+        isRunning,
         isPaused,
         time,
         distanceM,
         currentPaceSec,
         ghostDistanceM,
         ghostTotalDistanceM,
+        ghostAvgPaceSec, // ✅ 시작 안내에 목표 페이스로 사용
         paceHistoryMin,
+        diffM, // ✅ 100m 단위 안내에 사용
+        paceDiffSec, // ✅ 페이스 유사(±5초) 판단에 사용
     } = state;
 
     const { pauseRun, resumeRun, stopRun } = actions;
@@ -80,24 +85,202 @@ export default function GhostRunScreen() {
     const markRight = totalKm > 0 ? `${totalKm.toFixed(1)}km` : "-";
     const markMid = totalKm > 0 ? `${midKm.toFixed(1)}km` : "-";
 
-    /**
-     * ✅ "처음~현재" 전 구간 누적 그래프
-     * - paceHistoryMin이 제자리 push로 바뀌어도 상관없이
-     * - 우리가 rtPaceData를 누적 append로 직접 관리
-     *
-     * 전략:
-     * 1) time이 0(또는 매우 작음)으로 리셋되면 새 러닝 시작으로 판단하고 rtPaceData 초기화
-     * 2) 매 틱마다 "현재 페이스(currentPaceSec)"를 그래프 배열 끝에 추가
-     *    (단, 같은 값이 너무 잦은 틱으로 중복되면 계단처럼 길어지므로, 직전 값과 같으면 스킵)
-     * 3) 최소 2포인트 보장 (chart-kit용)
-     */
     const [rtPaceData, setRtPaceData] = useState<number[]>([0, 0]);
     const lastAddedRef = useRef<number | null>(null);
     const startedRef = useRef(false);
 
-    // ✅ 러닝 "새로 시작" 감지: time이 0 근처로 내려가면 초기화
+    // ============================================================
+    // ✅ [음성] 공통 speak 유틸 + "말하는 중" 원천 차단
+    // ============================================================
+    const speakingRef = useRef(false);
+
+    const speak = (text: string, onDone?: () => void) => {
+        if (!isSoundOn) return;
+
+        speakingRef.current = true;
+        Speech.stop();
+
+        Speech.speak(text, {
+            language: "ko-KR",
+            rate: 1.0,
+            pitch: 1.0,
+            onDone: () => {
+                speakingRef.current = false;
+                onDone?.();
+            },
+            onStopped: () => {
+                speakingRef.current = false;
+            },
+            onError: () => {
+                speakingRef.current = false;
+            },
+        });
+    };
+
+    // ✅ 사운드 끌 때 즉시 정지
     useEffect(() => {
-        // time이 초 단위라고 가정. (formatTime(time) 쓰는 걸 보면 보통 초)
+        if (!isSoundOn) {
+            speakingRef.current = false;
+            Speech.stop();
+        }
+    }, [isSoundOn]);
+
+    // ✅ 화면 나갈 때 음성 정지
+    useEffect(() => {
+        return () => {
+            speakingRef.current = false;
+            Speech.stop();
+        };
+    }, []);
+
+    // ============================================================
+    // ✅ 시작/종료 음성 안내 (일반 측정처럼)
+    // - 시작: 총 거리 + 목표 페이스(=고스트 평균 페이스)
+    // - 종료: 총 거리 + 평균 페이스(내 평균)
+    // ============================================================
+    const startSpokenRef = useRef(false);
+    const compareBlockUntilRef = useRef<number>(0); // ✅ 시작 안내 직후 비교 음성 차단용(원천 차단 포함)
+
+    const buildStartMessage = () => {
+        const km = ghostTotalDistanceM > 0 ? (ghostTotalDistanceM / 1000).toFixed(2) : "0";
+        const targetPace = formatPace(ghostAvgPaceSec || 0);
+        return `고스트 런닝을 시작합니다. 목표 거리는 ${km}킬로미터, 목표 페이스는 ${targetPace}입니다.`;
+    };
+
+    const buildEndMessage = () => {
+        const km = distanceM > 0 ? (distanceM / 1000).toFixed(2) : "0";
+        const avgPaceSec = distanceM > 0 ? time / (distanceM / 1000) : 0;
+        const avgPaceText = formatPace(avgPaceSec);
+        return `런닝을 종료합니다. 총 거리 ${km}킬로미터, 평균 페이스 ${avgPaceText}입니다.`;
+    };
+
+    // ✅ 시작 순간(isReady: true -> false) 한 번만 안내
+    // ✅ [핵심] 시작 안내가 "말하는 동안" 비교 음성은 무조건 차단 + 끝난 뒤 15초 차단
+    const prevIsReady = useRef(isReady);
+    useEffect(() => {
+        if (!isSoundOn) {
+            prevIsReady.current = isReady;
+            return;
+        }
+
+        if (prevIsReady.current === true && isReady === false && !startSpokenRef.current) {
+            startSpokenRef.current = true;
+
+            // ✅ 시작 안내 말하는 동안 비교 음성 완전 차단
+            compareBlockUntilRef.current = Number.MAX_SAFE_INTEGER;
+
+            // ✅ 시작 안내가 끝난 뒤부터 15초 차단
+            speak(buildStartMessage(), () => {
+                compareBlockUntilRef.current = Date.now() + 15000;
+            });
+        }
+
+        // 다음 러닝을 위해 초기화(시간이 0으로 돌아가면)
+        if (time <= 0) {
+            startSpokenRef.current = false;
+            compareBlockUntilRef.current = 0;
+            speakingRef.current = false;
+        }
+
+        prevIsReady.current = isReady;
+    }, [isReady, isSoundOn, time, ghostTotalDistanceM, ghostAvgPaceSec]);
+
+    // ✅ 종료 버튼 눌렀을 때: 종료 안내 후 stopRun (동작은 stopRun 그대로)
+    const handleStopPress = () => {
+        if (isSoundOn) speak(buildEndMessage());
+        stopRun();
+    };
+
+    // ============================================================
+    // ✅ 100m 단위 + 페이스 유사(±5초) 음성 안내
+    // ============================================================
+    const lastSpokenAtRef = useRef<number>(0);
+    const lastBucketRef = useRef<number | null>(null);
+    const lastSignRef = useRef<number>(0);
+    const lastPaceSimilarRef = useRef<boolean>(false);
+
+    const COOLDOWN_MS = 6000;
+    const UNIT_M = 100;
+    const PACE_SIMILAR_THRESHOLD_SEC = 5;
+
+    // ✅ 러닝 새로 시작 감지 시(시간이 0 이하로 돌아감) 음성 상태 초기화
+    useEffect(() => {
+        if (time <= 0) {
+            lastSpokenAtRef.current = 0;
+            lastBucketRef.current = null;
+            lastSignRef.current = 0;
+            lastPaceSimilarRef.current = false;
+        }
+    }, [time]);
+
+    // ✅ 거리 기준 음성 안내
+    useEffect(() => {
+        if (!isSoundOn) return;
+        if (isReady) return;
+        if (!isRunning) return;
+        if (isPaused) return;
+
+        const now = Date.now();
+
+        // ✅ [원천 차단 1] 누가 말하는 중이면 비교 음성 절대 금지
+        if (speakingRef.current) return;
+
+        // ✅ [원천 차단 2] 시작 안내 이후 차단 시간 동안 비교 음성 절대 금지
+        if (now < compareBlockUntilRef.current) return;
+
+        const d = Number(diffM); // (+) 뒤처짐, (-) 앞섬
+        if (!Number.isFinite(d)) return;
+
+        const absM = Math.abs(d);
+        const bucket = Math.floor(absM / UNIT_M);
+        const sign = absM < 1 ? 0 : d > 0 ? 1 : -1;
+
+        const paceDiff = Number(paceDiffSec);
+        const isPaceSimilar =
+            Number.isFinite(paceDiff) && Math.abs(paceDiff) <= PACE_SIMILAR_THRESHOLD_SEC;
+
+        const bucketChanged = lastBucketRef.current === null || bucket !== lastBucketRef.current;
+        const signChanged = sign !== lastSignRef.current;
+        const paceSimilarChanged = isPaceSimilar !== lastPaceSimilarRef.current;
+
+        const cooldownPassed = now - lastSpokenAtRef.current >= COOLDOWN_MS;
+
+        // ✅ signChanged면 쿨다운 무시
+        if (!signChanged && !cooldownPassed) return;
+
+        // 변화가 없으면 발화 X
+        if (!bucketChanged && !signChanged && !paceSimilarChanged) return;
+
+        let msg = "";
+
+        if (bucket === 0) {
+            if (isPaceSimilar) {
+                msg = "고스트와 거의 나란히 달리고 있어요. 페이스도 비슷해요. 지금처럼 유지해요.";
+            } else {
+                msg = "고스트와 거의 나란히 달리고 있어요.";
+            }
+        } else {
+            const m = bucket * UNIT_M;
+            if (sign > 0) msg = `고스트보다 ${m}미터 뒤처지고 있어요.`;
+            else msg = `좋아요. 고스트보다 ${m}미터 앞서고 있어요.`;
+
+            if (isPaceSimilar) msg += " 페이스는 거의 비슷해요.";
+        }
+
+        if (!msg) return;
+
+        speak(msg);
+
+        lastSpokenAtRef.current = now;
+        lastBucketRef.current = bucket;
+        lastSignRef.current = sign;
+        lastPaceSimilarRef.current = isPaceSimilar;
+    }, [isSoundOn, isReady, isRunning, isPaused, diffM, paceDiffSec]);
+
+    // ============================================================
+    // ✅ 러닝 "새로 시작" 감지: time이 0 근처로 내려가면 초기화 (기존 유지)
+    // ============================================================
+    useEffect(() => {
         if (time <= 0) {
             startedRef.current = false;
             lastAddedRef.current = null;
@@ -105,30 +288,24 @@ export default function GhostRunScreen() {
         }
     }, [time]);
 
-    // ✅ 실시간 누적 append
+    // ✅ 실시간 누적 append (기존 유지)
     useEffect(() => {
-        // 카운트다운/준비 중에는 append 하지 않게
         if (isReady) return;
 
-        // 러닝이 "처음 시작"되는 순간 한 번만 상태 전환
         if (!startedRef.current && time > 0) {
             startedRef.current = true;
         }
 
-        // 일시정지면 그래프를 멈춘다(원하면 이 if 제거하면, 멈춘 동안에도 같은 값이 계속 쌓일 수 있음)
         if (isPaused) return;
 
-        // 현재 페이스 유효성 체크
         const pace = typeof currentPaceSec === "number" ? currentPaceSec : Number(currentPaceSec);
         if (!Number.isFinite(pace) || pace <= 0) return;
 
-        // 너무 촘촘한 중복 방지: 직전 값과 완전히 같으면 스킵
         if (lastAddedRef.current !== null && lastAddedRef.current === pace) return;
 
         lastAddedRef.current = pace;
 
         setRtPaceData((prev) => {
-            // 초기 [0,0] 상태면 2포인트로 시작
             if (prev.length <= 2 && prev[0] === 0 && prev[1] === 0) {
                 return [pace, pace];
             }
@@ -136,12 +313,6 @@ export default function GhostRunScreen() {
         });
     }, [isReady, isPaused, time, currentPaceSec]);
 
-    /**
-     * ✅ 만약 paceHistoryMin이 “진짜 기록 배열”이라면,
-     * 러닝 종료 후(또는 중간)에도 거기 값이 더 신뢰할만할 수 있어서
-     * paceHistoryMin이 더 길어졌을 때는 rtPaceData를 그걸로 "동기화"해주는 옵션을 넣어둠.
-     * (제자리 push여도 길이만 늘어나면 감지 가능)
-     */
     const lastLenRef = useRef<number>(0);
     useEffect(() => {
         if (!Array.isArray(paceHistoryMin)) return;
@@ -149,7 +320,6 @@ export default function GhostRunScreen() {
         const len = paceHistoryMin.length;
         if (len <= 0) return;
 
-        // 길이가 늘었을 때만 반영 (제자리 push라도 length는 늘어나니까 감지됨)
         if (len > lastLenRef.current) {
             lastLenRef.current = len;
 
@@ -167,7 +337,7 @@ export default function GhostRunScreen() {
         }
     }, [paceHistoryMin, time]);
 
-    // ✅ chart-kit 캐시 깨기 (누적 그래프라 key는 길이 기반으로 충분)
+    // ✅ chart-kit 캐시 깨기 (기존 유지)
     const chartKey = useMemo(() => {
         const last = rtPaceData.length ? rtPaceData[rtPaceData.length - 1] : 0;
         return `pace-${rtPaceData.length}-${last}`;
@@ -188,7 +358,6 @@ export default function GhostRunScreen() {
 
     const chartData = useMemo(
         () => ({
-            // ✅ "시작~현재"를 가로축 전체로 쓰므로 라벨은 숨김 처리(빈 값)
             labels: rtPaceData.map(() => ""),
             datasets: [
                 {
@@ -203,6 +372,7 @@ export default function GhostRunScreen() {
 
     /**
      * ✅ 목표 거리 도달 시 자동 정지 (딱 1번만)
+     * ✅ 자동 정지 직전에 종료 음성 안내만 추가
      */
     const stoppedRef = useRef(false);
 
@@ -212,9 +382,12 @@ export default function GhostRunScreen() {
 
         if (!isPaused && distanceM >= ghostTotalDistanceM) {
             stoppedRef.current = true;
+
+            if (isSoundOn) speak(buildEndMessage());
+
             stopRun();
         }
-    }, [distanceM, ghostTotalDistanceM, isPaused, stopRun]);
+    }, [distanceM, ghostTotalDistanceM, isPaused, stopRun, isSoundOn]);
 
     const isFinished = ghostTotalDistanceM > 0 && distanceM >= ghostTotalDistanceM;
 
@@ -381,13 +554,21 @@ export default function GhostRunScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[s.stopBtn, { backgroundColor: colors.danger, marginLeft: 14, opacity: isFinished ? 0.6 : 1 }]}
-                    onPress={stopRun}
+                    style={[
+                        s.stopBtn,
+                        { backgroundColor: colors.danger, marginLeft: 14, opacity: isFinished ? 0.6 : 1 },
+                    ]}
+                    onPress={() => {
+                        speak("종료하려면 3초 이상 길게 누르세요.");
+                    }}
+                    onLongPress={handleStopPress}
+                    delayLongPress={3000}
                     activeOpacity={0.85}
                     disabled={isFinished}
                 >
                     <Ionicons name={"stop" as IoniconName} size={22} color={"white"} />
                 </TouchableOpacity>
+
             </View>
         </SafeAreaView>
     );
