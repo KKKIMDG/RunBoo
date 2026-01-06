@@ -7,15 +7,18 @@ import { styles } from './SettingsScreen.styles';
 import SettingItem from '@/components/setting/SettingItem';
 import { useSettings } from './useSettings';
 import { useUserMe } from '@/contexts/UserMeContext';
+import { useNotificationPreference } from './useNotificationPreference';
 
 export default function SettingsScreen({ navigation, onLogout }: any) {
 
     const { userMe } = useUserMe();
-    const {
-        settings,
-        update,
-        updateNotificationPreference,
-    } = useSettings();
+
+    /** 일반 설정 */
+    const { settings, update } = useSettings();
+
+    /** 알림 타입별 설정 */
+    const { preferences, updatePreference } = useNotificationPreference();
+
     const isLocal = userMe?.provider === 'LOCAL';
 
     // 어떤 select가 열려 있는지 (화살표용)
@@ -31,7 +34,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
         onSelect: (v: any) => void;
     }>(null);
 
-    if (!userMe || !settings) return null;
+    if (!userMe || !settings || !preferences) return null;
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -166,37 +169,29 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                                         label="기록 달성"
                                         type="switch"
                                         disabled={!settings.pushEnabled}
-                                        isEnabled={settings.notificationPreferences.RUN_RESULT}
-                                        onToggle={(v) =>
-                                            updateNotificationPreference('RUN_RESULT', v)
-                                        }
+                                        isEnabled={preferences.RUN_RESULT}
+                                        onToggle={(v) => updatePreference('RUN_RESULT', v)}
                                     />
                                     <SettingItem
                                         label="챌린지"
                                         type="switch"
                                         disabled={!settings.pushEnabled}
-                                        isEnabled={settings.notificationPreferences.CHALLENGE}
-                                        onToggle={(v) =>
-                                            updateNotificationPreference('CHALLENGE', v)
-                                        }
+                                        isEnabled={preferences.CHALLENGE}
+                                        onToggle={(v) => updatePreference('CHALLENGE', v)}
                                     />
                                     <SettingItem
                                         label="러닝 리마인드"
                                         type="switch"
                                         disabled={!settings.pushEnabled}
-                                        isEnabled={settings.notificationPreferences.REMINDER}
-                                        onToggle={(v) =>
-                                            updateNotificationPreference('REMINDER', v)
-                                        }
+                                        isEnabled={preferences.REMINDER}
+                                        onToggle={(v) => updatePreference('REMINDER', v)}
                                     />
                                     <SettingItem
                                         label="이벤트 / 공지"
                                         type="switch"
                                         disabled={!settings.pushEnabled}
-                                        isEnabled={settings.notificationPreferences.EVENT}
-                                        onToggle={(v) =>
-                                            updateNotificationPreference('EVENT', v)
-                                        }
+                                        isEnabled={preferences.EVENT}
+                                        onToggle={(v) => updatePreference('EVENT', v)}
                                         isLast
                                     />
                                 </View>

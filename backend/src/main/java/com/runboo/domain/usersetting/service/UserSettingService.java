@@ -37,6 +37,5 @@ public class UserSettingService {
         setting.updateVoiceType(request.getVoiceType());
         setting.updateThemeMode(request.getThemeMode());
         setting.updateFontSize(request.getFontSize());
-        setting.updateLocationPermission(request.getLocationPermission());
     }
 }

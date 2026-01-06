@@ -13,7 +13,6 @@ public class UserSettingResponse {
     private String voiceType;
     private String themeMode;
     private String fontSize;
-    private String locationPermission;
 
     public static UserSettingResponse from(UserSetting setting) {
         return new UserSettingResponse(
@@ -21,8 +20,7 @@ public class UserSettingResponse {
                 setting.isVoiceGuideEnabled(),
                 setting.getVoiceType(),
                 setting.getThemeMode(),
-                setting.getFontSize(),
-                setting.getLocationPermission()
+                setting.getFontSize()
         );
     }
 }
