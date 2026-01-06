@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import {View, Text, ScrollView, TouchableOpacity, Modal, Pressable, Alert, Linking} from 'react-native';
+import {
+    View,
+    Text,
+    ScrollView,
+    TouchableOpacity,
+    Modal,
+    Pressable,
+    Alert,
+    Linking,
+    ActivityIndicator
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -17,7 +27,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
     const { settings, update } = useSettings();
 
     /** 알림 타입별 설정 */
-    const { preferences, updatePreference } = useNotificationPreference();
+    const { preferences, updatePreference, loading } = useNotificationPreference();
 
     const isLocal = userMe?.provider === 'LOCAL';
 
@@ -34,7 +44,16 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
         onSelect: (v: any) => void;
     }>(null);
 
-    if (!userMe || !settings || !preferences) return null;
+    if (!userMe || !settings || !preferences || loading) {
+
+        return (
+            <SafeAreaView style={styles.safeArea}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" />
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -155,7 +174,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                             }
                         />
                         {openSelectKey === 'push' && (
-                            <View>
+                            <View style={{backgroundColor: '#f6f6f6'}}>
                                 <View style={{paddingLeft: 20}}>
                                     <SettingItem
                                         label="알림"
@@ -192,7 +211,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                                         disabled={!settings.pushEnabled}
                                         isEnabled={preferences.EVENT}
                                         onToggle={(v) => updatePreference('EVENT', v)}
-                                        isLast
+
                                     />
                                 </View>
                             </View>

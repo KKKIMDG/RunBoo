@@ -97,6 +97,9 @@ export const getStyles = (scheme: "light" | "dark") =>
             color: "#212529",
             paddingVertical: 8,
         },
+        readAllTextDisabled: {
+            color: '#ADB5BD',      // 회색
+        },
 
         /* ================= 리스트 ================= */
         listContent: {
@@ -113,10 +116,12 @@ export const getStyles = (scheme: "light" | "dark") =>
             marginBottom: 12,
             borderWidth: 1,
             borderColor: Colors[scheme].secondaryBackground,
+            opacity: 0.6,
         },
         cardUnread: {
             borderLeftWidth: 4,
             borderLeftColor: Colors[scheme].primary,
+            opacity: 1,
         },
         iconBox: {
             width: 44,
