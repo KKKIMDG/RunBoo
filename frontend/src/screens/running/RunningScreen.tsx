@@ -270,10 +270,12 @@ const RunningScreen = () => {
 
   const handleStopLongPress = () => {
     if (isVoiceEnabled) {
-      speakStop(distance, () => {
-        stopRun();
-      });
+      // 1. 음성 안내 시작 (콜백 없이 즉시 실행)
+      speakStop(distance);
+      // 2. 즉시 종료 로직 수행 (기록 저장 및 이동)
+      stopRun();
     } else {
+      // 음성 꺼져있을 때도 즉시 종료
       stopRun();
     }
   };
