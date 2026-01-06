@@ -1,13 +1,15 @@
 // frontend/src/screens/ghost/useGhostRunScreen.ts
 
 import { useEffect, useRef, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, Linking } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useKeepAwake } from "expo-keep-awake";
-import { encodePath, getDistance, Coordinate } from "@/utils/runUtils";
+import { encodePath } from "@/utils/runUtils";
 import type { GhostProfileDto } from "@/types/ghost";
 import { createRecord } from "@/services/record/recordsService";
+import { useRecordStore } from "@/stores/recordStore";
+import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
 
 // ✅ 저장할 때만 +9시간 보정해서 ISO(UTC)로 보내기
 const toIsoPlus9 = (d: Date) =>
@@ -27,42 +29,51 @@ export function useGhostRunScreen() {
     const ghostTotalDistanceM = (ghost?.targetDistanceKm ?? 5.2) * 1000;
     const ghostAvgPaceSec = ghost?.avgPace ?? 280; // sec/km
 
-    // 상태
-    const [isReady, setIsReady] = useState(true);
-    const [countdown, setCountdown] = useState(3);
+    // Store 구독 (일반 러닝/티어 러닝과 공유)
+    const {
+        isReady,
+        countdown,
+        isRunning,
+        isPaused,
+        distance, // 스토어의 distance를 distanceM으로 매핑
+        currentPace, // 스토어의 currentPace (sec/km)
+        routeCoordinates,
+        startTime,
+        pausedTime,
+        setReady,
+        setCountdown,
+        startRun: startStoreRun,
+        pauseRun: pauseStoreRun,
+        resumeRun: resumeStoreRun,
+        stopRun: stopStoreRun,
+        reset: resetStore,
+        currentLocation,
+        updateLocation
+    } = useRecordStore();
 
-    const [isRunning, setIsRunning] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
+    // UI 갱신용 시간
+    const [displayTime, setDisplayTime] = useState(0);
+    // 차트용 히스토리 (로컬)
+    const [paceHistoryMin, setPaceHistoryMin] = useState<number[]>([]);
 
-    const [time, setTime] = useState(0); // sec
-    const [distanceM, setDistanceM] = useState(0); // meter
-    const [currentPaceSec, setCurrentPaceSec] = useState(0); // sec/km
-
-    const [routeCoordinates, setRouteCoordinates] = useState<Coordinate[]>([]);
-    const [paceHistoryMin, setPaceHistoryMin] = useState<number[]>([]); // min/km
-
-    // refs
-    const locationSubscription = useRef<Location.LocationSubscription | null>(null);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const startedAtRef = useRef<string | null>(null);
 
     // 고스트 진행거리(시간 기반)
     const ghostDistanceM = isRunning
-        ? Math.min(ghostTotalDistanceM, (time / ghostAvgPaceSec) * 1000)
+        ? Math.min(ghostTotalDistanceM, (displayTime / ghostAvgPaceSec) * 1000)
         : 0;
 
     // (+)면 내가 뒤처짐, (-)면 내가 앞섬
-    const diffM = ghostDistanceM - distanceM;
+    const diffM = ghostDistanceM - distance;
 
     // progress (0~1)
     const progress =
         ghostTotalDistanceM > 0
-            ? Math.max(0, Math.min(1, distanceM / ghostTotalDistanceM))
+            ? Math.max(0, Math.min(1, distance / ghostTotalDistanceM))
             : 0;
 
     // 페이스 비교(+)면 내가 느림, (-)면 내가 빠름
-    const paceDiffSec = (currentPaceSec || 0) - ghostAvgPaceSec;
+    const paceDiffSec = (currentPace || 0) - ghostAvgPaceSec;
 
     // 유틸
     const formatTime = (totalSeconds: number) => {
@@ -91,110 +102,97 @@ export function useGhostRunScreen() {
         return sec > 0 ? `고스트보다 ${abs}초 느림` : `고스트보다 ${abs}초 빠름`;
     };
 
-    // 카운트다운
+    // 1. 초기화 및 권한 요청
+    useEffect(() => {
+        (async () => {
+            resetStore();
+            
+            const { status: foreStatus } = await Location.requestForegroundPermissionsAsync();
+            if (foreStatus !== "granted") {
+                Alert.alert("권한 필요", "위치 권한이 필요합니다.", [
+                    { text: "설정", onPress: () => Linking.openSettings() }
+                ]);
+                return;
+            }
+            
+            await Location.requestBackgroundPermissionsAsync();
+
+            const loc = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Highest,
+            });
+            updateLocation(loc); // 초기 위치 주입
+        })();
+        
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, []);
+
+    // 2. 카운트다운
     useEffect(() => {
         if (isReady && countdown > 0) {
-            countdownTimerRef.current = setTimeout(
-                () => setCountdown((p: number) => p - 1),
-                1000
-            );
+            const t = setTimeout(() => setCountdown(countdown - 1), 1000);
+            return () => clearTimeout(t);
         } else if (isReady && countdown === 0) {
-            setIsReady(false);
-            startRun();
+            startStoreRun();
+            startLocationTracking();
         }
-        return () => {
-            if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
-        };
     }, [isReady, countdown]);
 
-    // 타이머/페이스/그래프
+    // 3. 타이머 및 그래프
     useEffect(() => {
-        if (isRunning && !isPaused) {
+        if (isRunning && !isPaused && startTime) {
             timerRef.current = setInterval(() => {
-                setTime((prev) => {
-                    const newTime = prev + 1;
+                const now = Date.now();
+                const durationSec = Math.floor((now - startTime - pausedTime) / 1000);
+                const currentSec = durationSec >= 0 ? durationSec : 0;
+                
+                setDisplayTime(currentSec);
 
-                    if (distanceM > 0) {
-                        const pace = newTime / (distanceM / 1000);
-                        setCurrentPaceSec(pace);
-
-                        if (newTime % 5 === 0) {
-                            setPaceHistoryMin((arr) => [...arr, pace / 60]);
-                        }
-                    }
-
-                    return newTime;
-                });
+                if (currentSec % 5 === 0 && currentPace > 0) {
+                    setPaceHistoryMin((arr) => [...arr, currentPace / 60]);
+                }
             }, 1000);
         }
 
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [isRunning, isPaused, distanceM]);
+    }, [isRunning, isPaused, startTime, pausedTime, currentPace]);
 
-    // 위치 추적
+    // ✅ 백그라운드 위치 추적
     const startLocationTracking = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-            Alert.alert("권한 거부", "위치 권한이 필요합니다.");
-            return;
-        }
+        if (status !== "granted") return;
 
-        locationSubscription.current = await Location.watchPositionAsync(
-            {
-                accuracy: Location.Accuracy.BestForNavigation,
-                timeInterval: 1000,
-                distanceInterval: 1,
+        await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+            accuracy: Location.Accuracy.BestForNavigation,
+            timeInterval: 1000,
+            distanceInterval: 1,
+            foregroundService: {
+                notificationTitle: "RunBoo Ghost Challenge",
+                notificationBody: "고스트와 대결 중입니다.",
+                notificationColor: "#4A6EA9"
             },
-            (newLocation) => {
-                const { latitude, longitude } = newLocation.coords;
-                const newPoint: Coordinate = { latitude, longitude };
-
-                setRouteCoordinates((prev) => {
-                    if (prev.length > 0) {
-                        const last = prev[prev.length - 1];
-                        const dist = getDistance(last.latitude, last.longitude, latitude, longitude);
-
-                        if (dist > 0 && dist < 30) {
-                            setDistanceM((d) => d + dist);
-                        }
-                    }
-                    return [...prev, newPoint];
-                });
-            }
-        );
-    };
-
-    // 제어
-    const startRun = () => {
-        // 러닝 시작시간은 그냥 찍어두고(UTC든 뭐든 상관없음),
-        // ✅ 저장할 때만 +9 보정해서 보낼거임
-        startedAtRef.current = new Date().toISOString();
-        setIsRunning(true);
-        setIsPaused(false);
-        startLocationTracking();
-    };
-
-    const pauseRun = () => {
-        setIsPaused(true);
-        if (locationSubscription.current) locationSubscription.current.remove();
-    };
-
-    const resumeRun = () => {
-        setIsPaused(false);
-        startLocationTracking();
+            showsBackgroundLocationIndicator: true,
+            pausesUpdatesAutomatically: false,
+            activityType: Location.ActivityType.Fitness,
+        });
     };
 
     // ✅ 저장
     const stopRun = async () => {
-        setIsRunning(false);
-        setIsPaused(false);
-        if (timerRef.current) clearInterval(timerRef.current);
-        if (locationSubscription.current) locationSubscription.current.remove();
+        // 백그라운드 중단
+        const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+        if (hasStarted) {
+            await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+        }
 
-        const avgPaceSec = distanceM > 0 ? time / (distanceM / 1000) : 0;
-        const calories = Math.floor(distanceM * 0.05);
+        stopStoreRun();
+        if (timerRef.current) clearInterval(timerRef.current);
+
+        const avgPaceSec = distance > 0 ? displayTime / (distance / 1000) : 0;
+        const calories = Math.floor(distance * 0.05);
 
         const finalUserId = userId ? Number(userId) : 0;
         if (!finalUserId) {
@@ -203,8 +201,8 @@ export function useGhostRunScreen() {
                 "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)"
             );
             navigation.navigate("RunResult", {
-                distanceM,
-                durationSec: time,
+                distanceM: distance,
+                durationSec: displayTime,
                 avgPaceSec,
                 calories,
                 routeCoordinates,
@@ -212,21 +210,15 @@ export function useGhostRunScreen() {
             return;
         }
 
-        // ✅ 저장 시점에만 +9 보정해서 보낼 startedAt / endedAt 만들기
-        const startedAtDate =
-            startedAtRef.current ? new Date(startedAtRef.current) : new Date(Date.now() - time * 1000);
-
         const requestData = {
             userId: finalUserId,
             mode: "GHOST" as const,
-            distanceM: Math.floor(distanceM),
-            durationSec: time,
+            distanceM: Math.floor(distance),
+            durationSec: displayTime,
             avgPace: Math.floor(avgPaceSec),
             calories,
             routePolyline: encodePath(routeCoordinates),
-
-            // ✅ 핵심: 저장할 때만 +9
-            startedAt: toIsoPlus9(startedAtDate),
+            startedAt: startTime ? toIsoPlus9(new Date(startTime)) : new Date().toISOString(),
             endedAt: toIsoPlus9(new Date()),
         };
 
@@ -244,8 +236,8 @@ export function useGhostRunScreen() {
         }
 
         navigation.navigate("RunResult", {
-            distanceM,
-            durationSec: time,
+            distanceM: distance,
+            durationSec: displayTime,
             avgPaceSec,
             calories,
             routeCoordinates,
@@ -259,9 +251,9 @@ export function useGhostRunScreen() {
             countdown,
             isRunning,
             isPaused,
-            time,
-            distanceM,
-            currentPaceSec,
+            time: displayTime,
+            distanceM: distance, // 스토어 값 연결
+            currentPaceSec: currentPace, // 스토어 값 연결
             routeCoordinates,
             paceHistoryMin,
             ghostDistanceM,
@@ -271,7 +263,11 @@ export function useGhostRunScreen() {
             ghostTotalDistanceM,
             ghostAvgPaceSec,
         },
-        actions: { pauseRun, resumeRun, stopRun },
+        actions: { 
+            pauseRun: pauseStoreRun, 
+            resumeRun: resumeStoreRun, 
+            stopRun 
+        },
         utils: { formatTime, formatPace, formatDiffBadge, formatPaceDiff },
     };
 }
