@@ -21,6 +21,9 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Location from "expo-location";
 
+import "@/services/record/locationTask";
+import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
+
 import { useRunningScreen } from "./useRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
 import { StatBox } from "@/components/StatBox";
