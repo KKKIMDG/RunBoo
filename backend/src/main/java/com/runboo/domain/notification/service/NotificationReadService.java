@@ -17,26 +17,6 @@ public class NotificationReadService {
     private final NotificationRepository notificationRepository;
 
     /**
-     * 읽지 않은 알림만 조회
-     */
-    @Transactional(readOnly = true)
-    public List<NotificationResponseDto> getUnreadNotifications() {
-        Long userId = SecurityUtil.getCurrentUserId();
-
-        return notificationRepository.findUnreadByUserId(userId)
-                .stream()
-                .map(n -> new NotificationResponseDto(
-                        n.getId(),
-                        n.getType(),
-                        n.getTitle(),
-                        n.getBody(),
-                        n.isRead(),
-                        n.getCreatedAt()
-                ))
-                .toList();
-    }
-
-    /**
      * 알림 단건 읽음 처리
      */
     @Transactional

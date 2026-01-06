@@ -12,17 +12,25 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/users/me")
+@RequestMapping("/api/notification/preferences")
 public class UserNotificationPreferenceController {
 
     private final UserNotificationPreferenceService service;
 
-    @GetMapping("/settings")
-    public ResponseEntity<List<NotificationPreferenceResponseDto>> getMySettings() {
+    /**
+     * 알림 설정 조회
+     * GET /api/notification/preferences
+     */
+    @GetMapping
+    public ResponseEntity<List<NotificationPreferenceResponseDto>> getMyPreferences() {
         return ResponseEntity.ok(service.getMyPreferences());
     }
 
-    @PostMapping("/notification-preferences")
+    /**
+     * 알림 설정 변경
+     * POST /api/notification/preferences
+     */
+    @PostMapping
     public ResponseEntity<Void> savePreference(
             @Valid @RequestBody NotificationPreferenceRequestDto request
     ) {

@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import { useUserSettingContext } from '@/contexts/UserSettingContext';
 import { UserSetting } from '@/types/userSetting';
-import { Notification } from '@/types/notification';
+import {NotificationType} from '@/types/notification';
 import { userSettingService } from '@/services/setting/userSettingService';
 
 const DEBOUNCE_MS = 400;
@@ -60,7 +60,7 @@ export function useSettings() {
      * ✅ 알림 설정 변경 (type 기반)
      */
     const updateNotificationPreference = (
-        type: Notification,
+        type: NotificationType,
         enabled: boolean
     ) => {
         prevRef.current = settings;

@@ -1,5 +1,5 @@
 // types/userSetting.ts
-import { Notification } from '@/types/notification';
+import { NotificationType } from '@/types/notification';
 
 export type UserSetting = {
     pushEnabled: boolean;
@@ -8,8 +8,6 @@ export type UserSetting = {
     themeMode: 'LIGHT' | 'DARK' | 'SYSTEM';
     fontSize: 'SMALL' | 'NORMAL' | 'LARGE';
 
-    notificationPreferences: {
-        [key in Notification]: boolean;
-    };
+    notificationPreferences: Record<NotificationType, boolean>;
 };
 

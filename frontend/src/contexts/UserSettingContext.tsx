@@ -7,7 +7,7 @@ import React, {
     useEffect,
 } from 'react';
 import { UserSetting } from '@/types/userSetting';
-import { Notification } from '@/types/notification';
+import { NotificationType } from '@/types/notification';
 import { userSettingService } from '@/services/setting/userSettingService';
 
 /**
@@ -16,7 +16,7 @@ import { userSettingService } from '@/services/setting/userSettingService';
  * - row가 없는 타입은 이 값 사용
  * =========================
  */
-const DEFAULT_NOTIFICATION_PREFERENCES: Record<Notification, boolean> = {
+const DEFAULT_NOTIFICATION_PREFERENCES: Record<NotificationType, boolean> = {
     RUN_RESULT: true,
     CHALLENGE: true,
     REMINDER: false,
@@ -28,8 +28,8 @@ const DEFAULT_NOTIFICATION_PREFERENCES: Record<Notification, boolean> = {
  * UI에서 쓰는 map 형태로 변환
  */
 function normalizeNotificationPreferences(
-    list?: { type: Notification; enabled: boolean }[]
-): Record<Notification, boolean> {
+    list?: { type: NotificationType; enabled: boolean }[]
+): Record<NotificationType, boolean> {
     const result = { ...DEFAULT_NOTIFICATION_PREFERENCES };
 
     if (!list) return result;
@@ -92,14 +92,6 @@ export function UserSettingProvider({
     const reset = () => {
         setSettings(null);
     };
-
-    /**
-     * Provider mount 시 최초 1회 로드
-     * - 이미 다른 곳에서 load한다면 제거 가능
-     */
-    useEffect(() => {
-        load();
-    }, []);
 
     return (
         <UserSettingContext.Provider

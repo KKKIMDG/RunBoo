@@ -1,10 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { getMe } from "@/services/user/userService";
 import { authEventBus } from "@/services/auth/authEvents";
 import type { UserMe } from "@/types/userMe";
-import { userSettingService } from '@/services/setting/userSettingService';
-import { normalizeUserSetting } from '@/utils/userSettingGuard';
 import { useUserSettingContext } from '@/contexts/UserSettingContext';
 
 type UserMeContextValue = {
@@ -19,7 +17,7 @@ const UserMeContext = createContext<UserMeContextValue | null>(null);
 export function UserMeProvider({ children }: { children: React.ReactNode }) {
     const [userMe, setUserMe] = useState<UserMe | null>(null);
     const [loading, setLoading] = useState(true);
-    const { setSettings } = useUserSettingContext();
+    const { reload, reset } = useUserSettingContext();
     /**
      * 로그아웃 처리
      * - 토큰 제거
@@ -27,6 +25,7 @@ export function UserMeProvider({ children }: { children: React.ReactNode }) {
      */
     const logout = async () => {
         setUserMe(null);
+        reset();
         authEventBus.emitLogout();
     };
 
@@ -38,9 +37,8 @@ export function UserMeProvider({ children }: { children: React.ReactNode }) {
         try {
             const me = await getMe();
             setUserMe(me);
-            const rawSettings = await userSettingService.getMySettings();
-            setSettings(normalizeUserSetting(rawSettings));
 
+            await reload();
         } catch (e: any) {
             // api.ts에서 refresh 실패 시 logout 이벤트가 emit됨
             // 그래도 안전하게 직접 401/403도 처리
