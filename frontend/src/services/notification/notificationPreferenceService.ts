@@ -1,4 +1,3 @@
-// src/services/notification/notificationPreferenceService.ts
 import { api } from '@/services/api';
 import type { NotificationType } from '@/types/notification';
 import type { NotificationPreferenceItem } from '@/types/notificationPreference';
@@ -22,7 +21,18 @@ async function updatePreference(params: {
     await api.post('/api/notification/preferences', params);
 }
 
+/**
+ * 알림 설정 배치 변경 (추가)
+ * POST /api/notification/preferences/batch
+ */
+async function updatePreferencesBatch(
+    params: { type: NotificationType; enabled: boolean }[]
+): Promise<void> {
+    await api.post('/api/notification/preferences/batch', params);
+}
+
 export const notificationPreferenceService = {
     getMyPreferences,
     updatePreference,
+    updatePreferencesBatch
 };

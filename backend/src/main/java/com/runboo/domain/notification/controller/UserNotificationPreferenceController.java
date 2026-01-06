@@ -37,4 +37,15 @@ public class UserNotificationPreferenceController {
         service.savePreference(request);
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * 배치 api 추가
+     */
+    @PostMapping("/batch")
+    public ResponseEntity<Void> savePreferences(
+            @Valid @RequestBody List<NotificationPreferenceRequestDto> requests
+    ) {
+        service.savePreferences(requests);
+        return ResponseEntity.ok().build();
+    }
 }

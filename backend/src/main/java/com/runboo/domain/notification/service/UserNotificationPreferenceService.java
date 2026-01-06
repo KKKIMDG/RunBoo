@@ -87,4 +87,26 @@ public class UserNotificationPreferenceService {
             case REMINDER, EVENT -> false;
         };
     }
+
+    @Transactional
+    public void savePreferences(List<NotificationPreferenceRequestDto> requests) {
+        Long userId = SecurityUtil.getCurrentUserId();
+
+        for (NotificationPreferenceRequestDto req : requests) {
+            UserNotificationPreference pref =
+                    repository.findByUserIdAndType(userId, req.getType())
+                            .orElseGet(() ->
+                                    UserNotificationPreference.of(
+                                            userId,
+                                            req.getType(),
+                                            req.getEnabled()
+                                    )
+                            );
+
+            pref.updateEnabled(req.getEnabled());
+            repository.save(pref);
+        }
+    }
+
 }
+
