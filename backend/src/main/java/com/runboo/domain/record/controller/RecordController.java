@@ -58,6 +58,12 @@ public class RecordController {
         return recordService.getNationalRankingTierTop5();
     }
 
+    // 6) 누적 총 거리
+    @GetMapping("/profile/totalRunDistance")
+    public int getTotalRunDistance(@AuthenticationPrincipal CustomUserDetails user) {
+        return recordService.getTotalRunDistance(user.getUserId());
+    }
+
     @PostMapping
     public ResponseEntity<String> createRecord(@AuthenticationPrincipal CustomUserDetails user, @RequestBody RunRecordRequestDto requestDto) {
 

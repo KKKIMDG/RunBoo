@@ -26,4 +26,5 @@ public interface RecordRepository extends JpaRepository<Record, Long> {
             String mode,
             Integer minAvgPace
     );
+
 }

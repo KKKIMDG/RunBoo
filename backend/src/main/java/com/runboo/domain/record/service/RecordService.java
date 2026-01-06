@@ -278,7 +278,16 @@ public class RecordService {
         return streak;
     }
 
-    // 전국 랭킹 TOP5 (mode=TIER, avgPace 빠른 순)
+    /** 누적 총 거리 */
+    public int getTotalRunDistance(Long userId) {
+        List<Record> all = recordRepository.findByUserIdOrderByStartedAtDesc(userId);
+        double totalM = all.stream()
+                .mapToDouble(r -> Optional.ofNullable(r.getDistanceM()).orElse(0.0))
+                .sum();
+        return (int) Math.round(totalM);
+    }
+
+    /** 전국 랭킹 TOP5 (mode=TIER, avgPace 빠른 순) */
     public List<RecordDto> getNationalRankingTierTop5() {
         return recordRepository
                 .findTop5ByModeAndAvgPaceGreaterThanOrderByAvgPaceAsc("TIER", 0)
