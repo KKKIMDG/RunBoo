@@ -8,8 +8,9 @@ import {
   Dimensions,
   Alert,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
-import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE, MapStyleElement } from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
 import {
   Ionicons,
@@ -18,6 +19,7 @@ import {
 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Location from "expo-location";
 
 import { useRunningScreen } from "./useRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
@@ -56,14 +58,8 @@ const RunningScreen = () => {
     targetDistance,
   } = state;
 
-  const {
-    pauseRun,
-    resumeRun,
-    stopRun,
-    toggleFollowing,
-    setIsFollowing,
-    onLocationUpdate,
-  } = actions;
+  const { pauseRun, resumeRun, stopRun, setIsFollowing, onLocationUpdate } =
+    actions;
   const { formatTime, formatPace } = utils;
 
   const { checkAndSpeak, speakStart, speakPause, speakResume, speakStop } =
@@ -71,6 +67,41 @@ const RunningScreen = () => {
       isMale: isMale,
       targetDistance: targetDistance,
     });
+
+  // ✅ 결과 화면과 동일한 지도 스타일 정의
+  const blurredMapStyle: MapStyleElement[] = [
+    {
+      elementType: "geometry",
+      stylers: [{ color: isDarkMode ? "#242f3e" : "#f0f0f0" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [
+        { visibility: "on" },
+        { color: isDarkMode ? "#38414e" : "#ffffff" },
+        { weight: 1.5 },
+      ],
+    },
+    {
+      featureType: "road",
+      elementType: "labels.text.fill",
+      stylers: [{ color: isDarkMode ? "#9ca5b3" : "#757575" }],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: isDarkMode ? "#17263c" : "#c9d1d9" }],
+    },
+    {
+      featureType: "landscape.man_made",
+      elementType: "geometry",
+      stylers: [
+        { visibility: "on" },
+        { color: isDarkMode ? "#2c3e50" : "#e0e0e0" },
+      ],
+    },
+  ];
 
   const toggleVoice = () => {
     if (isVoiceEnabled) Speech.stop();
@@ -121,51 +152,98 @@ const RunningScreen = () => {
     };
   }, [isFollowing]);
 
-  const handleFocusPress = () => {
-    toggleFollowing();
-    if (!isFollowing && routeCoordinates.length > 0) {
-      const last = routeCoordinates[routeCoordinates.length - 1];
-      mapRef.current?.animateToRegion(
+  useEffect(() => {
+    if (initialLocation && mapRef.current) {
+      mapRef.current.animateToRegion(
         {
-          ...last,
+          ...initialLocation,
           latitudeDelta: 0.002,
           longitudeDelta: 0.002,
         },
         500
       );
     }
+  }, [initialLocation]);
+
+  const handleFocusPress = async () => {
+    if (!isFollowing) {
+      setIsFollowing(true);
+      try {
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        mapRef.current?.animateToRegion(
+          {
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+            latitudeDelta: 0.002,
+            longitudeDelta: 0.002,
+          },
+          500
+        );
+      } catch (e) {
+        if (routeCoordinates.length > 0) {
+          const last = routeCoordinates[routeCoordinates.length - 1];
+          mapRef.current?.animateToRegion(
+            {
+              ...last,
+              latitudeDelta: 0.002,
+              longitudeDelta: 0.002,
+            },
+            500
+          );
+        }
+      }
+    } else {
+      setIsFollowing(false);
+    }
   };
 
   const renderedMap = useMemo(
     () => (
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        provider={PROVIDER_GOOGLE}
-        showsUserLocation={true}
-        loadingEnabled={true}
-        onPanDrag={() => {
-          if (isFollowing) setIsFollowing(false);
-        }}
-        initialRegion={
-          initialLocation
-            ? {
-                ...initialLocation,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              }
-            : {
-                latitude: 37.5665,
-                longitude: 126.978,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              }
-        }
-      />
+      <View style={StyleSheet.absoluteFill}>
+        <MapView
+          ref={mapRef}
+          style={StyleSheet.absoluteFill}
+          provider={PROVIDER_GOOGLE}
+          showsUserLocation={true}
+          loadingEnabled={true}
+          customMapStyle={blurredMapStyle}
+          onPanDrag={() => {
+            if (isFollowing) setIsFollowing(false);
+          }}
+          initialRegion={
+            initialLocation
+              ? {
+                  ...initialLocation,
+                  latitudeDelta: 0.002,
+                  longitudeDelta: 0.002,
+                }
+              : {
+                  latitude: 37.5665,
+                  longitude: 126.978,
+                  latitudeDelta: 0.002,
+                  longitudeDelta: 0.002,
+                }
+          }
+        />
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: isDarkMode
+                ? "rgba(0,0,0,0.15)"
+                : "rgba(255,255,255,0.1)",
+            },
+          ]}
+          pointerEvents="none"
+        />
+      </View>
     ),
-    [initialLocation]
+    [initialLocation, isDarkMode, isFollowing]
   );
 
+  // ✅ 차트 데이터 (기존 코드 유지)
   const chartData = useMemo(
     () => ({
       labels: [],
@@ -180,6 +258,7 @@ const RunningScreen = () => {
     [paceHistory]
   );
 
+  // ✅ 차트 설정 (기존 코드 유지)
   const chartConfig = {
     backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
     backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
@@ -191,11 +270,12 @@ const RunningScreen = () => {
 
   const handleStopLongPress = () => {
     if (isVoiceEnabled) {
-      // ✅ 하던 말을 훅 내부 speak에서 끊어주므로 바로 호출
-      speakStop(distance, () => {
-        stopRun();
-      });
+      // 1. 음성 안내 시작 (콜백 없이 즉시 실행)
+      speakStop(distance);
+      // 2. 즉시 종료 로직 수행 (기록 저장 및 이동)
+      stopRun();
     } else {
+      // 음성 꺼져있을 때도 즉시 종료
       stopRun();
     }
   };
@@ -290,6 +370,7 @@ const RunningScreen = () => {
           />
         </View>
 
+        {/* ✅ 차트 부분 (기존 UI 유지) */}
         <View style={styles.chartCard}>
           <View style={styles.chartTitleContainer}>
             <Ionicons
@@ -320,7 +401,23 @@ const RunningScreen = () => {
         </View>
 
         <View style={styles.mapContainer}>
-          {renderedMap}
+          {/* ✅ [수정] initialLocation이 없을 때 로딩 처리 */}
+          {!initialLocation ? (
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                {
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: isDarkMode ? "#1e1e1e" : "#f0f0f0",
+                },
+              ]}
+            >
+              <ActivityIndicator size="large" color="#4A6EA9" />
+            </View>
+          ) : (
+            renderedMap
+          )}
           <TouchableOpacity
             style={[
               customStyles.focusButton,
@@ -373,6 +470,7 @@ const customStyles = StyleSheet.create({
     elevation: 5,
     borderWidth: 1,
     borderColor: "#E0E0E0",
+    zIndex: 10,
   },
   focusButtonActive: { backgroundColor: "#4A6EA9", borderColor: "#4A6EA9" },
   stopSquare: {
