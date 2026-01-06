@@ -42,6 +42,13 @@ export async function fetchNationalRankingTop5(): Promise<RecordDto[]> {
     return (res ?? []) as RecordDto[];
 }
 
+/** 프로필 페이지에서 누적 총 거리 */
+export async function fetchTotalRunDistanceM(): Promise<number> {
+    // 백엔드 : GET /api/records/profile/totalRunDistance
+    const res = await api.get(`/api/records/profile/totalRunDistance`);
+    return res as number;
+}
+
 export const createRecord = async (requestData: CreateRecordRequest) => {
     return api.post("/api/records", requestData);
 };

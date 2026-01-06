@@ -149,12 +149,14 @@ export default function ProfileScreen({ navigation }: any) {
             </View>
 
             {/* 총 거리 데이터 반영 */}
-            <View style={styles.metricBox}>
-              <Text style={styles.metricValue}>
-                <Text style={styles.metricValue}>임시데이터</Text>
-              </Text>
-              <Text style={styles.metricSubLabel}>총 KM</Text>
-            </View>
+              <View style={styles.metricBox}>
+                  <Text style={styles.metricValue}>
+                      {profile.totalDistanceLoading
+                          ? "-"
+                          : (profile.totalDistanceM / 1000).toFixed(1)}
+                  </Text>
+                  <Text style={styles.metricSubLabel}>총 KM</Text>
+              </View>
           </View>
 
           {/* ===== 배지 섹션 ===== */}
