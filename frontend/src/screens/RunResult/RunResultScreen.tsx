@@ -326,7 +326,7 @@ const localStyles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 10,
   },
-  mainImage: { width: "100%", height: "100%" },
+  mainImage: { width: "100%", height: "100%", backgroundColor: "#FFFFFF" },
   focusButton: {
     position: "absolute",
     bottom: 16,
