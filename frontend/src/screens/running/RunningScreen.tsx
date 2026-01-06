@@ -216,14 +216,14 @@ const RunningScreen = () => {
             initialLocation
               ? {
                   ...initialLocation,
-                  latitudeDelta: 0.005,
-                  longitudeDelta: 0.005,
+                  latitudeDelta: 0.002,
+                  longitudeDelta: 0.002,
                 }
               : {
                   latitude: 37.5665,
                   longitude: 126.978,
-                  latitudeDelta: 0.005,
-                  longitudeDelta: 0.005,
+                  latitudeDelta: 0.002,
+                  longitudeDelta: 0.002,
                 }
           }
         />
