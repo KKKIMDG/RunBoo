@@ -30,8 +30,8 @@ export const useRunningVoiceFeedback = ({
     Speech.stop().then(() => {
       Speech.speak(text, {
         language: "ko-KR",
-        pitch: isMale ? 0.8 : 1.1,
-        rate: 1.0,
+        pitch: isMale ? 0.5 : 1.0,
+        rate: 1.1,
         onDone: () => {
           if (onDone) onDone();
         },
