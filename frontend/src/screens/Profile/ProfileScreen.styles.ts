@@ -110,14 +110,14 @@ export const styles = StyleSheet.create({
     color: "#3A4A98",
   },
   metricValue: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "800",
     color: "#000",
   },
   metricSubLabel: {
-    fontSize: 9,
+    fontSize: 12,
     color: "#868E96",
-    marginTop: 2,
+    marginTop: 4,
   },
   badgeSectionHeader: {
     flexDirection: "row",

@@ -11,7 +11,10 @@ import {
   updateMyNickname,
   updateMyProfileImage,
 } from "@/services/user/userService";
-import { fetchCurrentRunningStreak } from "@/services/record/recordsService";
+import {
+    fetchCurrentRunningStreak,
+    fetchTotalRunDistanceM
+} from "@/services/record/recordsService";
 import { getUserTierIds } from "@/services/tier/tierService"; // dabin 추가: 서비스 임포트
 
 /* =======================
@@ -46,6 +49,10 @@ export function useProfile(weeks: number = 12) {
   const [streak, setStreak] = useState<number | null>(null);
   const [streakLoading, setStreakLoading] = useState(false);
 
+  /** 누적 총 거리 */
+  const [totalDistanceM, setTotalDistanceM] = useState<number>(0);
+  const [totalDistanceLoading, setTotalDistanceLoading] = useState(false);
+
   /* =======================
       티어 데이터 (dabin 추가)
   ======================= */
@@ -77,10 +84,15 @@ export function useProfile(weeks: number = 12) {
       try {
         setStreakLoading(true);
         setTierLoading(true);
+        setTotalDistanceLoading(true);
 
         // 1. 연속 러닝 스트릭 로드 (공통)
         const streakValue = await fetchCurrentRunningStreak();
         setStreak(streakValue);
+
+        // 1-1. 누적 총 거리 로드 (미터)
+        const totalM = await fetchTotalRunDistanceM();
+        setTotalDistanceM(typeof totalM === "number" ? totalM : 0);
 
         // 2. 티어 ID 리스트 로드 및 분리 저장 (dabin 추가 로직)
         const tierIds = await getUserTierIds();
@@ -101,6 +113,7 @@ export function useProfile(weeks: number = 12) {
       } finally {
         setStreakLoading(false);
         setTierLoading(false);
+        setTotalDistanceLoading(false);
       }
     };
 
@@ -231,6 +244,10 @@ export function useProfile(weeks: number = 12) {
     /* streak */
     streak,
     streakLoading,
+
+    /* total distance */
+    totalDistanceM,
+    totalDistanceLoading,
 
     /* tier (dabin 추가) */
     tier5kId,
