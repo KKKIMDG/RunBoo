@@ -330,6 +330,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         <SafeAreaView style={styles.safeArea}>
             <TopNavBar
                 onLeftPress={() => navigation.navigate("Profile")}
+                onRightPress={() => navigation.navigate("Notification")}
             />
 
             <View style={styles.content}>

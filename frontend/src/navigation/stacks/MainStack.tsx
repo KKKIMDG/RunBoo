@@ -10,7 +10,8 @@ import BadgeCollectionModal from "@/screens/Badge/BadgeCollectionModal"; // dabi
 import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
 import ChangePasswordScreen from "@/screens/Settings/ChangePasswordScreen";
 import VerifyCurrentPasswordScreen from "@/screens/Settings/VerifyCurrentPasswordScreen";
-import WithdrawScreen from "@/screens/Settings/WithdrawScreen"; // dev 추가분
+import WithdrawScreen from "@/screens/Settings/WithdrawScreen";
+import NotificationScreen from "@/screens/notification/NotificationScreen"; // dev 추가분
 
 const Stack = createNativeStackNavigator();
 
@@ -29,15 +30,19 @@ export default function MainStack({ onLogout }: any) {
         <Stack.Screen name="VerifyCurrentPassword" component={VerifyCurrentPasswordScreen} />
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
         <Stack.Screen name="Withdraw" component={WithdrawScreen}/>
-      {/* 2. 프로필 및 티어 결과 */}
+      {/* 프로필 */}
       <Stack.Screen name="Profile" component={ProfileScreen} />
 
+        {/*알림*/}
+        <Stack.Screen name="Notification" component={NotificationScreen} />
+
+        {/*티어 결과*/}
       <Stack.Screen name="TierResult" component={TierResultScreen} />
 
-      {/* 3. 고스트 런 화면 (dev 브랜치 추가분) */}
+      {/* 고스트 런 화면 (dev 브랜치 추가분) */}
       <Stack.Screen name="GhostRun" component={GhostRunScreen} />
 
-      {/* 4. 뱃지 컬렉션 (dabin 브랜치 추가분 - 투명 모달) */}
+      {/* 뱃지 컬렉션 (dabin 브랜치 추가분 - 투명 모달) */}
       <Stack.Screen
         name="BadgeCollection"
         component={BadgeCollectionModal}
