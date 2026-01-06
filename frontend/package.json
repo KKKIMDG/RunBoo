@@ -34,6 +34,7 @@
     "expo-sharing": "~14.0.8",
     "expo-speech": "~14.0.8",
     "expo-symbols": "^1.0.8",
+    "expo-task-manager": "~14.0.9",
     "expo-web-browser": "~15.0.10",
     "jwt-decode": "^4.0.0",
     "lucide-react-native": "^0.562.0",
