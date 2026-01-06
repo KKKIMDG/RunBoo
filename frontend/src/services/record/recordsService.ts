@@ -35,6 +35,28 @@ export async function fetchCurrentRunningStreak(): Promise<number> {
     return res as number;
 }
 
+/** 전국 랭킹 TOP5 (TIER만, avg_pace 빠른 순) */
+export async function fetchNationalRankingTop5(): Promise<RecordDto[]> {
+    // 백엔드: GET /api/records/ranking/national
+    const res = await api.get(`/api/records/ranking/national`);
+    return (res ?? []) as RecordDto[];
+}
+
+/** 프로필 페이지에서 누적 총 거리 */
+export async function fetchTotalRunDistanceM(): Promise<number> {
+    // 백엔드 : GET /api/records/profile/totalRunDistance
+    const res = await api.get(`/api/records/profile/totalRunDistance`);
+    return res as number;
+}
+
 export const createRecord = async (requestData: CreateRecordRequest) => {
     return api.post("/api/records", requestData);
 };
+
+export async function fetchMonthlyAnalysis(): Promise<string> {
+    const res = await api.get("/api/records/analysis/monthly");
+    if (res && typeof res === 'object' && 'message' in res) {
+        return (res as any).message;
+    }
+    return res as string;
+}

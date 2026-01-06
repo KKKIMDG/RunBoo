@@ -10,8 +10,9 @@ import {
   ToastAndroid,
   Platform,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
-import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE, MapStyleElement } from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
 import {
   Ionicons,
@@ -19,6 +20,7 @@ import {
   FontAwesome5,
 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Location from "expo-location";
 
 import { useTierRunningScreen } from "./useTierRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
@@ -31,7 +33,6 @@ const TierRunningScreen = () => {
   const styles = getStyles(isDarkMode);
 
   const mapRef = useRef<MapView>(null);
-  // 수정: 사용자가 지도를 직접 움직였는지 여부를 관리 (자동 추적 활성화 상태)
   const [isTracking, setIsTracking] = useState(true);
 
   const { state, actions, utils } = useTierRunningScreen();
@@ -45,12 +46,62 @@ const TierRunningScreen = () => {
     isReady,
     countdown,
     lastLocation,
+    initialLocation, // useTierRunningScreen에서 가져옴
   } = state;
 
   const { pauseRun, resumeRun, stopTierRunManual } = actions;
   const { formatTime, formatPace } = utils;
 
-  // 1. 카메라 이동 로직: isTracking이 true일 때만 자동으로 내 위치 추적
+  // ✅ 일반 러닝과 동일한 지도 스타일 정의
+  const blurredMapStyle: MapStyleElement[] = [
+    {
+      elementType: "geometry",
+      stylers: [{ color: isDarkMode ? "#242f3e" : "#f0f0f0" }],
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [
+        { visibility: "on" },
+        { color: isDarkMode ? "#38414e" : "#ffffff" },
+        { weight: 1.5 },
+      ],
+    },
+    {
+      featureType: "road",
+      elementType: "labels.text.fill",
+      stylers: [{ color: isDarkMode ? "#9ca5b3" : "#757575" }],
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: isDarkMode ? "#17263c" : "#c9d1d9" }],
+    },
+    {
+      featureType: "landscape.man_made",
+      elementType: "geometry",
+      stylers: [
+        { visibility: "on" },
+        { color: isDarkMode ? "#2c3e50" : "#e0e0e0" },
+      ],
+    },
+  ];
+
+  // ✅ 초기 위치 포커싱 (서울 시청 방지)
+  useEffect(() => {
+    if (initialLocation && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          ...initialLocation,
+          latitudeDelta: 0.002,
+          longitudeDelta: 0.002,
+        },
+        500
+      );
+    }
+  }, [initialLocation]);
+
+  // ✅ 실시간 자동 추적
   useEffect(() => {
     if (lastLocation && !isPaused && isTracking && mapRef.current) {
       mapRef.current.animateToRegion(
@@ -65,13 +116,25 @@ const TierRunningScreen = () => {
     }
   }, [lastLocation, isPaused, isTracking]);
 
-  // 내 위치로 즉시 이동하고 추적 다시 활성화
-  const moveToCurrentLocation = () => {
-    if (lastLocation && mapRef.current) {
-      setIsTracking(true);
-      mapRef.current.animateToRegion(
+  const moveToCurrentLocation = async () => {
+    setIsTracking(true);
+    if (lastLocation) {
+      mapRef.current?.animateToRegion(
         {
           ...lastLocation,
+          latitudeDelta: 0.002,
+          longitudeDelta: 0.002,
+        },
+        500
+      );
+    } else {
+      const loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      mapRef.current?.animateToRegion(
+        {
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
           latitudeDelta: 0.002,
           longitudeDelta: 0.002,
         },
@@ -86,7 +149,7 @@ const TierRunningScreen = () => {
     else Alert.alert("알림", msg);
   };
 
-  /** 차트 설정 */
+  /** ✅ 기존 금색 차트 설정 유지 */
   const chartConfig = {
     backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
     backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
@@ -96,34 +159,47 @@ const TierRunningScreen = () => {
     propsForDots: { r: "0" },
   };
 
-  // 2. 지도 메모이제이션 (리로드 방지)
+  // ✅ 지도 렌더링 (스타일 및 오버레이 적용)
   const renderedMap = useMemo(
     () => (
-      <MapView
-        ref={mapRef}
-        style={styles.map}
-        provider={PROVIDER_GOOGLE}
-        showsUserLocation={true}
-        followsUserLocation={false}
-        // 사용자가 지도를 직접 움직이면 자동 추적 일시 중지
-        onPanDrag={() => setIsTracking(false)}
-        initialRegion={
-          lastLocation
-            ? {
-                ...lastLocation,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              }
-            : {
-                latitude: 37.5665,
-                longitude: 126.978,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              }
-        }
-      />
+      <View style={StyleSheet.absoluteFill}>
+        <MapView
+          ref={mapRef}
+          style={StyleSheet.absoluteFill}
+          provider={PROVIDER_GOOGLE}
+          showsUserLocation={true}
+          customMapStyle={blurredMapStyle} // 스타일 적용
+          onPanDrag={() => setIsTracking(false)}
+          initialRegion={
+            initialLocation
+              ? {
+                  ...initialLocation,
+                  latitudeDelta: 0.002,
+                  longitudeDelta: 0.002,
+                }
+              : {
+                  latitude: 37.5665,
+                  longitude: 126.978,
+                  latitudeDelta: 0.002,
+                  longitudeDelta: 0.002,
+                }
+          }
+        />
+        {/* 반투명 오버레이 */}
+        <View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: isDarkMode
+                ? "rgba(0,0,0,0.15)"
+                : "rgba(255,255,255,0.1)",
+            },
+          ]}
+          pointerEvents="none"
+        />
+      </View>
     ),
-    []
+    [initialLocation, isDarkMode]
   );
 
   return (
@@ -145,7 +221,6 @@ const TierRunningScreen = () => {
           contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
         >
-          {/* 헤더 섹션 */}
           <View style={styles.header}>
             <View style={[styles.statusTag, { backgroundColor: "#4A6EA9" }]}>
               <View style={[styles.statusDot, { backgroundColor: "#FFF" }]} />
@@ -155,7 +230,6 @@ const TierRunningScreen = () => {
             </View>
           </View>
 
-          {/* 통계 섹션 */}
           <View style={styles.statsContainer}>
             <StatBox
               icon={<Ionicons name="time-outline" size={24} color="#4A6EA9" />}
@@ -183,7 +257,6 @@ const TierRunningScreen = () => {
             />
           </View>
 
-          {/* 페이스 차트 */}
           <View style={styles.chartCard}>
             <View style={styles.chartTitleContainer}>
               <Ionicons
@@ -199,7 +272,7 @@ const TierRunningScreen = () => {
                 datasets: [
                   {
                     data: paceHistory.length > 0 ? paceHistory : [0],
-                    color: (opacity = 1) => `rgba(255, 215, 0, ${opacity})`,
+                    color: (opacity = 1) => `rgba(74, 110, 169, ${opacity})`,
                     strokeWidth: 2,
                   },
                 ],
@@ -222,11 +295,24 @@ const TierRunningScreen = () => {
             </View>
           </View>
 
-          {/* 지도 섹션 및 토글 버튼 */}
           <View style={styles.mapContainer}>
-            {renderedMap}
+            {!initialLocation ? (
+              <View
+                style={[
+                  StyleSheet.absoluteFill,
+                  {
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: isDarkMode ? "#1e1e1e" : "#f0f0f0",
+                  },
+                ]}
+              >
+                <ActivityIndicator size="large" color="#4A6EA9" />
+              </View>
+            ) : (
+              renderedMap
+            )}
 
-            {/* 수정: 내 위치 토글 버튼 */}
             <TouchableOpacity
               style={[
                 customStyles.locationButton,
@@ -264,7 +350,7 @@ const TierRunningScreen = () => {
             <TouchableOpacity
               style={[styles.stopButton, { backgroundColor: "#FF3B30" }]}
               onPress={handleStopPress}
-              onLongPress={stopTierRunManual}
+              onLongPress={stopTierRunManual} // 기존 로직 유지
               delayLongPress={1000}
             >
               <View
@@ -283,7 +369,6 @@ const TierRunningScreen = () => {
   );
 };
 
-// 추가 스타일
 const customStyles = StyleSheet.create({
   locationButton: {
     position: "absolute",
@@ -295,10 +380,7 @@ const customStyles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    zIndex: 10,
   },
 });
 

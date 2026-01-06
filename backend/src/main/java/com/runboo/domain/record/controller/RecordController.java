@@ -5,6 +5,7 @@ import com.runboo.domain.record.dto.DashboardStatsDto;
 import com.runboo.domain.record.dto.GrassResponseDto;
 import com.runboo.domain.record.dto.RecordDto;
 import com.runboo.domain.record.dto.RunRecordRequestDto;
+import com.runboo.domain.record.service.AiCoachingService;
 import com.runboo.domain.record.service.RecordService;
 import com.runboo.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class RecordController {
 
     private final RecordService recordService;
     private final UserChallengeService userChallengeService;
+    private final AiCoachingService aiCoachingService;
 
     // 1) 내 기록 조회
     @GetMapping
@@ -50,6 +52,18 @@ public class RecordController {
         return recordService.getCurrentRunningStreak(user.getUserId());
     }
 
+    // 5) 전국 랭킹 TOP5 (TIER만, avgPace 빠른 순)
+    @GetMapping("/ranking/national")
+    public List<RecordDto> getNationalRankingTierTop5() {
+        return recordService.getNationalRankingTierTop5();
+    }
+
+    // 6) 누적 총 거리
+    @GetMapping("/profile/totalRunDistance")
+    public int getTotalRunDistance(@AuthenticationPrincipal CustomUserDetails user) {
+        return recordService.getTotalRunDistance(user.getUserId());
+    }
+
     @PostMapping
     public ResponseEntity<String> createRecord(@AuthenticationPrincipal CustomUserDetails user, @RequestBody RunRecordRequestDto requestDto) {
 
@@ -59,5 +73,18 @@ public class RecordController {
         double value = requestDto.getDistanceM();
         userChallengeService.updateProgress(userId, type, (int) value);
         return ResponseEntity.ok("기록 저장 성공");
+    }
+
+    @GetMapping("/analysis/monthly")
+    public ResponseEntity<String> getMonthlyAnalysis(@AuthenticationPrincipal CustomUserDetails user) {
+        String prompt = aiCoachingService.getMonthlyAnalysisPrompt(user.getUserId());
+
+        if (prompt == null) {
+            return ResponseEntity.ok("아직 이번 달 달리기 기록이 없네요! 🏃‍♂️ 운동화를 신고 첫 기록을 만들어보세요!");
+        }
+
+        String analysisResult = aiCoachingService.analyze(prompt);
+
+        return ResponseEntity.ok(analysisResult);
     }
 }
