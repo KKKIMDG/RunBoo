@@ -235,7 +235,7 @@ export default function RecordsScreen() {
                                         <MonthlyChart monthly={stats.monthly} />
                                         <WeeklyChart weekly={stats.weekly} />
                                         <PersonalBestList pb={stats.personalBests} />
-                                        <View style={{ marginBottom: 20 }}>
+                                        <View style={{ marginTop: 13, marginBottom: 20 }}>
                                             <AiAnalysisCard />
                                         </View>
                                     </>
