@@ -1,5 +1,4 @@
-// src/screens/Notification/NotificationScreen.tsx
-import React, { useState } from "react";
+import React from "react";
 import {
     View,
     Text,
@@ -9,47 +8,39 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { getStyles } from "./Notification.styles";
-import { useNotifications } from "./useNotifications";
+import { useNotificationScreen } from "./useNotificationScreen";
 import type { NotificationItem } from "@/types/notification";
+import { formatRelativeTime } from "@/utils/time";
+import {useNavigation} from "@react-navigation/native";
 
 const NotificationScreen = () => {
-    const navigation = useNavigation<any>();
     const scheme = useColorScheme() ?? "light";
     const styles = getStyles(scheme);
+    const navigation = useNavigation<any>();
 
-    /** UI 탭 상태 */
-    const [tab, setTab] = useState<"ALL" | "UNREAD">("ALL");
-
-    /** 알림 데이터 */
     const {
         notifications,
         loading,
-        markAsRead,
+        tab,
+        setTab,
+        unreadCount,
+        onPressNotification,
         markAllAsRead,
-    } = useNotifications();
-
-    const unreadCount = notifications.filter(n => !n.read).length;
-
-    const filteredData =
-        tab === "ALL"
-            ? notifications
-            : notifications.filter(n => !n.read);
+    } = useNotificationScreen();
 
     const renderItem = ({ item }: { item: NotificationItem }) => (
         <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => {
-                if (!item.read) {
-                    markAsRead(item.id);
-                }
-                // TODO: type별 이동 처리
-            }}
+            onPress={() => onPressNotification(item)}
         >
-            <View style={[styles.card, !item.read && styles.cardUnread]}>
+            <View
+                style={[
+                    styles.card,
+                    !item.read && styles.cardUnread,
+                ]}
+            >
                 <View style={styles.iconBox}>
                     <Ionicons
                         name={
@@ -67,7 +58,9 @@ const NotificationScreen = () => {
                 <View style={styles.cardContent}>
                     <Text style={styles.cardTitle}>{item.title}</Text>
                     <Text style={styles.cardMessage}>{item.body}</Text>
-                    <Text style={styles.cardDate}>{item.createdAt}</Text>
+                    <Text style={styles.cardDate}>
+                        {formatRelativeTime(item.createdAt)}
+                    </Text>
                 </View>
             </View>
         </TouchableOpacity>
@@ -100,7 +93,7 @@ const NotificationScreen = () => {
                 <Text style={styles.headerTitle}>알림</Text>
             </View>
 
-            {/* ================= 전환 영역 (고정) ================= */}
+            {/* ================= 전환 영역 ================= */}
             <View style={styles.switchSection}>
                 <View style={styles.tabSwitcher}>
                     <TouchableOpacity
@@ -138,7 +131,9 @@ const NotificationScreen = () => {
 
                         {unreadCount > 0 && (
                             <View style={styles.badge}>
-                                <Text style={styles.badgeText}>{unreadCount}</Text>
+                                <Text style={styles.badgeText}>
+                                    {unreadCount}
+                                </Text>
                             </View>
                         )}
                     </TouchableOpacity>
@@ -155,7 +150,7 @@ const NotificationScreen = () => {
                 )}
             </View>
 
-            {/* ================= 리스트 (스크롤 영역) ================= */}
+            {/* ================= 리스트 ================= */}
             {loading ? (
                 <ActivityIndicator
                     size="large"
@@ -164,7 +159,7 @@ const NotificationScreen = () => {
                 />
             ) : (
                 <FlatList
-                    data={filteredData}
+                    data={notifications}
                     renderItem={renderItem}
                     keyExtractor={(item) => String(item.id)}
                     showsVerticalScrollIndicator={false}
