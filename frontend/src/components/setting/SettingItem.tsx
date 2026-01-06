@@ -18,13 +18,14 @@ interface SelectOption<T = any> {
 }
 
 interface SettingItemProps {
-    icon: keyof typeof Ionicons.glyphMap;
+    icon?: keyof typeof Ionicons.glyphMap;
     label: string;
     value?: string;
     isLast?: boolean;
+    disabled?: boolean;
 
-    /** link | switch | text | select */
-    type?: 'link' | 'switch' | 'text' | 'select';
+    /** link | switch | text | select | expand */
+    type?: 'link' | 'switch' | 'text' | 'select' | 'expand';
 
     /** switch */
     isEnabled?: boolean;
@@ -50,15 +51,11 @@ interface SettingItemProps {
 
 /**
  * 커스텀 소형 스위치
- * - 시각적 크기는 작게 유지
- * - 터치 영역은 외부 wrapper에서 확장
  */
 const CustomSmallSwitch = ({
                                active,
-                               onToggle,
                            }: {
     active: boolean;
-    onToggle: (v: boolean) => void;
 }) => {
     const moveAnim = useRef(new Animated.Value(active ? 1 : 0)).current;
 
@@ -100,6 +97,7 @@ export default function SettingItem({
                                         isLast,
                                         type = 'link',
                                         isEnabled = false,
+                                        disabled = false,
                                         onToggle,
                                         onPress,
                                         options,
@@ -125,18 +123,29 @@ export default function SettingItem({
         outputRange: ['0deg', '180deg'],
     });
 
-    const isDisabled = type === 'text';
+    const isDisabled = disabled === true;
     const Wrapper = type === 'switch' ? View : TouchableOpacity;
+    const showChevron = type === 'select' || type === 'expand';
+
+    const labelColor = isDisabled ? '#ADB5BD' : '#1F2937';
+    const iconColor = isDisabled ? '#CED4DA' : '#868E96';
+    const valueColor = isDisabled ? '#CED4DA' : '#ADB5BD';
 
     return (
         <View ref={itemRef}>
             <Wrapper
-                style={[styles.container, !isLast && styles.borderBottom]}
+                style={[
+                    styles.container,
+                    !isLast && styles.borderBottom,
+                    isDisabled && { opacity: 0.6 },
+                ]}
                 {...(type !== 'switch'
                     ? {
                         activeOpacity: 0.7,
                         disabled: isDisabled,
                         onPress: () => {
+                            if (isDisabled) return;
+
                             if (type === 'link') {
                                 onPress?.();
                                 return;
@@ -145,20 +154,22 @@ export default function SettingItem({
                             if (type === 'select') {
                                 if (!options || !onSelect || !onOpenSelect) return;
 
-                                onToggleOpen?.();
+                                itemRef.current?.measureInWindow((x, y, width, height) => {
+                                    onToggleOpen?.();
+                                    onOpenSelect({
+                                        x,
+                                        y,
+                                        width,
+                                        height,
+                                        options,
+                                        onSelect,
+                                    });
+                                });
+                                return;
+                            }
 
-                                itemRef.current?.measureInWindow(
-                                    (x, y, width, height) => {
-                                        onOpenSelect({
-                                            x,
-                                            y,
-                                            width,
-                                            height,
-                                            options,
-                                            onSelect,
-                                        });
-                                    }
-                                );
+                            if (type === 'expand') {
+                                onToggleOpen?.();
                             }
                         },
                     }
@@ -166,45 +177,44 @@ export default function SettingItem({
             >
                 {/* 왼쪽 */}
                 <View style={styles.leftContent}>
-                    <Ionicons
-                        name={icon}
-                        size={20}
-                        color="#868E96"
-                        style={styles.icon}
-                    />
-                    <Text style={styles.label}>{label}</Text>
+                    {icon && (
+                        <Ionicons
+                            name={icon}
+                            size={20}
+                            color={iconColor}
+                            style={styles.icon}
+                        />
+                    )}
+                    <Text style={[styles.label, { color: labelColor }]}>
+                        {label}
+                    </Text>
                 </View>
 
                 {/* 오른쪽 */}
                 <View style={styles.rightContent}>
                     {type === 'switch' ? (
-                        /**
-                         * 스위치 hit area 확장
-                         * - row 전체는 아님
-                         * - 스위치 주변만 넉넉하게 터치 가능
-                         */
                         <TouchableOpacity
                             activeOpacity={0.8}
+                            disabled={isDisabled}
                             onPress={() => onToggle?.(!isEnabled)}
                             style={styles.switchHitArea}
                         >
-                            <CustomSmallSwitch
-                                active={isEnabled}
-                                onToggle={onToggle || (() => {})}
-                            />
+                            <CustomSmallSwitch active={isEnabled} />
                         </TouchableOpacity>
                     ) : (
                         <>
                             {value && (
-                                <Text style={styles.valueText}>{value}</Text>
+                                <Text style={[styles.valueText, { color: valueColor }]}>
+                                    {value}
+                                </Text>
                             )}
 
-                            {type === 'select' && (
+                            {showChevron && (
                                 <Animated.View style={{ transform: [{ rotate }] }}>
                                     <Ionicons
                                         name="chevron-down"
                                         size={18}
-                                        color="#ADB5BD"
+                                        color={isDisabled ? '#CED4DA' : '#ADB5BD'}
                                     />
                                 </Animated.View>
                             )}
@@ -213,7 +223,7 @@ export default function SettingItem({
                                 <Ionicons
                                     name="chevron-forward"
                                     size={18}
-                                    color="#ADB5BD"
+                                    color={isDisabled ? '#CED4DA' : '#ADB5BD'}
                                 />
                             )}
                         </>
@@ -245,7 +255,6 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 15,
-        color: '#1F2937',
         fontWeight: '500',
     },
     rightContent: {
@@ -254,11 +263,10 @@ const styles = StyleSheet.create({
     },
     valueText: {
         fontSize: 14,
-        color: '#ADB5BD',
         marginRight: 4,
     },
 
-    /** 스위치 터치 영역 확장용 */
+    /** 스위치 터치 영역 */
     switchHitArea: {
         paddingHorizontal: 12,
         paddingVertical: 10,

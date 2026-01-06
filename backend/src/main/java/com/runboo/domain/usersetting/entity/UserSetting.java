@@ -29,9 +29,6 @@ public class UserSetting {
     @Column(nullable = false, length = 10)
     private String fontSize = "SMALL";
 
-    @Column(nullable = false, length = 10)
-    private String locationPermission = "IN_USE";
-
     public void updatePushEnabled(Boolean value) {
         if (value != null) this.pushEnabled = value;
     }
@@ -50,9 +47,5 @@ public class UserSetting {
 
     public void updateFontSize(String value) {
         if (value != null) this.fontSize = value;
-    }
-
-    public void updateLocationPermission(String value) {
-        if (value != null) this.locationPermission = value;
     }
 }
