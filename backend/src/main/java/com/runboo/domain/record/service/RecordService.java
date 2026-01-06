@@ -277,4 +277,13 @@ public class RecordService {
 
         return streak;
     }
+
+    // 전국 랭킹 TOP5 (mode=TIER, avgPace 빠른 순)
+    public List<RecordDto> getNationalRankingTierTop5() {
+        return recordRepository
+                .findTop5ByModeAndAvgPaceGreaterThanOrderByAvgPaceAsc("TIER", 0)
+                .stream()
+                .map(RecordDto::new)
+                .toList();
+    }
 }

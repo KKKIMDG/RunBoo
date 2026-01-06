@@ -4,7 +4,6 @@ import com.runboo.domain.record.entity.Record;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +20,10 @@ public interface RecordRepository extends JpaRepository<Record, Long> {
     Optional<Record> findTopByUserIdOrderByDurationSecDesc(Long userId);
     Optional<Record> findTopByUserIdOrderByAvgPaceAsc(Long userId); // avgPace 낮을수록 빠름
     Optional<Record> findTopByUserIdOrderByCaloriesDesc(Long userId);
+
+    // 전국 랭킹 TOP5 (TIER만, avgPace 빠른 순)
+    List<Record> findTop5ByModeAndAvgPaceGreaterThanOrderByAvgPaceAsc(
+            String mode,
+            Integer minAvgPace
+    );
 }

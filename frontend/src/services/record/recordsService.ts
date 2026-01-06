@@ -35,6 +35,13 @@ export async function fetchCurrentRunningStreak(): Promise<number> {
     return res as number;
 }
 
+/** 전국 랭킹 TOP5 (TIER만, avg_pace 빠른 순) */
+export async function fetchNationalRankingTop5(): Promise<RecordDto[]> {
+    // 백엔드: GET /api/records/ranking/national
+    const res = await api.get(`/api/records/ranking/national`);
+    return (res ?? []) as RecordDto[];
+}
+
 export const createRecord = async (requestData: CreateRecordRequest) => {
     return api.post("/api/records", requestData);
 };
