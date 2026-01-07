@@ -17,7 +17,4 @@ public class UserSettingUpdateRequest {
 
     @Pattern(regexp = "SMALL|MEDIUM|LARGE")
     private String fontSize;
-
-    @Pattern(regexp = "ALWAYS|IN_USE|DENIED")
-    private String locationPermission;
 }

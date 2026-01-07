@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal, Pressable } from 'react-native';
+import {
+    View,
+    Text,
+    ScrollView,
+    TouchableOpacity,
+    Modal,
+    Pressable,
+    Alert,
+    Linking,
+    ActivityIndicator
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,10 +17,17 @@ import { styles } from './SettingsScreen.styles';
 import SettingItem from '@/components/setting/SettingItem';
 import { useSettings } from './useSettings';
 import { useUserMe } from '@/contexts/UserMeContext';
+import { useNotificationPreference } from './useNotificationPreference';
 
 export default function SettingsScreen({ navigation, onLogout }: any) {
-    const { settings, update, loading } = useSettings();
+
     const { userMe } = useUserMe();
+
+    /** 일반 설정 */
+    const { settings, update } = useSettings();
+
+    /** 알림 타입별 설정 */
+    const { preferences, updatePreference, loading } = useNotificationPreference();
 
     const isLocal = userMe?.provider === 'LOCAL';
 
@@ -27,7 +44,16 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
         onSelect: (v: any) => void;
     }>(null);
 
-    if (!userMe || loading || !settings) return null;
+    if (!userMe || !settings || !preferences || loading) {
+
+        return (
+            <SafeAreaView style={styles.safeArea}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <ActivityIndicator size="large" />
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -141,11 +167,55 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                         <SettingItem
                             icon="notifications-outline"
                             label="푸시 알림"
-                            type="switch"
-                            isEnabled={settings.pushEnabled}
-                            onToggle={(v) => update('pushEnabled', v)}
+                            type="expand"
+                            isOpen={openSelectKey === 'push'}
+                            onToggleOpen={() =>
+                                setOpenSelectKey(prev => (prev === 'push' ? null : 'push'))
+                            }
                         />
+                        {openSelectKey === 'push' && (
+                            <View style={{backgroundColor: '#f6f6f6'}}>
+                                <View style={{paddingLeft: 20}}>
+                                    <SettingItem
+                                        label="알림"
+                                        type = "switch"
+                                        isEnabled={settings.pushEnabled}
+                                        onToggle={(v) => update('pushEnabled', v)}
+                                    />
+                                </View>
+                                <View style={{ paddingLeft: 30 }}>
+                                    <SettingItem
+                                        label="기록 달성"
+                                        type="switch"
+                                        disabled={!settings.pushEnabled}
+                                        isEnabled={preferences.RUN_RESULT}
+                                        onToggle={(v) => updatePreference('RUN_RESULT', v)}
+                                    />
+                                    <SettingItem
+                                        label="챌린지"
+                                        type="switch"
+                                        disabled={!settings.pushEnabled}
+                                        isEnabled={preferences.CHALLENGE}
+                                        onToggle={(v) => updatePreference('CHALLENGE', v)}
+                                    />
+                                    <SettingItem
+                                        label="러닝 리마인드"
+                                        type="switch"
+                                        disabled={!settings.pushEnabled}
+                                        isEnabled={preferences.REMINDER}
+                                        onToggle={(v) => updatePreference('REMINDER', v)}
+                                    />
+                                    <SettingItem
+                                        label="이벤트 / 공지"
+                                        type="switch"
+                                        disabled={!settings.pushEnabled}
+                                        isEnabled={preferences.EVENT}
+                                        onToggle={(v) => updatePreference('EVENT', v)}
 
+                                    />
+                                </View>
+                            </View>
+                        )}
                         <SettingItem
                             icon="volume-medium-outline"
                             label="음성 안내"
@@ -248,23 +318,9 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
 
                     <View style={styles.card}>
                         <SettingItem
-                            icon="location-outline"
-                            label="위치 권한"
-                            type="select"
-                            value="항상 허용"
-                            options={[
-                                { label: '항상 허용', value: 'ALWAYS' },
-                                { label: '앱 사용 중', value: 'WHILE_USING' },
-                                { label: '허용 안 함', value: 'DENIED' },
-                            ]}
-                            onSelect={() => {}}
-                            onOpenSelect={setDropdown}
-                            isOpen={openSelectKey === 'location'}
-                            onToggleOpen={() =>
-                                setOpenSelectKey(prev =>
-                                    prev === 'location' ? null : 'location'
-                                )
-                            }
+                            icon="settings-outline"
+                            label="권한"
+                            onPress={() => Linking.openSettings()}
                             isLast
                         />
                     </View>
@@ -273,7 +329,20 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                 {/* 로그아웃 */}
                 <TouchableOpacity
                     style={styles.logoutButton}
-                    onPress={onLogout}
+                    onPress={() => {
+                        Alert.alert(
+                            "로그아웃",
+                            "정말 로그아웃하시겠습니까?",
+                            [
+                                { text: "취소", style: "cancel" },
+                                {
+                                    text: "로그아웃",
+                                    style: "destructive",
+                                    onPress: onLogout, // 여기서 실제 로그아웃 실행
+                                },
+                            ]
+                        );
+                    }}
                 >
                     <Ionicons name="log-out-outline" size={20} color="#FF6467" />
                     <Text style={styles.logoutText}>로그아웃</Text>
@@ -288,11 +357,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
                     onPress={() => navigation.navigate('Withdraw')}
                 >
                     <Text
-                        style={{
-                            fontSize: 13,
-                            color: '#9CA3AF',
-                            textDecorationLine: 'underline',
-                        }}
+                        style={styles.textButton}
                     >
                         계정 탈퇴하기
                     </Text>

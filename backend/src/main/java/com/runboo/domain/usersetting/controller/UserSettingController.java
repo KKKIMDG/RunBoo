@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/users/me/settings")
+@RequestMapping("/api/settings")
 @RequiredArgsConstructor
 public class UserSettingController {
 
@@ -17,7 +17,7 @@ public class UserSettingController {
 
     /**
      * 설정 조회
-     * GET /api/users/me/settings
+     * GET /api/settings
      */
     @GetMapping
     public ResponseEntity<UserSettingResponse> getSettings() {
@@ -26,7 +26,7 @@ public class UserSettingController {
 
     /**
      * 설정 변경 (부분 수정)
-     * PATCH /api/users/me/settings
+     * PATCH /api/settings
      */
     @PatchMapping
     public ResponseEntity<Void> updateSettings(

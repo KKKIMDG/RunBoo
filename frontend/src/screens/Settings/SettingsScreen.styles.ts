@@ -67,7 +67,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 100,
   },
   logoutText: {
     fontSize: 15,
@@ -79,5 +79,10 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 6,
   },
+  textButton: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    textDecorationLine: 'underline',
+  }
 
 });

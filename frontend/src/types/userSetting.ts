@@ -5,3 +5,4 @@ export type UserSetting = {
     themeMode: 'LIGHT' | 'DARK' | 'SYSTEM';
     fontSize: 'SMALL' | 'NORMAL' | 'LARGE';
 };
+
