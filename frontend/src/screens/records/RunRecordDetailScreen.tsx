@@ -210,12 +210,6 @@ export default function RunRecordDetailScreen() {
                             </Text>
                         </View>
                     </View>
-
-                    <View style={s.hintRow}>
-                        <Text style={s.hintText}>
-                            * 일부 기록은 저장된 경로 문자열이 손상되어 경로가 표시되지 않을 수 있어요.
-                        </Text>
-                    </View>
                 </View>
             </View>
         </SafeAreaView>
@@ -344,13 +338,5 @@ const s = StyleSheet.create({
         fontSize: 12,
         fontWeight: "900",
         color: "#6B7280",
-    },
-    hintRow: {
-        marginTop: 10,
-    },
-    hintText: {
-        color: "#6B7280",
-        fontSize: 11,
-        fontWeight: "700",
     },
 });

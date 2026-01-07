@@ -1,3 +1,5 @@
+// frontend/src/navigation/root/RootNavigator.tsx
+
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as Location from "expo-location";
@@ -12,12 +14,60 @@ import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
 import MapFullScreen from "@/screens/Home/MapFullScreen";
 import TierResultScreen from "@/screens/TierResult/TierResultScreen";
 
-/** ✅ 기록 상세보기 화면 */
+// ✅ 기록 상세보기 화면 (추가)
 import RunRecordDetailScreen from "@/screens/records/RunRecordDetailScreen";
 
 import { Coordinate } from "@/utils/runUtils";
 import type { GhostProfileDto } from "@/types/ghost";
-import type { RootStackParamList } from "./RootStackParamList";
+
+// ✅ 기존 방식: RootNavigator.tsx 안에서 타입을 직접 export
+export type RootStackParamList = {
+    MainStack: undefined;
+
+    Running: { userId: number; targetDistance: number; mode?: "NORMAL" };
+
+    TierRunning: {
+        userId?: number;
+        targetDistance: number;
+        mode?: "TIER";
+        distanceType?: "5km" | "10km";
+    };
+
+    GhostRun: { ghost: GhostProfileDto };
+
+    RunResult: {
+        distanceM: number;
+        durationSec: number;
+        avgPaceSec: number;
+        calories: number;
+        routeCoordinates: Coordinate[];
+    };
+
+    TierResult: {
+        userId?: number;
+        recordId: number;
+        distanceType: "5k" | "10k";
+        achievedTier: string;
+        isStopped?: boolean;
+
+        stats: {
+            distance: string;
+            time: string;
+            pace: string;
+        };
+
+        distanceM: number;
+        durationSec: number;
+        avgPaceSec: number;
+        calories: number;
+        routeCoordinates: Coordinate[];
+    };
+
+    MapFull: { location: Location.LocationObject | null };
+
+    // ✅ 기록 상세보기 (추가)
+    RunRecordDetail: { recordId: number };
+};
 
 const Stack = createStackNavigator<RootStackParamList>();
 
