@@ -10,6 +10,7 @@ import {AuthService} from "@/services/auth/authService";
 import {authEventBus} from "@/services/auth/authEvents";
 import {UserMeProvider} from "@/contexts/UserMeContext";
 import {UserSettingProvider} from "@/contexts/UserSettingContext";
+import {printFcmTestToken} from "@/utils/fcmTest";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -22,6 +23,10 @@ export default function App() {
         setIsLoggedIn(false); // 화면 전환 트리거
         await AuthService.logout();
     };
+
+    useEffect(() => {
+        printFcmTestToken();
+    }, []);
 
     useEffect(() => {
         const restoreLogin = async () => {

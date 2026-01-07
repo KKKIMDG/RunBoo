@@ -43,6 +43,7 @@ public class SecurityConfig {
                                 "/api/auth/password/reset-request",
                                 "/api/auth/password/verify",
                                 "/api/auth/password/reset",
+                                "/api/test/fcm/**",
 
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
