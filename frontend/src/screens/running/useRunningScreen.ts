@@ -5,7 +5,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import * as Location from "expo-location";
 import { useKeepAwake } from "expo-keep-awake";
 import { Coordinate, encodePath } from "@/utils/runUtils";
-import { RootStackParamList } from "@/navigation/root/RootNavigator";
+import type { RootStackParamList } from "@/navigation/root/RootNavigator";
 import { createRecord } from "@/services/record/recordsService";
 import { useRecordStore } from "@/stores/recordStore";
 import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
