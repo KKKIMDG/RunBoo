@@ -55,4 +55,25 @@ public class FcmSendService {
             log.error("FCM send failed", e);
         }
     }
+    public void sendReminder(String token) {
+        try {
+            Message message = Message.builder()
+                    .setToken(token)
+                    .setNotification(
+                            Notification.builder()
+                                    .setTitle("오늘 러닝 어떠세요?")
+                                    .setBody("가볍게 3km만 뛰어도 충분해요 🏃")
+                                    .build()
+                    )
+                    .putData("type", "REMINDER")
+                    .build();
+
+            FirebaseMessaging.getInstance().send(message);
+
+        } catch (FirebaseMessagingException e) {
+            // INVALID 토큰 정리 로직 있으면 여기서 처리
+            log.error("FCM reminder send failed", e);
+        }
+    }
+
 }
