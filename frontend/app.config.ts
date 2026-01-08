@@ -35,7 +35,7 @@ export default (): ExpoConfig => ({
 
   android: {
     package: 'com.runboo.frontend',
-    googleServicesFile: './google-services.json',
+    googleServicesFile: './frontSecrets/google-services.json',
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     adaptiveIcon: {
