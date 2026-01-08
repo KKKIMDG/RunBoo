@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 // ✅ WebView 제거, 구글 맵 추가
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Colors } from '@/constants/theme';
@@ -36,7 +36,7 @@ export default React.memo(function CourseCard({ course, onToggle, onPress, schem
             {/* ✅ 지도 영역 (터치 무시하고 보기 전용으로 설정) */}
             <View style={styles.imageContainer} pointerEvents="none">
                 <MapView
-                    provider={PROVIDER_GOOGLE}
+                    provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined} // iOS는 기본 맵, Android는 구글맵
                     style={{ flex: 1 }}
                     // ✅ [중요] 리스트 성능 최적화 (안드로이드에서 특히 중요)
                     liteMode={true}
