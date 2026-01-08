@@ -15,7 +15,6 @@ public class KakaoOAuthService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // application.yml 또는 .env에서 관리하는 것을 추천합니다.
     @Value("${kakao.rest-api-key}")
     private String clientId;
 
