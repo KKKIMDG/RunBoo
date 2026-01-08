@@ -1,6 +1,6 @@
 // LocalLoginForm.ts
 import { useState } from 'react';
-import { Alert } from 'react-native';
+import {Alert, Platform} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 
@@ -10,6 +10,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { googleLoginForm } from './GoogleLoginForm';
 import { kakaoLoginForm } from './KakaoLoginForm';
+import {getFcmToken} from "@/services/notification/fcmToken";
+import { registerPushDevice } from '@/services/notification/notificationService';
+
 
 type AuthStackParamList = {
     SignUp: undefined;
@@ -34,7 +37,7 @@ export const localLoginForm = (onLoginSuccess: (token: string) => void) => {
             Alert.alert('알림', '아이디와 비밀번호를 모두 입력해주세요.');
             return;
         }
-
+        console.log('LOGIN CLICKED', email);
         try {
             const res = await AuthService.login({ email, password });
 
@@ -44,6 +47,13 @@ export const localLoginForm = (onLoginSuccess: (token: string) => void) => {
             setAccessToken(res.accessToken);
             onLoginSuccess(res.accessToken);
 
+            const fcmToken = await getFcmToken();
+            await AsyncStorage.setItem('fcmToken', fcmToken);
+            console.log('FCM TOKEN', fcmToken)
+            await registerPushDevice({
+                token: fcmToken,
+                platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
+            });
         } catch (error: any) {
             Alert.alert(
                 '로그인 실패',

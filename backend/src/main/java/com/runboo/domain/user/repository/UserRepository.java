@@ -3,7 +3,9 @@ package com.runboo.domain.user.repository;
 import com.runboo.domain.user.entity.User;
 import com.runboo.domain.user.enums.SocialProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -31,4 +33,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             String email,
             SocialProvider socialProvider
     );
+
+    @Query("select u.id from User u where u.userState = com.runboo.domain.user.entity.UserState.ACTIVATION")
+    List<Long> findAllActiveUserIds();
 }

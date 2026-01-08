@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import RootNavigator from './navigation/root/RootNavigator';
 import { setAccessToken } from '@/services/api';
-import { useColorScheme } from 'react-native';
+import {Platform, useColorScheme} from 'react-native';
 import { Colors } from '@/constants/theme';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -10,6 +10,8 @@ import {AuthService} from "@/services/auth/authService";
 import {authEventBus} from "@/services/auth/authEvents";
 import {UserMeProvider} from "@/contexts/UserMeContext";
 import {UserSettingProvider} from "@/contexts/UserSettingContext";
+import {disablePushDevice, registerPushDevice} from "@/services/notification/notificationService";
+import {getFcmToken} from "@/services/notification/fcmToken";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -19,8 +21,18 @@ export default function App() {
     const [loading, setLoading] = useState(true);
 
     const handleLogout = async () => {
+        try {
+            const fcmToken = await AsyncStorage.getItem('fcmToken');
+
+            if (fcmToken) {
+                await disablePushDevice(fcmToken);
+            }
+        } catch (e) {
+            // 실패해도 로그아웃은 진행
+            console.warn('FCM disable failed', e);
+        }
         setIsLoggedIn(false); // 화면 전환 트리거
-        await AuthService.logout();
+        await AuthService.logout(); // access/refresh 제거
     };
 
     useEffect(() => {
@@ -31,6 +43,20 @@ export default function App() {
                 setAccessToken(token);
                 setIsLoggedIn(true);
                 // ❗ 실제 인증은 API 호출 시 검증됨
+
+                // 🔹 FCM touch
+                try {
+                    const fcmToken = await getFcmToken();
+                    await AsyncStorage.setItem('fcmToken', fcmToken);
+
+                    await registerPushDevice({
+                        token: fcmToken,
+                        platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
+                    });
+                } catch (e) {
+                    console.warn('FCM touch failed', e);
+                }
+
             }
 
             setLoading(false);
