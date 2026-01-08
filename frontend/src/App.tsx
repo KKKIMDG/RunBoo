@@ -45,17 +45,22 @@ export default function App() {
                 // ❗ 실제 인증은 API 호출 시 검증됨
 
                 // 🔹 FCM touch
-                try {
-                    const fcmToken = await getFcmToken();
-                    await AsyncStorage.setItem('fcmToken', fcmToken);
+                if (Platform.OS !== 'ios') {
+                    try {
+                        const fcmToken = await getFcmToken();
+                        await AsyncStorage.setItem('fcmToken', fcmToken);
 
-                    await registerPushDevice({
-                        token: fcmToken,
-                        platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
-                    });
-                } catch (e) {
-                    console.warn('FCM touch failed', e);
+                        await registerPushDevice({
+                            token: fcmToken,
+                            platform: 'ANDROID',
+                        });
+                    } catch (e) {
+                        console.warn('FCM touch failed', e);
+                    }
+                } else {
+                    console.log('[FCM] iOS - skip register (no Apple Dev account)');
                 }
+
 
             }
 
