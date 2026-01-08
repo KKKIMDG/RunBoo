@@ -37,7 +37,12 @@ export const CourseService = {
             }
 
             return await response.json();
-        } catch (error) {
+        } catch (error: any) {
+            // 네트워크 에러 처리
+            if (error?.message === "Network request failed" || error?.message?.includes("network") || error?.code === "NETWORK_ERROR") {
+                console.error('🚨 위치 기반 조회 네트워크 에러:', error);
+                return []; // 네트워크 에러는 조용히 빈 배열 반환
+            }
             console.error('🚨 위치 기반 조회 에러:', error);
             return []; // 에러 나면 빈 배열 반환해서 앱 죽는 것 방지
         }

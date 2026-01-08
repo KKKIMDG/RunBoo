@@ -1,5 +1,4 @@
-import { API_BASE_URL } from '@env';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // 1. 임포트 추가
+import { api } from '@/services/api';
 
 // 1. 주변 러너 데이터 타입 정의
 export interface NearbyRunner {
@@ -10,41 +9,42 @@ export interface NearbyRunner {
     profileImageUrl?: string;
 }
 
-// 2. [실제 API] 수정된 함수
+// 2. [실제 API] 수정된 함수 - api.ts의 공통 함수 사용
 export const fetchNearbyRunnersAPI = async (
     lat: number,
     lon: number,
     radius: number = 3000
 ): Promise<NearbyRunner[]> => {
     try {
-        // 2. 저장된 토큰 꺼내기 (로그인 시 저장한 키 이름이 'accessToken'이라고 가정)
-        const token = await AsyncStorage.getItem('accessToken');
-
-        // 토큰이 없으면 요청 보내지 않고 빈 배열 반환 (또는 에러 처리)
-        if (!token) {
-            console.log('[RunnerService] 토큰이 없습니다. 로그인이 필요합니다.');
-            return [];
-        }
-
-        const response = await fetch(`${API_BASE_URL}/api/runners/nearby`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // 3. Authorization 헤더 추가 (Bearer 뒤에 띄어쓰기 필수!)
-                'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ latitude: lat, longitude: lon, radius }),
+        // api.post를 사용하여 공통 에러 처리 및 ATS 설정 적용
+        const data: any = await api.post('/api/runners/nearby', {
+            latitude: lat,
+            longitude: lon,
+            radius,
         });
 
-        if (!response.ok) {
-            // 에러 상태 코드 확인용 로그
-            console.log('Server Error Status:', response.status);
-            throw new Error();
+        // API 응답이 배열이 아닐 수 있으므로 안전하게 처리
+        if (Array.isArray(data)) {
+            return data;
         }
-
-        return await response.json();
-    } catch (error) {
+        
+        // 응답이 객체로 감싸져 있을 경우 처리
+        if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
+            return data.data;
+        }
+        
+        return [];
+    } catch (error: any) {
+        // 네트워크 에러나 기타 에러 처리
         console.error('[RunnerService Error]', error);
+        
+        // 네트워크 에러는 조용히 빈 배열 반환 (3초마다 재시도하므로)
+        if (error?.status === 0 || error?.message?.includes('네트워크')) {
+            console.log('[RunnerService] 네트워크 연결 실패, 빈 배열 반환');
+            return [];
+        }
+        
+        // 기타 에러도 빈 배열 반환하여 앱이 중단되지 않도록
         return [];
     }
 };
@@ -62,7 +62,7 @@ export const fetchMockRunners = async (lat: number, lon: number): Promise<Nearby
                 // 내 위치 기준 ±0.005도 (약 500m~1km) 내외로 랜덤 좌표 생성
                 latitude: lat + (Math.random() - 0.5) * 0.01,
                 longitude: lon + (Math.random() - 0.5) * 0.01,
-                profileImage: undefined,
+                profileImageUrl: undefined,
             }));
             resolve(mockRunners);
         }, 500); // 0.5초 딜레이 (네트워크 흉내)

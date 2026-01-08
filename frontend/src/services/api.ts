@@ -5,6 +5,11 @@ import { authEventBus } from "@/services/auth/authEvents";
 
 const BASE_URL = API_BASE_URL;
 
+// API_BASE_URL이 설정되지 않은 경우 에러 확인
+if (!BASE_URL) {
+  console.error("⚠️ API_BASE_URL이 설정되지 않았습니다. .env 파일을 확인해주세요.");
+}
+
 let accessToken: string | null = null;
 
 /**
@@ -60,18 +65,23 @@ const refreshAccessToken = async (): Promise<string | null> => {
   if (refreshingPromise) return refreshingPromise;
 
   refreshingPromise = (async () => {
-    const refreshToken = await AsyncStorage.getItem("refreshToken");
-    if (!refreshToken) return null;
+    try {
+      const refreshToken = await AsyncStorage.getItem("refreshToken");
+      if (!refreshToken) return null;
 
-    const res = await fetch(`${BASE_URL}/api/auth/token/reissue`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${refreshToken}` },
-    });
+      const res = await fetch(`${BASE_URL}/api/auth/token/reissue`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${refreshToken}` },
+      });
 
-    if (!res.ok) return null;
+      if (!res.ok) return null;
 
-    const data = await res.json();
-    return data.accessToken ?? null;
+      const data = await res.json();
+      return data.accessToken ?? null;
+    } catch (error) {
+      console.error("토큰 재발급 실패:", error);
+      return null;
+    }
   })();
 
   const token = await refreshingPromise;
@@ -83,58 +93,81 @@ const refreshAccessToken = async (): Promise<string | null> => {
  * 공통 request
  */
 const request = async (input: RequestInfo, init: RequestInit, retry = true) => {
-  // 요청 전 토큰 로드 보장
-  await ensureAccessTokenLoaded();
+  try {
+    // 요청 전 토큰 로드 보장
+    await ensureAccessTokenLoaded();
 
-  // 최신 토큰 헤더 주입
-  const finalInit = {
-    ...init,
-    headers: {
-      ...init.headers,
-      ...getAuthHeader(),
-    },
-  };
-
-  const res = await fetch(input, finalInit);
-  // 🔥 회원탈퇴 API는 refresh 금지
-  if (
-      (res.status === 401 || res.status === 403) &&
-      typeof input === "string" &&
-      input.includes("/api/users/me/withdraw")
-  ) {
-    throw { status: res.status, message: "요청에 실패했습니다." };
-  }
-
-  // 401, 403 인증 에러 처리
-  if (res.status === 401 || res.status === 403) {
-    if (!retry) {
-      throw { status: 401, message: "인증이 만료되었습니다." };
-    }
-
-    const newAccessToken = await refreshAccessToken();
-    if (!newAccessToken) {
-      authEventBus.emitLogout();
-      throw { status: 401, message: "로그인이 필요합니다." };
-    }
-
-    await AsyncStorage.setItem("accessToken", newAccessToken);
-    setAccessToken(newAccessToken);
-
-    // 재시도 시 새 토큰 주입
-    return request(
-      input,
-      {
-        ...init,
-        headers: {
-          ...init.headers,
-          Authorization: `Bearer ${newAccessToken}`,
-        },
+    // 최신 토큰 헤더 주입
+    const finalInit = {
+      ...init,
+      headers: {
+        ...init.headers,
+        ...getAuthHeader(),
       },
-      false
-    );
-  }
+    };
 
-  return handleResponse(res);
+    const res = await fetch(input, finalInit);
+    // 🔥 회원탈퇴 API는 refresh 금지
+    if (
+        (res.status === 401 || res.status === 403) &&
+        typeof input === "string" &&
+        input.includes("/api/users/me/withdraw")
+    ) {
+      throw { status: res.status, message: "요청에 실패했습니다." };
+    }
+
+    // 401, 403 인증 에러 처리
+    if (res.status === 401 || res.status === 403) {
+      if (!retry) {
+        throw { status: 401, message: "인증이 만료되었습니다." };
+      }
+
+      const newAccessToken = await refreshAccessToken();
+      if (!newAccessToken) {
+        authEventBus.emitLogout();
+        throw { status: 401, message: "로그인이 필요합니다." };
+      }
+
+      await AsyncStorage.setItem("accessToken", newAccessToken);
+      setAccessToken(newAccessToken);
+
+      // 재시도 시 새 토큰 주입
+      return request(
+        input,
+        {
+          ...init,
+          headers: {
+            ...init.headers,
+            Authorization: `Bearer ${newAccessToken}`,
+          },
+        },
+        false
+      );
+    }
+
+    return handleResponse(res);
+  } catch (error: any) {
+    // 네트워크 에러 처리
+    if (error?.message === "Network request failed" || error?.message?.includes("network") || error?.code === "NETWORK_ERROR") {
+      console.error("네트워크 요청 실패:", typeof input === "string" ? input : "알 수 없는 URL", error);
+      throw { 
+        status: 0, 
+        message: "네트워크 연결에 실패했습니다. 인터넷 연결을 확인해주세요." 
+      };
+    }
+    
+    // 이미 처리된 에러는 그대로 throw
+    if (error?.status) {
+      throw error;
+    }
+    
+    // 기타 예상치 못한 에러
+    console.error("API 요청 중 에러 발생:", typeof input === "string" ? input : "알 수 없는 URL", error);
+    throw { 
+      status: 0, 
+      message: error?.message || "요청 처리 중 오류가 발생했습니다." 
+    };
+  }
 };
 
 let bootstrappingPromise: Promise<void> | null = null;
@@ -161,14 +194,14 @@ export const api = {
     });
   },
 
-  post: async (path: string, data: any) => {
+  post: async <T = any>(path: string, data: any): Promise<T> => {
     return request(`${BASE_URL}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
-    });
+    }) as Promise<T>;
   },
 
   put: async <T>(path: string, data: T) => {

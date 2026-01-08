@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
+    Platform,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -102,7 +103,7 @@ export default function CourseDetailScreen({ route, navigation }: any) {
                 <View style={styles.mapArea}>
                     <MapView
                         style={{ flex: 1 }}
-                        provider={PROVIDER_GOOGLE} // 구글맵 사용
+                        provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined} // iOS는 기본 맵, Android는 구글맵
                         initialRegion={{
                             latitude: course.latitude || 37.5665, // 데이터 없으면 서울시청
                             longitude: course.longitude || 126.9780,
