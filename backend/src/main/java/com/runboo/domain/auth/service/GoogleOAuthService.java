@@ -1,49 +1,70 @@
 package com.runboo.domain.auth.service;
 
-import com.runboo.domain.user.dto.GoogleUserInfo;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import com.runboo.domain.user.dto.GoogleUserInfo; // DTO 임포트
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 @Service
 public class GoogleOAuthService {
 
-    // 구글 OAuth 사용자 정보 API 호출 전용 RestTemplate
-    // (외부 OAuth 통신만 담당하며, 도메인 로직은 포함하지 않는다)
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Value("${google.client-id}")
+    private String clientId;
+
+    @Value("${google.client-secret}")
+    private String clientSecret;
+
+    @Value("${google.redirect-uri}")
+    private String redirectUri;
+
     /**
-     * Google AccessToken을 이용해 사용자 정보를 조회한다.
-     * 책임:
-     * - 구글 OAuth 서버와 통신
-     * - 응답(JSON)을 GoogleUserResponse DTO로 역직렬화
-     * 책임 아님:
-     * - SocialUserInfo 변환
-     * - 회원 가입/로그인 판단
+     * 1. 구글 인가 코드를 액세스 토큰으로 교환
+     */
+    public String getGoogleAccessToken(String code) {
+        String tokenUrl = "https://oauth2.googleapis.com/token";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code);
+        params.add("client_id", clientId);
+        params.add("client_secret", clientSecret);
+        params.add("redirect_uri", redirectUri);
+        params.add("grant_type", "authorization_code");
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(tokenUrl, request, Map.class);
+        return (String) response.getBody().get("access_token");
+    }
+
+    /**
+     * 2. 액세스 토큰으로 구글 유저 정보 조회
+     * SocialOAuthService에서 요구하는 GoogleUserInfo DTO를 반환하도록 변경
      */
     public GoogleUserInfo getUserInfo(String accessToken) {
+        String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
 
-        // Authorization: Bearer {accessToken} 헤더 구성
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
-
-        // 요청 바디 없이 헤더만 전달
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        // 구글 사용자 정보 조회 API 호출
-        ResponseEntity<GoogleUserInfo> response =
-                restTemplate.exchange(
-                        "https://www.googleapis.com/oauth2/v3/userinfo",
-                        HttpMethod.GET,
-                        entity,
-                        GoogleUserInfo.class
-                );
+        // Map 대신 GoogleUserInfo.class로 응답을 받음
+        ResponseEntity<GoogleUserInfo> response = restTemplate.exchange(
+                userInfoUrl,
+                HttpMethod.GET,
+                entity,
+                GoogleUserInfo.class
+        );
 
-        // 응답 DTO 그대로 반환
-        // (null 처리 및 공통 모델 변환은 상위 서비스에서 담당)
         return response.getBody();
     }
 }
