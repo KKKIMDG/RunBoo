@@ -41,6 +41,73 @@ AI 와 함께 지난 런닝을 되돌아보고, 앞으로의 목표를 세워보
 ### 🛠️ Stack
 [![My Skills](https://skillicons.dev/icons?i=spring,java,react,typescript,supabase,postgres,figma,git,github)](https://skillicons.dev)
 
+### 🎨 Frontend Styling & Theme
+
+**RunBoo** 앱의 프론트엔드 스타일링은 일관성, 확장성, 그리고 유지보수성을 핵심 가치로 삼습니다. 이를 위해 중앙화된 디자인 시스템과 동적 스타일링 패턴을 도입했습니다.
+
+#### 1. 중앙 디자인 시스템: `frontend/src/constants/theme.ts`
+
+모든 디자인 관련 값(색상, 간격, 폰트, 테두리 등)은 `theme.ts` 파일에서 관리됩니다. 이 파일은 앱의 전체적인 룩앤필을 결정하는 **단일 진실 공급원(Single Source of Truth)** 역할을 합니다.
+
+-   **Colors**: 라이트/다크 모드에 대응하는 시맨틱 색상 팔레트를 정의합니다. (예: `primary`, `background`, `text`)
+-   **Spacing**: 일관된 간격(margin, padding)을 위한 값들을 정의합니다. (4의 배수 사용)
+-   **Fonts & FontSizes**: 타이포그래피 계층을 위한 폰트 패밀리와 크기를 정의합니다.
+-   **Borders**: 컴포넌트의 모서리 둥글기(radius)와 테두리 두께(width)를 표준화합니다.
+-   **Shadows**: iOS와 Android에 일관된 그림자 스타일을 적용합니다.
+
+> 컴포넌트 스타일링 시, 하드코딩된 값 대신 `theme.ts`의 값을 사용하는 것을 원칙으로 합니다.
+
+#### 2. 동적 스타일링과 다크 모드 지원
+
+다크 모드와 같이 상태에 따라 스타일이 변경되어야 하는 컴포넌트를 위해 동적 스타일링 패턴을 사용합니다.
+
+**패턴:**
+
+1.  **스타일 파일 분리**: 컴포넌트와 동일한 위치에 `[Component].styles.ts` 파일을 생성합니다.
+2.  **`getStyles` 함수 작성**: 이 파일 안에 `getStyles` 함수를 `export` 합니다. 이 함수는 현재 `scheme`('light' 또는 'dark')을 인자로 받아 해당 테마에 맞는 `StyleSheet` 객체를 반환합니다.
+
+    ```typescript
+    // 예: MyComponent.styles.ts
+    import { StyleSheet } from "react-native";
+    import { Colors, Spacing } from "@/constants/theme";
+
+    export const getStyles = (scheme: "light" | "dark") => {
+      const colors = Colors[scheme];
+      return StyleSheet.create({
+        container: {
+          backgroundColor: colors.background,
+          padding: Spacing.md,
+        },
+        text: {
+          color: colors.text,
+        },
+      });
+    };
+    ```
+
+3.  **컴포넌트에서 스타일 적용**: 컴포넌트 내에서 `useColorScheme` 훅을 사용하여 현재 테마를 감지하고, `getStyles` 함수를 통해 동적으로 스타일을 적용합니다.
+
+    ```tsx
+    // 예: MyComponent.tsx
+    import React from "react";
+    import { View, Text } from "react-native";
+    import { useColorScheme } from "@/hooks/use-color-scheme";
+    import { getStyles } from "./MyComponent.styles";
+
+    const MyComponent = () => {
+      const colorScheme = useColorScheme() ?? "light";
+      const styles = getStyles(colorScheme);
+
+      return (
+        <View style={styles.container}>
+          <Text style={styles.text}>Hello, Themed World!</Text>
+        </View>
+      );
+    };
+    ```
+
+이 패턴을 통해 각 컴포넌트는 자신의 스타일에 대한 책임을 가지면서도, 중앙 `theme` 시스템과 완벽하게 통합되어 앱 전체의 디자인 일관성을 유지하고 다크 모드를 효과적으로 지원할 수 있습니다.
+
 ### 👤 개발진
 
 **김동건** | 👑PM, 🛠️FullStack | [GitHub](https://github.com/KKKIMDG) <br>

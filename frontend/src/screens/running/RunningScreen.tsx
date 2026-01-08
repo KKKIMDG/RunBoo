@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useMemo } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -9,42 +9,37 @@ import {
   Alert,
   StyleSheet,
   ActivityIndicator,
+  Platform,
 } from "react-native";
-import MapView, { PROVIDER_GOOGLE, MapStyleElement } from "react-native-maps";
+import MapView, {
+  PROVIDER_GOOGLE,
+  MapStyleElement,
+  PROVIDER_DEFAULT,
+} from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
 import {
   Ionicons,
   MaterialCommunityIcons,
   FontAwesome5,
 } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Location from "expo-location";
 
 import "@/services/record/locationTask";
-import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
-
 import { useRunningScreen } from "./useRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
 import { StatBox } from "@/components/StatBox";
-import { RootStackParamList } from "@/navigation/root/RootNavigator";
 import { useRunningVoiceFeedback } from "@/hooks/useRunningVoiceFeedback";
 import * as Speech from "expo-speech";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Running">;
-
 const RunningScreen = () => {
   const isDarkMode = useColorScheme() === "dark";
   const styles = getStyles(isDarkMode);
-  const navigation = useNavigation<NavigationProp>();
   const mapRef = useRef<MapView>(null);
 
-  const [isMale, setIsMale] = useState(false);
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
-
+  // ✅ 훅에서 모든 상태와 액션을 가져옵니다.
   const { state, actions, utils } = useRunningScreen();
 
   const {
@@ -59,10 +54,20 @@ const RunningScreen = () => {
     isFollowing,
     initialLocation,
     targetDistance,
+    isVoiceEnabled,
+    isMale,
   } = state;
 
-  const { pauseRun, resumeRun, stopRun, setIsFollowing, onLocationUpdate } =
-    actions;
+  const {
+    pauseRun,
+    resumeRun,
+    stopRun,
+    setIsFollowing,
+    onLocationUpdate,
+    setIsVoiceEnabled,
+    setIsMale,
+  } = actions;
+
   const { formatTime, formatPace } = utils;
 
   const { checkAndSpeak, speakStart, speakPause, speakResume, speakStop } =
@@ -71,7 +76,6 @@ const RunningScreen = () => {
       targetDistance: targetDistance,
     });
 
-  // ✅ 결과 화면과 동일한 지도 스타일 정의
   const blurredMapStyle: MapStyleElement[] = [
     {
       elementType: "geometry",
@@ -129,7 +133,7 @@ const RunningScreen = () => {
     if (isVoiceEnabled && !isPaused && !isReady && distance > 0) {
       checkAndSpeak(distance);
     }
-  }, [distance, isPaused, isReady, isVoiceEnabled]);
+  }, [distance, isPaused, isReady, isVoiceEnabled, isMale]);
 
   const prevIsPaused = useRef(isPaused);
   useEffect(() => {
@@ -144,11 +148,7 @@ const RunningScreen = () => {
     onLocationUpdate.current = (coords) => {
       if (isFollowing && mapRef.current) {
         mapRef.current.animateToRegion(
-          {
-            ...coords,
-            latitudeDelta: 0.002,
-            longitudeDelta: 0.002,
-          },
+          { ...coords, latitudeDelta: 0.002, longitudeDelta: 0.002 },
           1000
         );
       }
@@ -158,11 +158,7 @@ const RunningScreen = () => {
   useEffect(() => {
     if (initialLocation && mapRef.current) {
       mapRef.current.animateToRegion(
-        {
-          ...initialLocation,
-          latitudeDelta: 0.002,
-          longitudeDelta: 0.002,
-        },
+        { ...initialLocation, latitudeDelta: 0.002, longitudeDelta: 0.002 },
         500
       );
     }
@@ -188,11 +184,7 @@ const RunningScreen = () => {
         if (routeCoordinates.length > 0) {
           const last = routeCoordinates[routeCoordinates.length - 1];
           mapRef.current?.animateToRegion(
-            {
-              ...last,
-              latitudeDelta: 0.002,
-              longitudeDelta: 0.002,
-            },
+            { ...last, latitudeDelta: 0.002, longitudeDelta: 0.002 },
             500
           );
         }
@@ -208,7 +200,10 @@ const RunningScreen = () => {
         <MapView
           ref={mapRef}
           style={StyleSheet.absoluteFill}
-          provider={PROVIDER_GOOGLE}
+          /* ✅ iOS / Android 분기 */
+          provider={
+            Platform.OS === "android" ? PROVIDER_GOOGLE : PROVIDER_DEFAULT
+          }
           showsUserLocation={true}
           loadingEnabled={true}
           customMapStyle={blurredMapStyle}
@@ -246,7 +241,6 @@ const RunningScreen = () => {
     [initialLocation, isDarkMode, isFollowing]
   );
 
-  // ✅ 차트 데이터 (기존 코드 유지)
   const chartData = useMemo(
     () => ({
       labels: [],
@@ -261,7 +255,6 @@ const RunningScreen = () => {
     [paceHistory]
   );
 
-  // ✅ 차트 설정 (기존 코드 유지)
   const chartConfig = {
     backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
     backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
@@ -273,12 +266,9 @@ const RunningScreen = () => {
 
   const handleStopLongPress = () => {
     if (isVoiceEnabled) {
-      // 1. 음성 안내 시작 (콜백 없이 즉시 실행)
       speakStop(distance);
-      // 2. 즉시 종료 로직 수행 (기록 저장 및 이동)
       stopRun();
     } else {
-      // 음성 꺼져있을 때도 즉시 종료
       stopRun();
     }
   };
@@ -312,6 +302,7 @@ const RunningScreen = () => {
           </View>
 
           <View style={{ flexDirection: "row", gap: 8 }}>
+            {/* ✅ 성별 토글 버튼 */}
             <TouchableOpacity
               onPress={() => setIsMale(!isMale)}
               style={customStyles.genderToggle}
@@ -321,6 +312,7 @@ const RunningScreen = () => {
               </Text>
             </TouchableOpacity>
 
+            {/* ✅ 음성 ON/OFF 버튼 */}
             <TouchableOpacity
               onPress={toggleVoice}
               style={[
@@ -373,7 +365,6 @@ const RunningScreen = () => {
           />
         </View>
 
-        {/* ✅ 차트 부분 (기존 UI 유지) */}
         <View style={styles.chartCard}>
           <View style={styles.chartTitleContainer}>
             <Ionicons
@@ -404,7 +395,6 @@ const RunningScreen = () => {
         </View>
 
         <View style={styles.mapContainer}>
-          {/* ✅ [수정] initialLocation이 없을 때 로딩 처리 */}
           {!initialLocation ? (
             <View
               style={[

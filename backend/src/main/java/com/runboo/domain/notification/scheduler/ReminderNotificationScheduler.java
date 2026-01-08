@@ -26,7 +26,7 @@ public class ReminderNotificationScheduler {
     /**
      * 매일 19:00 (한국 시간) 리마인더 발송
      */
-    @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 50 17 * * *", zone = "Asia/Seoul")
     public void sendDailyReminder() {
 
         // ✅ 스케줄러에서는 반드시 "조회"로 userId를 가져온다
