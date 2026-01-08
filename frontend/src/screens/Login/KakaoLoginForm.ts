@@ -1,62 +1,82 @@
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAccessToken } from '@/services/api';
-import { KAKAO_REST_API_KEY, API_BASE_URL } from "@env"; // BACKEND_URL은 본인의 서버 주소
-
-const KAKAO_REST_KEY = KAKAO_REST_API_KEY;
+import { KAKAO_REST_API_KEY, API_BASE_URL } from "@env";
+import { Alert } from 'react-native';
 
 export const kakaoLoginForm = (onLoginSuccess: (token: string) => void) => {
     const startKakaoLogin = async () => {
         try {
-
             await WebBrowser.dismissBrowser();
 
-            console.log("--- [1] 백엔드 리다이렉트 방식 시작 ---");
+            const BACKEND_CALLBACK_URI =
+                `${API_BASE_URL}/api/auth/kakao/callback`;
 
-            // 1. 카카오가 로그인을 마치고 정보를 보낼 백엔드 접점(Callback) 주소
-            // 예: https://your-api.com/auth/kakao/callback
-            const BACKEND_REDIRECT_URI = `${API_BASE_URL}/auth/kakao/callback`;
+            const EXPO_REDIRECT_URI = "runboo://";
 
             const authUrl =
                 `https://kauth.kakao.com/oauth/authorize` +
-                `?client_id=${KAKAO_REST_KEY}` +
-                `&redirect_uri=${encodeURIComponent(BACKEND_REDIRECT_URI)}` +
+                `?client_id=${KAKAO_REST_API_KEY}` +
+                `&redirect_uri=${encodeURIComponent(BACKEND_CALLBACK_URI)}` +
                 `&response_type=code`;
 
-            console.log("--- [2] 브라우저 오픈 및 백엔드 대기 ---");
+            const result = await WebBrowser.openAuthSessionAsync(
+                authUrl,
+                EXPO_REDIRECT_URI
+            );
 
-            // 2. 중요: 두 번째 인자를 백엔드 리다이렉트 주소로 설정합니다.
-            // 브라우저가 백엔드 처리를 마치고 이 주소 근처로 오면 앱이 낚아챕니다.
-            const result = await WebBrowser.openAuthSessionAsync(authUrl, BACKEND_REDIRECT_URI);
-
-            if (result.type !== 'success') {
-                console.log("--- [!] 사용자가 창을 닫았거나 취소함 ---");
+            if (result.type !== 'success' || !result.url) {
                 return;
             }
 
-            // 3. 백엔드에서 처리가 끝나면 주소창에 우리 토큰을 실어서 보내줄 것입니다.
-            // 예: https://your-api.com/auth/kakao/callback?accessToken=JWT_TOKEN&refreshToken=REF_TOKEN
-            console.log("--- [3] 백엔드로부터 응답 수신 ---");
             const url = result.url;
-            const params = new URL(url).searchParams;
 
-            const accessToken = params.get('accessToken');
-            const refreshToken = params.get('refreshToken');
+            const getParam = (key: string) =>
+                url.match(new RegExp(`${key}=([^&]*)`))?.[1];
 
-            if (accessToken && refreshToken) {
-                console.log("--- [4] 자체 토큰 획득 성공! 저장 시작 ---");
+            const status = getParam('status');
 
-                await AsyncStorage.setItem('accessToken', accessToken);
-                await AsyncStorage.setItem('refreshToken', refreshToken);
-                setAccessToken(accessToken);
+            /* =========================
+               ❌ 로그인 실패 처리 (여기서 앱에서 뜸)
+               ========================= */
+            if (status === 'FAIL') {
+                const code = getParam('code');
 
-                onLoginSuccess(accessToken);
-            } else {
-                console.log("--- [!] 토큰이 주소창에 없습니다. 백엔드 응답 확인 필요 ---");
+                if (code === 'LOCAL_ACCOUNT') {
+                    Alert.alert(
+                        '로그인 실패',
+                        '이 이메일은 로컬 로그인 계정입니다.\n이메일 로그인을 이용해 주세요.'
+                    );
+                } else if (code === 'DEACTIVATED') {
+                    Alert.alert('로그인 실패', '탈퇴된 계정입니다.');
+                } else {
+                    Alert.alert('로그인 실패', '로그인에 실패했습니다.');
+                }
+
+                return;
             }
 
-        } catch (error) {
-            console.error("--- [X] 에러 발생 ---", error);
+            /* =========================
+               ✅ 로그인 성공 처리
+               ========================= */
+            const accessToken = getParam('accessToken');
+            const refreshToken = getParam('refreshToken');
+
+            if (!accessToken) {
+                Alert.alert('로그인 실패', '토큰을 받지 못했습니다.');
+                return;
+            }
+
+            await AsyncStorage.setItem('accessToken', accessToken);
+            if (refreshToken) {
+                await AsyncStorage.setItem('refreshToken', refreshToken);
+            }
+
+            setAccessToken(accessToken);
+            onLoginSuccess(accessToken);
+
+        } catch (e) {
+            Alert.alert('로그인 실패', '카카오 로그인 중 오류가 발생했습니다.');
         }
     };
 

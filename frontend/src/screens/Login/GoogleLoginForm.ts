@@ -1,7 +1,8 @@
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAccessToken } from '@/services/api';
-import { GOOGLE_WEB_CLIENT_ID, API_BASE_URL } from "@env"; // API_BASE_URL은 http://52.78.22.102:8080
+import { GOOGLE_WEB_CLIENT_ID, API_BASE_URL } from "@env";
+import { Alert } from 'react-native';
 
 export const googleLoginForm = (onLoginSuccess: (token: string) => void) => {
 
@@ -9,54 +10,76 @@ export const googleLoginForm = (onLoginSuccess: (token: string) => void) => {
         try {
             await WebBrowser.dismissBrowser();
 
-            console.log("--- [1] 구글 백엔드 리다이렉트 로그인 시작 ---");
+            const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+            const BACKEND_CALLBACK_URI =
+                `${API_BASE_URL}/api/auth/google/callback`;
 
-            // 1. 구글 인증 서버 주소
-            const GOOGLE_AUTH_URL = `https://accounts.google.com/o/oauth2/v2/auth`;
+            const EXPO_REDIRECT_URI = 'runboo://';
 
-            // 2. 백엔드 콜백 주소 (카카오와 마찬가지로 백엔드 엔드포인트)
-            const REDIRECT_URI = `${API_BASE_URL}/api/auth/google/callback`;
-
-            // 3. 구글 로그인 창으로 이동할 URL 생성
             const authUrl =
                 `${GOOGLE_AUTH_URL}?client_id=${GOOGLE_WEB_CLIENT_ID}` +
-                `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+                `&redirect_uri=${encodeURIComponent(BACKEND_CALLBACK_URI)}` +
                 `&response_type=code` +
                 `&scope=${encodeURIComponent('email profile')}` +
-                `&access_type=offline`; // 필요한 경우 추가
+                `&access_type=offline`;
 
-            console.log("--- [2] 구글 로그인 브라우저 오픈 ---");
+            const result = await WebBrowser.openAuthSessionAsync(
+                authUrl,
+                EXPO_REDIRECT_URI
+            );
 
-            // 4. 브라우저 열기 (REDIRECT_URI를 가로챌 주소로 설정)
-            const result = await WebBrowser.openAuthSessionAsync(authUrl, REDIRECT_URI);
-
-            if (result.type !== 'success') {
-                console.log("--- [!] 사용자가 취소했거나 브라우저 닫힘 ---");
+            if (result.type !== 'success' || !result.url) {
                 return;
             }
 
-            // 5. 백엔드 처리가 끝나고 우리 앱으로 돌아오면서 주소창에 실어준 토큰 읽기
-            console.log("--- [3] 백엔드로부터 응답 수신 ---");
             const url = result.url;
-            const params = new URL(url).searchParams;
 
-            const accessToken = params.get('accessToken');
-            const refreshToken = params.get('refreshToken');
+            const getParam = (key: string) =>
+                url.match(new RegExp(`${key}=([^&]*)`))?.[1];
 
-            if (accessToken && refreshToken) {
-                console.log("--- [4] 구글 로그인 성공 및 토큰 저장 ---");
+            const status = getParam('status');
 
-                await AsyncStorage.setItem('accessToken', accessToken);
-                await AsyncStorage.setItem('refreshToken', refreshToken);
-                setAccessToken(accessToken);
+            /* =========================
+               ❌ 로그인 실패 → 앱에서 처리
+               ========================= */
+            if (status === 'FAIL') {
+                const code = getParam('code');
 
-                onLoginSuccess(accessToken);
-            } else {
-                console.log("--- [!] 토큰이 없습니다. 백엔드 응답을 확인하세요. ---");
+                if (code === 'LOCAL_ACCOUNT') {
+                    Alert.alert(
+                        '로그인 실패',
+                        '이 이메일은 로컬 로그인 계정입니다.\n이메일 로그인을 이용해 주세요.'
+                    );
+                } else if (code === 'DEACTIVATED') {
+                    Alert.alert('로그인 실패', '탈퇴된 계정입니다.');
+                } else {
+                    Alert.alert('로그인 실패', '구글 로그인에 실패했습니다.');
+                }
+
+                return;
             }
 
-        } catch (error) {
-            console.error("--- [X] 구글 로그인 에러 발생 ---", error);
+            /* =========================
+               ✅ 로그인 성공
+               ========================= */
+            const accessToken = getParam('accessToken');
+            const refreshToken = getParam('refreshToken');
+
+            if (!accessToken) {
+                Alert.alert('로그인 실패', '토큰을 받지 못했습니다.');
+                return;
+            }
+
+            await AsyncStorage.setItem('accessToken', accessToken);
+            if (refreshToken) {
+                await AsyncStorage.setItem('refreshToken', refreshToken);
+            }
+
+            setAccessToken(accessToken);
+            onLoginSuccess(accessToken);
+
+        } catch (e) {
+            Alert.alert('로그인 실패', '구글 로그인 중 오류가 발생했습니다.');
         }
     };
 
