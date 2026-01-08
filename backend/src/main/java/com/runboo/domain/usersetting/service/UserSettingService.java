@@ -2,6 +2,7 @@ package com.runboo.domain.usersetting.service;
 
 import com.runboo.domain.usersetting.dto.UserSettingResponse;
 import com.runboo.domain.usersetting.dto.UserSettingUpdateRequest;
+import com.runboo.domain.usersetting.dto.UserVoiceSettingResponse;
 import com.runboo.domain.usersetting.entity.UserSetting;
 import com.runboo.domain.usersetting.repository.UserSettingRepository;
 import com.runboo.global.security.SecurityUtil;
@@ -38,4 +39,20 @@ public class UserSettingService {
         setting.updateThemeMode(request.getThemeMode());
         setting.updateFontSize(request.getFontSize());
     }
+
+    @Transactional(readOnly = true)
+    public UserVoiceSettingResponse getVoiceSettings() {
+        Long userId = SecurityUtil.getCurrentUserId();
+
+        UserSetting setting = userSettingRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("유저 설정이 존재하지 않습니다."));
+
+        return new UserVoiceSettingResponse(
+                setting.isVoiceGuideEnabled(),
+                setting.getVoiceType()
+        );
+    }
+
+
+
 }
