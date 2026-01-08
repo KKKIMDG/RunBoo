@@ -53,6 +53,7 @@ dependencies {
 
     implementation 'com.google.firebase:firebase-admin:9.2.0'
 
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 dependencyManagement {
