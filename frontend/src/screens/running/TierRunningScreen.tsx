@@ -166,9 +166,11 @@ const TierRunningScreen = () => {
         <MapView
           ref={mapRef}
           style={StyleSheet.absoluteFill}
-          provider={PROVIDER_GOOGLE}
+          provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
           showsUserLocation={true}
-          customMapStyle={blurredMapStyle} // 스타일 적용
+          customMapStyle={
+            Platform.OS === "android" ? blurredMapStyle : undefined
+          }
           onPanDrag={() => setIsTracking(false)}
           initialRegion={
             initialLocation

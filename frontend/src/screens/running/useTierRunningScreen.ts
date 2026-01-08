@@ -44,13 +44,15 @@ export const useTierRunningScreen = () => {
     stopRun: stopStoreRun,
     reset: resetStore,
     currentLocation,
-    updateLocation
+    updateLocation,
   } = useRecordStore();
 
   const [remainingDistance, setRemainingDistance] = useState(targetDistance);
   const [paceHistory, setPaceHistory] = useState<number[]>([]);
-  const [initialLocation, setInitialLocation] = useState<Coordinate | null>(null);
-  
+  const [initialLocation, setInitialLocation] = useState<Coordinate | null>(
+    null
+  );
+
   // UI 갱신용 시간 (초 단위)
   const [displayTime, setDisplayTime] = useState(0);
 
@@ -77,30 +79,31 @@ export const useTierRunningScreen = () => {
   useEffect(() => {
     (async () => {
       resetStore(); // 스토어 초기화
-      
-      const { status: foreStatus } = await Location.requestForegroundPermissionsAsync();
+
+      const { status: foreStatus } =
+        await Location.requestForegroundPermissionsAsync();
       if (foreStatus !== "granted") {
         Alert.alert("권한 필요", "위치 권한이 필요합니다.", [
-          { text: "설정", onPress: () => Linking.openSettings() }
+          { text: "설정", onPress: () => Linking.openSettings() },
         ]);
         return;
       }
-      
+
       await Location.requestBackgroundPermissionsAsync(); // 백그라운드 권한 요청
 
       const loc = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Highest,
       });
-      
+
       setInitialLocation({
         latitude: loc.coords.latitude,
         longitude: loc.coords.longitude,
       });
       updateLocation(loc); // 지도 즉시 표시를 위해 스토어 주입
     })();
-    
+
     return () => {
-        if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
 
@@ -108,10 +111,10 @@ export const useTierRunningScreen = () => {
   useEffect(() => {
     const remain = targetDistance - distance;
     setRemainingDistance(remain > 0 ? remain : 0);
-    
+
     // 목표 달성 시
     if (isRunning && distance >= targetDistance) {
-        handleComplete(false); // 정상 종료 (isStopped = false)
+      handleComplete(false); // 정상 종료 (isStopped = false)
     }
   }, [distance, isRunning, targetDistance]);
 
@@ -133,12 +136,12 @@ export const useTierRunningScreen = () => {
         const now = Date.now();
         const durationSec = Math.floor((now - startTime - pausedTime) / 1000);
         const currentSec = durationSec >= 0 ? durationSec : 0;
-        
+
         setDisplayTime(currentSec);
 
         // 5초마다 페이스 히스토리 기록 (차트용 - 로컬 상태 유지)
         if (currentSec % 5 === 0 && currentPace > 0) {
-            setPaceHistory((prev) => [...prev, currentPace / 60]);
+          setPaceHistory((prev) => [...prev, currentPace / 60]);
         }
       }, 1000);
     }
@@ -147,32 +150,43 @@ export const useTierRunningScreen = () => {
     };
   }, [isRunning, isPaused, startTime, pausedTime, currentPace]);
 
-
   // ✅ 백그라운드 트래킹 시작
   const startLocationTracking = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") return;
 
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-        accuracy: Location.Accuracy.BestForNavigation,
-        timeInterval: 1000,
-        distanceInterval: 1,
-        foregroundService: {
-            notificationTitle: "RunBoo Tier Challenge",
-            notificationBody: "티어 측정 중입니다. 힘내세요!",
-            notificationColor: "#4A6EA9"
-        },
-        showsBackgroundLocationIndicator: true,
-        pausesUpdatesAutomatically: false,
-        activityType: Location.ActivityType.Fitness,
+      accuracy: Location.Accuracy.BestForNavigation,
+      timeInterval: 1000,
+      distanceInterval: 1,
+      foregroundService: {
+        notificationTitle: "RunBoo Tier Challenge",
+        notificationBody: "티어 측정 중입니다. 힘내세요!",
+        notificationColor: "#4A6EA9",
+      },
+      showsBackgroundLocationIndicator: true,
+      pausesUpdatesAutomatically: false,
+      activityType: Location.ActivityType.Fitness,
     });
   };
 
   const handleComplete = async (isStopped: boolean = false) => {
-    // 백그라운드 중단
-    const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
-    if (hasStarted) {
-        await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+    const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+      LOCATION_TASK_NAME
+    );
+    if (hasStarted) await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+
+    stopStoreRun();
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    // ✅ [추가] 100미터 미만 기록 방지 로직
+    if (distance < 100) {
+      Alert.alert(
+        "기록 저장 불가",
+        "100m 미만의 활동은 측정 기록으로 인정되지 않습니다.",
+        [{ text: "확인", onPress: () => navigation.goBack() }]
+      );
+      return;
     }
 
     stopStoreRun();
@@ -190,12 +204,14 @@ export const useTierRunningScreen = () => {
         avgPace: Math.floor(avgPace),
         calories: Math.floor(finalDist * 0.05),
         routePolyline: encodePath(routeCoordinates),
-        startedAt: startTime ? toIsoPlus9(new Date(startTime)) : new Date().toISOString(),
+        startedAt: startTime
+          ? toIsoPlus9(new Date(startTime))
+          : new Date().toISOString(),
         endedAt: toIsoPlus9(new Date()),
       };
-      
+
       await createRecord(data);
-      
+
       // 방금 생성한 레코드 ID 조회 (약간 불안정할 수 있으나 기존 로직 유지)
       const records = await fetchMyRecords();
       const finalRecordId = Math.max(...records.map((r: any) => r.id));
