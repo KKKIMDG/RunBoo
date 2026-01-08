@@ -26,3 +26,6 @@ out/
 HELP.md
 
 src/main/resources/application.properties
+
+# Firebase Service account
+secrets/
