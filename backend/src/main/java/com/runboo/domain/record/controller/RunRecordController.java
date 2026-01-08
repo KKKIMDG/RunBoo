@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController // ✅ REST API 컨트롤러임을 선언
-@RequestMapping("/api/run-records") // ✅ 공통 경로 설정
-@RequiredArgsConstructor // ✅ recordService 필드 자동 주입
+@RequestMapping("/api/run-records")
+@RequiredArgsConstructor
 public class RunRecordController {
 
     private final RunRecordService runRecordService;

@@ -7,20 +7,18 @@ import * as Location from "expo-location";
 import AuthStack from "../auth/AuthStack";
 import MainStack from "@/navigation/stacks/MainStack";
 
+// 홈 화면에서 실행되는 화면들 import
 import RunningScreen from "@/screens/running";
 import TierRunningScreen from "@/screens/running/TierRunningScreen";
 import RunResultScreen from "@/screens/RunResult";
 import GhostRunScreen from "@/screens/ghost/GhostRunScreen";
 import MapFullScreen from "@/screens/Home/MapFullScreen";
 import TierResultScreen from "@/screens/TierResult/TierResultScreen";
-
-// ✅ 기록 상세보기 화면 (추가)
 import RunRecordDetailScreen from "@/screens/records/RunRecordDetailScreen";
 
 import { Coordinate } from "@/utils/runUtils";
 import type { GhostProfileDto } from "@/types/ghost";
 
-// ✅ 기존 방식: RootNavigator.tsx 안에서 타입을 직접 export
 export type RootStackParamList = {
     MainStack: undefined;
 
@@ -65,7 +63,6 @@ export type RootStackParamList = {
 
     MapFull: { location: Location.LocationObject | null };
 
-    // ✅ 기록 상세보기 (추가)
     RunRecordDetail: { recordId: number };
 };
 
@@ -122,7 +119,6 @@ export default function RootNavigator({
                 options={{ gestureEnabled: false }}
             />
 
-            {/* ✅ 기록 상세보기 (오버레이 팝업) */}
             <Stack.Screen
                 name="RunRecordDetail"
                 component={RunRecordDetailScreen}
