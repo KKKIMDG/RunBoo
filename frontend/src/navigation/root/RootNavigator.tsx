@@ -20,114 +20,122 @@ import { Coordinate } from "@/utils/runUtils";
 import type { GhostProfileDto } from "@/types/ghost";
 
 export type RootStackParamList = {
-    MainStack: undefined;
+  MainStack: undefined;
 
-    Running: { userId: number; targetDistance: number; mode?: "NORMAL" };
+  Running: {
+    userId: number;
+    targetDistance: number;
+    mode?: "NORMAL";
+    userVoiceSetting: {
+      voiceEnabled: boolean;
+      voiceType: "MALE" | "FEMALE";
+    };
+  };
 
-    TierRunning: {
-        userId?: number;
-        targetDistance: number;
-        mode?: "TIER";
-        distanceType?: "5km" | "10km";
+  TierRunning: {
+    userId?: number;
+    targetDistance: number;
+    mode?: "TIER";
+    distanceType?: "5km" | "10km";
+  };
+
+  GhostRun: { ghost: GhostProfileDto };
+
+  RunResult: {
+    distanceM: number;
+    durationSec: number;
+    avgPaceSec: number;
+    calories: number;
+    routeCoordinates: Coordinate[];
+  };
+
+  TierResult: {
+    userId?: number;
+    recordId: number;
+    distanceType: "5k" | "10k";
+    achievedTier: string;
+    isStopped?: boolean;
+
+    stats: {
+      distance: string;
+      time: string;
+      pace: string;
     };
 
-    GhostRun: { ghost: GhostProfileDto };
+    distanceM: number;
+    durationSec: number;
+    avgPaceSec: number;
+    calories: number;
+    routeCoordinates: Coordinate[];
+  };
 
-    RunResult: {
-        distanceM: number;
-        durationSec: number;
-        avgPaceSec: number;
-        calories: number;
-        routeCoordinates: Coordinate[];
-    };
+  MapFull: { location: Location.LocationObject | null };
 
-    TierResult: {
-        userId?: number;
-        recordId: number;
-        distanceType: "5k" | "10k";
-        achievedTier: string;
-        isStopped?: boolean;
-
-        stats: {
-            distance: string;
-            time: string;
-            pace: string;
-        };
-
-        distanceM: number;
-        durationSec: number;
-        avgPaceSec: number;
-        calories: number;
-        routeCoordinates: Coordinate[];
-    };
-
-    MapFull: { location: Location.LocationObject | null };
-
-    RunRecordDetail: { recordId: number };
+  RunRecordDetail: { recordId: number };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function RootNavigator({
-                                          isLoggedIn,
-                                          onLoginSuccess,
-                                          onLogout,
-                                      }: any) {
-    if (!isLoggedIn) {
-        return <AuthStack onLoginSuccess={onLoginSuccess} />;
-    }
+  isLoggedIn,
+  onLoginSuccess,
+  onLogout,
+}: any) {
+  if (!isLoggedIn) {
+    return <AuthStack onLoginSuccess={onLoginSuccess} />;
+  }
 
-    return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="MainStack">
-                {(props) => <MainStack {...props} onLogout={onLogout} />}
-            </Stack.Screen>
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MainStack">
+        {(props) => <MainStack {...props} onLogout={onLogout} />}
+      </Stack.Screen>
 
-            <Stack.Screen
-                name="Running"
-                component={RunningScreen}
-                options={{ gestureEnabled: false }}
-            />
+      <Stack.Screen
+        name="Running"
+        component={RunningScreen}
+        options={{ gestureEnabled: false }}
+      />
 
-            <Stack.Screen
-                name="TierRunning"
-                component={TierRunningScreen}
-                options={{ gestureEnabled: false }}
-            />
+      <Stack.Screen
+        name="TierRunning"
+        component={TierRunningScreen}
+        options={{ gestureEnabled: false }}
+      />
 
-            <Stack.Screen
-                name="GhostRun"
-                component={GhostRunScreen}
-                options={{ gestureEnabled: false }}
-            />
+      <Stack.Screen
+        name="GhostRun"
+        component={GhostRunScreen}
+        options={{ gestureEnabled: false }}
+      />
 
-            <Stack.Screen
-                name="RunResult"
-                component={RunResultScreen}
-                options={{ gestureEnabled: false }}
-            />
+      <Stack.Screen
+        name="RunResult"
+        component={RunResultScreen}
+        options={{ gestureEnabled: false }}
+      />
 
-            <Stack.Screen
-                name="MapFull"
-                component={MapFullScreen}
-                options={{ headerShown: false, presentation: "card" }}
-            />
+      <Stack.Screen
+        name="MapFull"
+        component={MapFullScreen}
+        options={{ headerShown: false, presentation: "card" }}
+      />
 
-            <Stack.Screen
-                name="TierResult"
-                component={TierResultScreen}
-                options={{ gestureEnabled: false }}
-            />
+      <Stack.Screen
+        name="TierResult"
+        component={TierResultScreen}
+        options={{ gestureEnabled: false }}
+      />
 
-            <Stack.Screen
-                name="RunRecordDetail"
-                component={RunRecordDetailScreen}
-                options={{
-                    headerShown: false,
-                    presentation: "transparentModal",
-                    animation: "fade",
-                }}
-            />
-        </Stack.Navigator>
-    );
+      <Stack.Screen
+        name="RunRecordDetail"
+        component={RunRecordDetailScreen}
+        options={{
+          headerShown: false,
+          presentation: "transparentModal",
+          animation: "fade",
+        }}
+      />
+    </Stack.Navigator>
+  );
 }
