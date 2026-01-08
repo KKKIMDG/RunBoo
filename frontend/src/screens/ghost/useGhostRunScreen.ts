@@ -1,15 +1,18 @@
 // frontend/src/screens/ghost/useGhostRunScreen.ts
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Alert, Linking } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useKeepAwake } from "expo-keep-awake";
+
 import { encodePath } from "@/utils/runUtils";
 import type { GhostProfileDto } from "@/types/ghost";
 import { createRecord } from "@/services/record/recordsService";
 import { useRecordStore } from "@/stores/recordStore";
 import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
+
+import { useRunningVoiceFeedback } from "@/hooks/useRunningVoiceFeedback";
 
 // ✅ 저장할 때만 +9시간 보정해서 ISO(UTC)로 보내기
 const toIsoPlus9 = (d: Date) =>
@@ -25,9 +28,20 @@ export function useGhostRunScreen() {
     const userId = route?.params?.userId;
     const ghost: GhostProfileDto | undefined = route?.params?.ghost;
 
+    // 음성 성별(없으면 기본 true)
+    const isMale = Boolean(route?.params?.isMale ?? true);
+
     // 고스트 기준값 (fallback 포함)
     const ghostTotalDistanceM = (ghost?.targetDistanceKm ?? 5.2) * 1000;
     const ghostAvgPaceSec = ghost?.avgPace ?? 280; // sec/km
+
+    // ✅ 음성 훅 (고스트 평균 페이스를 권장 페이스로 사용)
+    const voice = useRunningVoiceFeedback({
+        isMale,
+        targetDistance: ghostTotalDistanceM,
+        recommendedPaceSec: ghostAvgPaceSec,
+        minRecordDistanceM: 100,
+    });
 
     // Store 구독 (일반 러닝/티어 러닝과 공유)
     const {
@@ -35,20 +49,18 @@ export function useGhostRunScreen() {
         countdown,
         isRunning,
         isPaused,
-        distance, // 스토어의 distance를 distanceM으로 매핑
-        currentPace, // 스토어의 currentPace (sec/km)
+        distance, // meter
+        currentPace, // sec/km
         routeCoordinates,
         startTime,
         pausedTime,
-        setReady,
         setCountdown,
         startRun: startStoreRun,
         pauseRun: pauseStoreRun,
         resumeRun: resumeStoreRun,
         stopRun: stopStoreRun,
         reset: resetStore,
-        currentLocation,
-        updateLocation
+        updateLocation,
     } = useRecordStore();
 
     // UI 갱신용 시간
@@ -80,7 +92,9 @@ export function useGhostRunScreen() {
         const h = Math.floor(totalSeconds / 3600);
         const m = Math.floor((totalSeconds % 3600) / 60);
         const s = totalSeconds % 60;
-        return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${s < 10 ? "0" + s : s}`;
+        return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${
+            s < 10 ? "0" + s : s
+        }`;
     };
 
     const formatPace = (paceSec: number) => {
@@ -106,15 +120,16 @@ export function useGhostRunScreen() {
     useEffect(() => {
         (async () => {
             resetStore();
-            
-            const { status: foreStatus } = await Location.requestForegroundPermissionsAsync();
+
+            const { status: foreStatus } =
+                await Location.requestForegroundPermissionsAsync();
             if (foreStatus !== "granted") {
                 Alert.alert("권한 필요", "위치 권한이 필요합니다.", [
-                    { text: "설정", onPress: () => Linking.openSettings() }
+                    { text: "설정", onPress: () => Linking.openSettings() },
                 ]);
                 return;
             }
-            
+
             await Location.requestBackgroundPermissionsAsync();
 
             const loc = await Location.getCurrentPositionAsync({
@@ -122,7 +137,7 @@ export function useGhostRunScreen() {
             });
             updateLocation(loc); // 초기 위치 주입
         })();
-        
+
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
@@ -134,19 +149,24 @@ export function useGhostRunScreen() {
             const t = setTimeout(() => setCountdown(countdown - 1), 1000);
             return () => clearTimeout(t);
         } else if (isReady && countdown === 0) {
+            // ✅ 시작 음성은 여기서만
+            voice.speakStart();
+
             startStoreRun();
             startLocationTracking();
         }
-    }, [isReady, countdown]);
+    }, [isReady, countdown, setCountdown, startStoreRun]);
 
     // 3. 타이머 및 그래프
     useEffect(() => {
         if (isRunning && !isPaused && startTime) {
             timerRef.current = setInterval(() => {
                 const now = Date.now();
-                const durationSec = Math.floor((now - startTime - pausedTime) / 1000);
+                const durationSec = Math.floor(
+                    (now - startTime - pausedTime) / 1000
+                );
                 const currentSec = durationSec >= 0 ? durationSec : 0;
-                
+
                 setDisplayTime(currentSec);
 
                 if (currentSec % 5 === 0 && currentPace > 0) {
@@ -160,6 +180,12 @@ export function useGhostRunScreen() {
         };
     }, [isRunning, isPaused, startTime, pausedTime, currentPace]);
 
+    // ✅ 1km 통과 음성(거리 갱신 기반)
+    useEffect(() => {
+        if (!isRunning || isPaused) return;
+        voice.checkAndSpeak(distance);
+    }, [distance, isRunning, isPaused]);
+
     // ✅ 백그라운드 위치 추적
     const startLocationTracking = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
@@ -172,7 +198,7 @@ export function useGhostRunScreen() {
             foregroundService: {
                 notificationTitle: "RunBoo Ghost Challenge",
                 notificationBody: "고스트와 대결 중입니다.",
-                notificationColor: "#4A6EA9"
+                notificationColor: "#4A6EA9",
             },
             showsBackgroundLocationIndicator: true,
             pausesUpdatesAutomatically: false,
@@ -180,10 +206,29 @@ export function useGhostRunScreen() {
         });
     };
 
-    // ✅ 저장
+    // ✅ 일시정지/재개: 음성은 훅으로만
+    const pauseRun = useCallback(() => {
+        voice.speakPause();
+        pauseStoreRun();
+    }, [pauseStoreRun]);
+
+    const resumeRun = useCallback(() => {
+        voice.speakResume();
+        resumeStoreRun();
+    }, [resumeStoreRun]);
+
+    // ✅ 저장 + 종료
     const stopRun = async () => {
+        // ✅ 100m 이하면 기록/종료 막고 음성만 안내
+        if (distance <= 100) {
+            voice.speakMinDistanceWarning();
+            return;
+        }
+
         // 백그라운드 중단
-        const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+        const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+            LOCATION_TASK_NAME
+        );
         if (hasStarted) {
             await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
         }
@@ -200,6 +245,10 @@ export function useGhostRunScreen() {
                 "오류",
                 "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)"
             );
+
+            // ✅ 종료 음성
+            voice.speakStop(distance);
+
             navigation.navigate("RunResult", {
                 distanceM: distance,
                 durationSec: displayTime,
@@ -218,7 +267,9 @@ export function useGhostRunScreen() {
             avgPace: Math.floor(avgPaceSec),
             calories,
             routePolyline: encodePath(routeCoordinates),
-            startedAt: startTime ? toIsoPlus9(new Date(startTime)) : new Date().toISOString(),
+            startedAt: startTime
+                ? toIsoPlus9(new Date(startTime))
+                : new Date().toISOString(),
             endedAt: toIsoPlus9(new Date()),
         };
 
@@ -232,8 +283,14 @@ export function useGhostRunScreen() {
             console.log("✅ [DEBUG] 고스트 저장 서버 응답:", response);
         } catch (error: any) {
             console.error("❌ [DEBUG] 고스트 저장 실패 에러:", error);
-            Alert.alert("저장 실패", `기록을 저장하지 못했습니다. (${error?.message || "네트워크 에러"})`);
+            Alert.alert(
+                "저장 실패",
+                `기록을 저장하지 못했습니다. (${error?.message || "네트워크 에러"})`
+            );
         }
+
+        // ✅ 종료 음성
+        voice.speakStop(distance);
 
         navigation.navigate("RunResult", {
             distanceM: distance,
@@ -252,8 +309,8 @@ export function useGhostRunScreen() {
             isRunning,
             isPaused,
             time: displayTime,
-            distanceM: distance, // 스토어 값 연결
-            currentPaceSec: currentPace, // 스토어 값 연결
+            distanceM: distance,
+            currentPaceSec: currentPace,
             routeCoordinates,
             paceHistoryMin,
             ghostDistanceM,
@@ -263,10 +320,10 @@ export function useGhostRunScreen() {
             ghostTotalDistanceM,
             ghostAvgPaceSec,
         },
-        actions: { 
-            pauseRun: pauseStoreRun, 
-            resumeRun: resumeStoreRun, 
-            stopRun 
+        actions: {
+            pauseRun,
+            resumeRun,
+            stopRun,
         },
         utils: { formatTime, formatPace, formatDiffBadge, formatPaceDiff },
     };
