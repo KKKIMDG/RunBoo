@@ -7,6 +7,7 @@ import {
   ScrollView,
   useColorScheme,
   StyleSheet,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -15,7 +16,12 @@ import {
   MaterialCommunityIcons,
   FontAwesome5,
 } from "@expo/vector-icons";
-import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, {
+  Polyline,
+  Marker,
+  PROVIDER_GOOGLE,
+  PROVIDER_DEFAULT,
+} from "react-native-maps";
 
 import ViewShot, { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -112,27 +118,27 @@ const RunResultScreen = () => {
     },
   ];
 
-    // 수정된 공유 핸들러
-    const handleShare = async () => {
-        try {
-            if (storyRef.current) {
-                // captureRef에 ref 객체(storyRef.current)를 직접 전달
-                // captureRef에 ref 객체(storyRef.current)를 직접 전달
-                const uri = await captureRef(storyRef, {
-                    format: "png",
-                    quality: 1.0,
-                    result: "tmpfile",
-                });
-                await Sharing.shareAsync(uri, {
-                    mimeType: 'image/png',
-                    dialogTitle: '나의 러닝 기록 공유하기',
-                    UTI: 'public.png'
-                });
-            }
-        } catch (error) {
-            console.error("공유 실패:", error);
-        }
-    };
+  // 수정된 공유 핸들러
+  const handleShare = async () => {
+    try {
+      if (storyRef.current) {
+        // captureRef에 ref 객체(storyRef.current)를 직접 전달
+        // captureRef에 ref 객체(storyRef.current)를 직접 전달
+        const uri = await captureRef(storyRef, {
+          format: "png",
+          quality: 1.0,
+          result: "tmpfile",
+        });
+        await Sharing.shareAsync(uri, {
+          mimeType: "image/png",
+          dialogTitle: "나의 러닝 기록 공유하기",
+          UTI: "public.png",
+        });
+      }
+    } catch (error) {
+      console.error("공유 실패:", error);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -142,11 +148,11 @@ const RunResultScreen = () => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-          <ViewShot
-              ref={storyRef}
-              options={{ format: "png", quality: 1.0 }}
-              style={{ backgroundColor: isDarkMode ? "#000" : "#fff" }}
-          >
+        <ViewShot
+          ref={storyRef}
+          options={{ format: "png", quality: 1.0 }}
+          style={{ backgroundColor: isDarkMode ? "#000" : "#fff" }}
+        >
           <View style={localStyles.profileSection}>
             <View style={localStyles.imageWrapper}>
               <Image
@@ -192,7 +198,12 @@ const RunResultScreen = () => {
                 <MapView
                   ref={mapRef}
                   style={StyleSheet.absoluteFill}
-                  provider={PROVIDER_GOOGLE}
+                  /* ✅ iOS / Android 분기 */
+                  provider={
+                    Platform.OS === "android"
+                      ? PROVIDER_GOOGLE
+                      : PROVIDER_DEFAULT
+                  }
                   onMapReady={handleFocusRoute}
                   customMapStyle={blurredMapStyle}
                   initialRegion={{

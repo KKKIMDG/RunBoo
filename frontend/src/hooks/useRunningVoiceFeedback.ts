@@ -7,7 +7,7 @@ interface VoiceFeedbackProps {
 }
 
 export const useRunningVoiceFeedback = ({
-  isMale,
+  isFemale,
   targetDistance,
 }: VoiceFeedbackProps) => {
   const lastCheckedKm = useRef(0);
