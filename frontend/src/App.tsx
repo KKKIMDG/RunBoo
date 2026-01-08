@@ -1,40 +1,63 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { Platform, useColorScheme } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import RootNavigator from './navigation/root/RootNavigator';
 import { setAccessToken } from '@/services/api';
-import {Platform, useColorScheme} from 'react-native';
 import { Colors } from '@/constants/theme';
-import * as WebBrowser from 'expo-web-browser';
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {AuthService} from "@/services/auth/authService";
-import {authEventBus} from "@/services/auth/authEvents";
-import {UserMeProvider} from "@/contexts/UserMeContext";
-import {UserSettingProvider} from "@/contexts/UserSettingContext";
-import {disablePushDevice, registerPushDevice} from "@/services/notification/notificationService";
-import {getFcmToken} from "@/services/notification/fcmToken";
+import { AuthService } from '@/services/auth/authService';
+import { authEventBus } from '@/services/auth/authEvents';
+import { UserMeProvider } from '@/contexts/UserMeContext';
+import { UserSettingProvider } from '@/contexts/UserSettingContext';
+import {
+    disablePushDevice,
+    registerPushDevice,
+} from '@/services/notification/notificationService';
+import { getFcmToken } from '@/services/notification/fcmToken';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const colorScheme = useColorScheme();
     const [loading, setLoading] = useState(true);
+    const colorScheme = useColorScheme();
 
+    /**
+     * 🔒 자동 로그아웃 (토큰 만료, 401 등)
+     * - 서버 호출 ❌
+     * - 로컬 인증 정보만 제거
+     */
+    const silentLogout = async () => {
+        await AuthService.logout();
+        setIsLoggedIn(false);
+    };
+
+    /**
+     * 👆 사용자 명시적 로그아웃
+     * - FCM 디바이스 비활성화 포함
+     */
     const handleLogout = async () => {
         try {
+            const accessToken = await AsyncStorage.getItem('accessToken');
             const fcmToken = await AsyncStorage.getItem('fcmToken');
 
-            if (fcmToken) {
+            // 로그인 상태일 때만 서버 호출
+            if (accessToken && fcmToken) {
                 await disablePushDevice(fcmToken);
             }
         } catch (e) {
-            // 실패해도 로그아웃은 진행
             console.warn('FCM disable failed', e);
         }
-        setIsLoggedIn(false); // 화면 전환 트리거
-        await AuthService.logout(); // access/refresh 제거
+
+        await AuthService.logout();
+        setIsLoggedIn(false);
     };
 
+    /**
+     * 앱 시작 시 로그인 복구
+     */
     useEffect(() => {
         const restoreLogin = async () => {
             const token = await AsyncStorage.getItem('accessToken');
@@ -42,9 +65,8 @@ export default function App() {
             if (token) {
                 setAccessToken(token);
                 setIsLoggedIn(true);
-                // ❗ 실제 인증은 API 호출 시 검증됨
 
-                // 🔹 FCM touch
+                // 🔔 FCM 등록 (Android만)
                 if (Platform.OS !== 'ios') {
                     try {
                         const fcmToken = await getFcmToken();
@@ -55,13 +77,9 @@ export default function App() {
                             platform: 'ANDROID',
                         });
                     } catch (e) {
-                        console.warn('FCM touch failed', e);
+                        console.warn('FCM register failed', e);
                     }
-                } else {
-                    console.log('[FCM] iOS - skip register (no Apple Dev account)');
                 }
-
-
             }
 
             setLoading(false);
@@ -70,22 +88,24 @@ export default function App() {
         restoreLogin();
     }, []);
 
-    //전역 자동 로그아웃
+    /**
+     * 🌍 전역 자동 로그아웃 이벤트
+     */
     useEffect(() => {
-        const unsubscribe = authEventBus.subscribeLogout(() => {
-            handleLogout();
-        });
-
+        const unsubscribe = authEventBus.subscribeLogout(silentLogout);
         return unsubscribe;
     }, []);
 
+    /**
+     * 로그인 성공 처리
+     */
     const handleLoginSuccess = (token: string) => {
         setAccessToken(token);
         setIsLoggedIn(true);
         authEventBus.emitLogin();
     };
 
-    if (loading) {return null;}
+    if (loading) return null;
 
     const MyTheme = {
         ...(colorScheme === 'dark' ? DarkTheme : DefaultTheme),

@@ -1,54 +1,64 @@
-import { useEffect } from 'react';
-import * as Google from 'expo-auth-session/providers/google';
-import { jwtDecode } from 'jwt-decode';
+import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-import { AuthService } from '@/services/auth/authService';
 import { setAccessToken } from '@/services/api';
-import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID } from '@env';
-import { Alert } from 'react-native';
+import { GOOGLE_WEB_CLIENT_ID, API_BASE_URL } from "@env"; // API_BASE_URL은 http://52.78.22.102:8080
 
 export const googleLoginForm = (onLoginSuccess: (token: string) => void) => {
 
-    // ▼▼▼ [주석 처리 시작] 에러의 원인! ID가 없으면 여기서 터집니다. ▼▼▼
-    /*
-    const [request, response, promptAsync] = Google.useAuthRequest({
-        webClientId: GOOGLE_WEB_CLIENT_ID,
-        iosClientId: GOOGLE_IOS_CLIENT_ID, // 여기가 비어있어서 에러 발생!
-        androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-        scopes: ['email', 'profile'],
-    });
+    const startGoogleLogin = async () => {
+        try {
+            await WebBrowser.dismissBrowser();
 
-    useEffect(() => {
-        if (response?.type !== 'success') return;
-        const accessToken = response.authentication?.accessToken;
-        if (!accessToken) return;
+            console.log("--- [1] 구글 백엔드 리다이렉트 로그인 시작 ---");
 
-        const login = async () => {
-            try {
-                const res = await AuthService.googleLogin(accessToken);
-                const decoded: any = jwtDecode(res.accessToken);
-                await AsyncStorage.setItem('accessToken', res.accessToken);
-                await AsyncStorage.setItem('refreshToken',  res.refreshToken);
-                setAccessToken(res.accessToken);
-                onLoginSuccess(res.accessToken);
-            } catch (error) {
-                console.error("Login Failed:", error);
+            // 1. 구글 인증 서버 주소
+            const GOOGLE_AUTH_URL = `https://accounts.google.com/o/oauth2/v2/auth`;
+
+            // 2. 백엔드 콜백 주소 (카카오와 마찬가지로 백엔드 엔드포인트)
+            const REDIRECT_URI = `${API_BASE_URL}/api/auth/google/callback`;
+
+            // 3. 구글 로그인 창으로 이동할 URL 생성
+            const authUrl =
+                `${GOOGLE_AUTH_URL}?client_id=${GOOGLE_WEB_CLIENT_ID}` +
+                `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+                `&response_type=code` +
+                `&scope=${encodeURIComponent('email profile')}` +
+                `&access_type=offline`; // 필요한 경우 추가
+
+            console.log("--- [2] 구글 로그인 브라우저 오픈 ---");
+
+            // 4. 브라우저 열기 (REDIRECT_URI를 가로챌 주소로 설정)
+            const result = await WebBrowser.openAuthSessionAsync(authUrl, REDIRECT_URI);
+
+            if (result.type !== 'success') {
+                console.log("--- [!] 사용자가 취소했거나 브라우저 닫힘 ---");
+                return;
             }
-        };
-        login();
-    }, [response]);
-    */
-    // ▲▲▲ [주석 처리 끝] ▲▲▲
 
-    return {
-        // ▼▼▼ 버튼 눌렀을 때 실행될 함수 (지금은 가짜)
-        startGoogleLogin: () => {
-            console.log("⚠️ iOS Client ID가 없어서 로그인을 실행할 수 없습니다.");
-            Alert.alert("알림", "현재 구글 로그인은 비활성화 상태입니다. (iOS Client ID 누락)");
+            // 5. 백엔드 처리가 끝나고 우리 앱으로 돌아오면서 주소창에 실어준 토큰 읽기
+            console.log("--- [3] 백엔드로부터 응답 수신 ---");
+            const url = result.url;
+            const params = new URL(url).searchParams;
 
-            // 원래는 이거 실행해야 함
-            // promptAsync(); 
-        },
+            const accessToken = params.get('accessToken');
+            const refreshToken = params.get('refreshToken');
+
+            if (accessToken && refreshToken) {
+                console.log("--- [4] 구글 로그인 성공 및 토큰 저장 ---");
+
+                await AsyncStorage.setItem('accessToken', accessToken);
+                await AsyncStorage.setItem('refreshToken', refreshToken);
+                setAccessToken(accessToken);
+
+                onLoginSuccess(accessToken);
+            } else {
+                console.log("--- [!] 토큰이 없습니다. 백엔드 응답을 확인하세요. ---");
+            }
+
+        } catch (error) {
+            console.error("--- [X] 구글 로그인 에러 발생 ---", error);
+        }
     };
+
+    return { startGoogleLogin };
 };
