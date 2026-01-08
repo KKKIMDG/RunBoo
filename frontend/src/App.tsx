@@ -21,8 +21,8 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [loading, setLoading] = useState(true);
     const colorScheme = useColorScheme();
+    const [loading, setLoading] = useState(true);
 
     /**
      * 🔒 자동 로그아웃 (토큰 만료, 401 등)
@@ -55,9 +55,6 @@ export default function App() {
         setIsLoggedIn(false);
     };
 
-    /**
-     * 앱 시작 시 로그인 복구
-     */
     useEffect(() => {
         const restoreLogin = async () => {
             const token = await AsyncStorage.getItem('accessToken');
@@ -65,6 +62,7 @@ export default function App() {
             if (token) {
                 setAccessToken(token);
                 setIsLoggedIn(true);
+                // ❗ 실제 인증은 API 호출 시 검증됨
 
                 // 🔔 FCM 등록 (Android만)
                 if (Platform.OS !== 'ios') {
@@ -82,53 +80,53 @@ export default function App() {
                 }
             }
 
-            setLoading(false);
-        };
+      setLoading(false);
+    };
 
-        restoreLogin();
-    }, []);
+    restoreLogin();
+  }, []);
 
-    /**
-     * 🌍 전역 자동 로그아웃 이벤트
-     */
+    //전역 자동 로그아웃
     useEffect(() => {
-        const unsubscribe = authEventBus.subscribeLogout(silentLogout);
+        const unsubscribe = authEventBus.subscribeLogout(() => {
+            handleLogout();
+        });
+
         return unsubscribe;
     }, []);
 
-    /**
-     * 로그인 성공 처리
-     */
     const handleLoginSuccess = (token: string) => {
         setAccessToken(token);
         setIsLoggedIn(true);
         authEventBus.emitLogin();
     };
 
-    if (loading) return null;
+  if (loading) {
+    return null;
+  }
 
-    const MyTheme = {
-        ...(colorScheme === 'dark' ? DarkTheme : DefaultTheme),
-        colors: {
-            ...(colorScheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
-            primary: Colors[colorScheme === 'dark' ? 'dark' : 'light'].primary,
-            background: Colors[colorScheme === 'dark' ? 'dark' : 'light'].background,
-            card: Colors[colorScheme === 'dark' ? 'dark' : 'light'].card,
-            text: Colors[colorScheme === 'dark' ? 'dark' : 'light'].text,
-        },
-    };
+  const MyTheme = {
+    ...(colorScheme === "dark" ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(colorScheme === "dark" ? DarkTheme.colors : DefaultTheme.colors),
+      primary: Colors[colorScheme === "dark" ? "dark" : "light"].primary,
+      background: Colors[colorScheme === "dark" ? "dark" : "light"].background,
+      card: Colors[colorScheme === "dark" ? "dark" : "light"].card,
+      text: Colors[colorScheme === "dark" ? "dark" : "light"].text,
+    },
+  };
 
-    return (
-        <NavigationContainer theme={MyTheme}>
-            <UserSettingProvider>
-                <UserMeProvider>
-                    <RootNavigator
-                        isLoggedIn={isLoggedIn}
-                        onLoginSuccess={handleLoginSuccess}
-                        onLogout={handleLogout}
-                    />
-                </UserMeProvider>
-            </UserSettingProvider>
-        </NavigationContainer>
-    );
+  return (
+    <NavigationContainer theme={MyTheme}>
+      <UserSettingProvider>
+        <UserMeProvider>
+          <RootNavigator
+            isLoggedIn={isLoggedIn}
+            onLoginSuccess={handleLoginSuccess}
+            onLogout={handleLogout}
+          />
+        </UserMeProvider>
+      </UserSettingProvider>
+    </NavigationContainer>
+  );
 }

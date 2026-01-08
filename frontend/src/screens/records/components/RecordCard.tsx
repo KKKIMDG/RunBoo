@@ -1,7 +1,13 @@
 // frontend/src/screens/records/components/RecordCard.tsx
 
-import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Platform,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import MapView, { Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 
@@ -23,6 +29,9 @@ export default function RecordCard({ item }: { item: RecordDto }) {
     const [detail, setDetail] = useState<RunRecordDetailDto | null>(null);
     const [routeError, setRouteError] = useState(false);
 
+    // ✅ [추가] A방법: 지도 자동 확대용 ref
+    const mapRef = useRef<MapView>(null);
+
     // ✅ 상세 화면처럼: 카드 렌더링 시 상세 API 호출해서 polyline 확보
     useEffect(() => {
         let alive = true;
@@ -30,7 +39,9 @@ export default function RecordCard({ item }: { item: RecordDto }) {
         (async () => {
             try {
                 setRouteError(false);
-                const res = (await fetchRunRecordDetail(Number(item.id))) as RunRecordDetailDto;
+                const res = (await fetchRunRecordDetail(
+                    Number(item.id)
+                )) as RunRecordDetailDto;
 
                 if (!alive) return;
 
@@ -63,7 +74,19 @@ export default function RecordCard({ item }: { item: RecordDto }) {
         }
     }, [detail?.routePolyline]);
 
-    const midCoord = coords.length > 0 ? coords[Math.floor(coords.length / 2)] : null;
+    const midCoord =
+        coords.length > 0 ? coords[Math.floor(coords.length / 2)] : null;
+
+    // ✅ [추가] coords 준비되면 경로가 카드 안에 꽉 차게 자동 확대
+    useEffect(() => {
+        if (!mapRef.current) return;
+        if (coords.length < 2) return;
+
+        mapRef.current.fitToCoordinates(coords, {
+            edgePadding: { top: 18, right: 18, bottom: 18, left: 18 },
+            animated: false,
+        });
+    }, [coords]);
 
     // RunResultScreen 느낌의 연한 지도 스타일
     const blurredMapStyle = [
@@ -73,13 +96,19 @@ export default function RecordCard({ item }: { item: RecordDto }) {
             elementType: "geometry",
             stylers: [{ visibility: "on" }, { color: "#ffffff" }, { weight: 1.5 }],
         },
-        { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9d1d9" }] },
+        {
+            featureType: "water",
+            elementType: "geometry",
+            stylers: [{ color: "#c9d1d9" }],
+        },
     ];
 
     return (
         <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => navigation.navigate("RunRecordDetail", { recordId: item.id })}
+            onPress={() =>
+                navigation.navigate("RunRecordDetail", { recordId: item.id })
+            }
         >
             <View style={s.card}>
                 <View style={s.header}>
@@ -99,7 +128,9 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                     </Text>
                 </View>
 
-                <Text style={s.sub}>{formatTimeRange(item.startedAt, item.endedAt)}</Text>
+                <Text style={s.sub}>
+                    {formatTimeRange(item.startedAt, item.endedAt)}
+                </Text>
 
                 {/** 가로 2분할 */}
                 <View style={s.bodyRow}>
@@ -127,8 +158,12 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                     <View style={s.mapCol} pointerEvents="none">
                         {coords.length > 0 && midCoord ? (
                             <MapView
+                                // ✅ [추가] TS 에러 없는 ref 연결
+                                ref={mapRef}
                                 style={StyleSheet.absoluteFill}
-                                provider={PROVIDER_GOOGLE}
+                                provider={
+                                    Platform.OS === "android" ? PROVIDER_GOOGLE : undefined
+                                }
                                 customMapStyle={blurredMapStyle}
                                 initialRegion={{
                                     latitude: midCoord.latitude,
@@ -144,10 +179,22 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                                 toolbarEnabled={false}
                                 showsCompass={false}
                             >
-                                {/* 상세 화면 느낌 그대로 3겹 정도만 */}
-                                <Polyline coordinates={coords} strokeColor="rgba(0,0,0,0.10)" strokeWidth={10} />
-                                <Polyline coordinates={coords} strokeColor="rgba(120, 160, 220, 0.55)" strokeWidth={6} />
-                                <Polyline coordinates={coords} strokeColor="rgba(255,255,255,0.70)" strokeWidth={2} />
+                                {/* 상세 화면 느낌 그대로 3겹 */}
+                                <Polyline
+                                    coordinates={coords}
+                                    strokeColor="rgba(0,0,0,0.10)"
+                                    strokeWidth={10}
+                                />
+                                <Polyline
+                                    coordinates={coords}
+                                    strokeColor="rgba(120, 160, 220, 0.55)"
+                                    strokeWidth={6}
+                                />
+                                <Polyline
+                                    coordinates={coords}
+                                    strokeColor="rgba(255,255,255,0.70)"
+                                    strokeWidth={2}
+                                />
                             </MapView>
                         ) : (
                             <View style={s.mapPlaceholder}>
