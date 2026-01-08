@@ -61,7 +61,7 @@ public class AuthController {
         // 앱의 가로채기 주소(REDIRECT_URL)에 토큰을 쿼리 파라미터로 붙입니다.
         String targetUrl = UriComponentsBuilder
                 // 테스트 시에는 프론트 주소, 실제 운영 시에는 실제 도메인 사용
-                .fromHttpUrl(frontendUrl)
+                .fromUriString(frontendUrl)
                 .queryParam("accessToken", loginRes.getAccessToken())
                 .queryParam("refreshToken", loginRes.getRefreshToken())
                 .build().toUriString();
@@ -80,7 +80,7 @@ public class AuthController {
 
         // 2. 앱으로 복귀 (카카오와 동일한 방식)
         String targetUrl = UriComponentsBuilder
-                .fromHttpUrl(frontendUrl)
+                .fromUriString(frontendUrl)
                 .queryParam("accessToken", loginRes.getAccessToken())
                 .queryParam("refreshToken", loginRes.getRefreshToken())
                 .build().toUriString();
@@ -89,6 +89,7 @@ public class AuthController {
         headers.setLocation(URI.create(targetUrl));
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
+
     @PostMapping("/signup")
     public ResponseEntity<Void> signupLocal(
             @Valid @RequestBody LocalSignupRequestDto request

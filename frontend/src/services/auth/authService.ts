@@ -33,8 +33,7 @@ export const AuthService = {
 
     /** 이메일 로그인 */
     login: async (data: LoginRequest): Promise<LoginResponse> => {
-        // @ts-ignore
-        const res = await api.post<LoginRequest>('/api/auth/login', data);
+        const res = await api.post<LoginResponse>('/api/auth/login', data);
 
         // 토큰 저장 책임은 로그인에만 둔다
         if (res.accessToken) {
