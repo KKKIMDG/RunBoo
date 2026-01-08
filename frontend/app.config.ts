@@ -20,6 +20,7 @@ export default (): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.runboo.frontend',
+    googleServicesFile: './frontSecrets/GoogleService-Info.plist',
     infoPlist: {
       UIBackgroundModes: ['location', 'fetch'],
       NSLocationAlwaysAndWhenInUseUsageDescription:
