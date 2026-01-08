@@ -62,7 +62,7 @@ public class FcmSendService {
                     .setNotification(
                             Notification.builder()
                                     .setTitle("오늘 러닝 어떠세요?")
-                                    .setBody("가볍게 3km만 뛰어도 충분해요 🏃")
+                                    .setBody("퇴실찍기!! 🏃")
                                     .build()
                     )
                     .putData("type", "REMINDER")
