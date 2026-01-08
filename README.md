@@ -1,16 +1,21 @@
 가장 트렌디한 런닝 앱.<br>
-***RunBoo*** <br>
+***--- RunBoo ---*** <br>
 입니다. <br>
 
-### 😀 서비스 개발 배경
-런닝의 인기가 하늘을 치솟고 있습니다.<br>
-하지만 시중에 출시되어 있는 런닝 앱은 소수입니다. <br>
-***RunBoo*** 가 완전히 새로운 런닝의 경험을 제공해 드립니다. <br>
+## 1. 서비스 관련 정보
+### 🏃 서비스 개발 배경
+런닝은 하나의 라이프스타일로 자리 잡으며 빠르게 성장하고 있습니다. <br>
+하지만 현재 시중에 출시되어 있는 런닝 앱들은 기능과 경험 면에서 매우 한정적입니다. <br>
+
+***RunBoo*** 는 단순한 기록을 넘어, <br>
+런닝을 더 재미있고, 지속 가능하게 만들기 위해 탄생했습니다. <br>
+
+가장 트렌디한 런닝 앱. ***RunBoo*** 와 함께 하세요.
 
 ### ⭐ 주요 기능
 
 **1. 티어** <br>
-몇 키로를 몇 분에 끊는지 길게 누군가에게 더 이상 설명할 필요가 없습니다. <br>
+몇 키로를 몇 분에 뛰는지 다른 사람에게 더 이상 길게 설명할 필요가 없습니다. <br>
 5km, 10km 의 런닝 기록을 측정하고 게임과 같이 티어를 부여받습니다. <br>
 런부의 티어 만으로 런닝크루 가입 및 자기소개에 유용하게 사용할 수 있습니다. <br>
 
@@ -18,15 +23,27 @@
 3가지의 런닝 모드 중 고스트 모드가 있습니다. <br>
 고스트 모드를 통해서 자신의 직전 런닝 기록, 자신의 베스트 페이스 런닝 기록, 이번주 평균치 런닝 기록 그리고 전국 Top5 의 런닝 페이스로 <br>
 함께 런닝을 뛸 수 있습니다. <br>
+물론 티어와 고스트 같은 특별한 런닝 모드만 있는 것은 아닙니다. 일반 런닝 모드도 기본 제공됩니다. <br>
 
 **3. 주변 러너 찾기** <br>
-따로 크루에 가입하지 않아도 당신은 혼자가 아닙니다. 운동화만 신고 나오세요.<br>
+굳이 크루에 가입하지 않아도 당신은 혼자가 아닙니다. 운동화만 신고 나오세요.<br>
 현재 위치를 기반으로 주변 러너들을 자동으로 찾아줍니다. <br>
-주변 러너들과 자신의 페이스를 비교하고, 코스까지 추천해줍니다. <br>
+주변 러너들과 자신의 페이스를 비교하고, 사용자 위치를 기반으로 주변 런닝 코스까지 추천해줍니다. <br>
+
+**4. 통계와 AI 분석 리포트** <br>
+런부는 단순히 런닝 기록을 남기는 것에서 끝나지 않습니다. <br>
+주간 기록, 월간 기록을 시각화해서 보여줍니다. <br>
+게다가 런부는 사용자의 월간 런닝 기록을 기반으로 AI 분석 리포트를 제공합니다. <br>
+AI 와 함께 지난 런닝을 되돌아보고, 앞으로의 목표를 세워보세요. <br>
+
+## 2. 개발 관련 정보
+
+### 🛠️ Stack
+[![My Skills](https://skillicons.dev/icons?i=spring,java,react,typescript,supabase,postgres,figma,git,github)](https://skillicons.dev)
 
 ### 👤 개발진
 
-**김동건** | PM, FullStack | [GitHub](https://github.com/KKKIMDG) <br>
-**김다빈** | FullStack | [GitHub](https://github.com/i3inni) <br>
-**김희곤** | FullStack | [GitHub](https://github.com/heegon02) <br>
-**이차원** | FullStack | [GitHub](https://github.com/Lee-Dimension) <br>
+**김동건** | 👑PM, 🛠️FullStack | [GitHub](https://github.com/KKKIMDG) <br>
+**김다빈** | 🛠️FullStack | [GitHub](https://github.com/i3inni) <br>
+**김희곤** | 🛠️FullStack | [GitHub](https://github.com/heegon02) <br>
+**이차원** | 🛠️FullStack | [GitHub](https://github.com/Lee-Dimension) <br>
