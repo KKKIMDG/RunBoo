@@ -1,19 +1,13 @@
-import { StyleSheet, Platform, Dimensions } from "react-native";
+import { Dimensions, StyleSheet, Platform } from "react-native";
+import { Colors, FontSizes } from "@/constants/theme";
 
 const { width } = Dimensions.get("window");
 
-export const getStyles = (isDarkMode: boolean = false) => {
-  const bgColor = isDarkMode ? "#121212" : "#F5F6F8"; // 전체 배경 (연한 회색)
-  const cardColor = isDarkMode ? "#1E1E1E" : "#FFFFFF"; // 카드 배경 (흰색)
-  const textColor = isDarkMode ? "#FFFFFF" : "#333333";
-  const subTextColor = isDarkMode ? "#AAAAAA" : "#888888";
-  const primaryColor = "#000000"; // 버튼 검은색
-  const mapPlaceholderColor = isDarkMode ? "#333333" : "#EFEFEF";
-
-  return StyleSheet.create({
+export const getStyles = (scheme: "light" | "dark") =>
+  StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: bgColor,
+      backgroundColor: Colors[scheme].background,
     },
     scrollContainer: {
       padding: 20,
@@ -29,7 +23,7 @@ export const getStyles = (isDarkMode: boolean = false) => {
       width: 80,
       height: 80,
       borderRadius: 40,
-      backgroundColor: "#E0E0E0", // 프로필 이미지 없을 때 배경
+      backgroundColor: Colors[scheme].background,
       justifyContent: "center",
       alignItems: "center",
       marginBottom: 10,
@@ -42,16 +36,16 @@ export const getStyles = (isDarkMode: boolean = false) => {
     titleText: {
       fontSize: 24,
       fontWeight: "bold",
-      color: textColor,
+      color: Colors[scheme].text,
       marginBottom: 5,
     },
     subtitleText: {
       fontSize: 16,
-      color: subTextColor,
+      color: Colors[scheme].subtext,
       fontWeight: "600",
     },
 
-    // --- 요약 통계 영역 (거리, 시간, 페이스) ---
+    // --- 요약 통계 영역 ---
     summaryContainer: {
       flexDirection: "row",
       justifyContent: "space-around",
@@ -65,32 +59,31 @@ export const getStyles = (isDarkMode: boolean = false) => {
     },
     summaryLabel: {
       fontSize: 14,
-      color: subTextColor,
+      color: Colors[scheme].subtext,
       marginTop: 8,
       marginBottom: 4,
     },
     summaryValue: {
       fontSize: 24,
       fontWeight: "bold",
-      color: textColor,
+      color: Colors[scheme].text,
       fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
     },
     summaryUnit: {
       fontSize: 12,
-      color: subTextColor,
+      color: Colors[scheme].subtext,
     },
 
     // --- 지도 영역 ---
     mapContainer: {
       width: width - 40,
-      height: width - 40, // 정사각형
-      backgroundColor: mapPlaceholderColor,
+      height: width - 40,
+      backgroundColor: Colors[scheme].secondaryBackground,
       borderRadius: 20,
       overflow: "hidden",
       marginBottom: 30,
       justifyContent: "center",
       alignItems: "center",
-      // 그림자
       ...Platform.select({
         ios: {
           shadowColor: "#000",
@@ -105,7 +98,7 @@ export const getStyles = (isDarkMode: boolean = false) => {
       ...StyleSheet.absoluteFillObject,
     },
     mapPlaceholderText: {
-      color: subTextColor,
+      color: Colors[scheme].subtext,
       fontSize: 16,
     },
     logoContainer: {
@@ -122,9 +115,10 @@ export const getStyles = (isDarkMode: boolean = false) => {
     buttonContainer: {
       width: "100%",
       marginBottom: 30,
+      marginTop: 20,
     },
     shareButton: {
-      backgroundColor: primaryColor,
+      backgroundColor: Colors[scheme].primary,
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
@@ -139,17 +133,17 @@ export const getStyles = (isDarkMode: boolean = false) => {
       marginLeft: 10,
     },
     homeButton: {
-      backgroundColor: cardColor,
+      backgroundColor: Colors[scheme].card,
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
       paddingVertical: 18,
       borderRadius: 30,
       borderWidth: 1,
-      borderColor: isDarkMode ? "#333" : "#E0E0E0",
+      borderColor: scheme === "dark" ? "#333" : "#E0E0E0",
     },
     homeButtonText: {
-      color: textColor,
+      color: Colors[scheme].text,
       fontSize: 16,
       fontWeight: "bold",
       marginLeft: 10,
@@ -161,20 +155,24 @@ export const getStyles = (isDarkMode: boolean = false) => {
       width: "100%",
     },
     bottomInfoCard: {
-      backgroundColor: cardColor,
-      width: (width - 60) / 2, // 2등분
+      backgroundColor: Colors[scheme].card,
+      width: (width - 60) / 2,
       padding: 20,
       borderRadius: 15,
     },
     bottomInfoLabel: {
       fontSize: 14,
-      color: subTextColor,
+      color: Colors[scheme].subtext,
       marginBottom: 10,
     },
     bottomInfoValue: {
       fontSize: 20,
       fontWeight: "bold",
-      color: textColor,
+      color: Colors[scheme].text,
+    },
+
+    icon: {
+      fontSize: 28,
+      color: Colors[scheme].icon,
     },
   });
-};

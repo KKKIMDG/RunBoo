@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -44,10 +44,8 @@ const RunResultScreen = () => {
   const route = useRoute<RunResultRouteProp>();
   const { distanceM, durationSec, avgPaceSec, calories, routeCoordinates } =
     route.params;
-
-  const isDarkMode = useColorScheme() === "dark";
-  const styles = getStyles(isDarkMode);
-  const iconColor = isDarkMode ? "#FFFFFF" : "#333333";
+  const colorScheme = useColorScheme() ?? "light";
+  const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
 
   const shareRef = useRef<View>(null);
   const storyRef = useRef<any>(null);
@@ -77,7 +75,6 @@ const RunResultScreen = () => {
   const midIdx = Math.floor(routeCoordinates.length / 2);
   const midCoord =
     routeCoordinates.length > 0 ? routeCoordinates[midIdx] : null;
-
   const startCoord = routeCoordinates.length > 0 ? routeCoordinates[0] : null;
   const endCoord =
     routeCoordinates.length > 0
@@ -97,33 +94,9 @@ const RunResultScreen = () => {
     }
   };
 
-  const blurredMapStyle = [
-    {
-      elementType: "geometry",
-      stylers: [{ color: isDarkMode ? "#242f3e" : "#f0f0f0" }],
-    },
-    {
-      featureType: "road",
-      elementType: "geometry",
-      stylers: [
-        { visibility: "on" },
-        { color: isDarkMode ? "#38414e" : "#ffffff" },
-        { weight: 1.5 },
-      ],
-    },
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: isDarkMode ? "#17263c" : "#c9d1d9" }],
-    },
-  ];
-
-  // 수정된 공유 핸들러
   const handleShare = async () => {
     try {
       if (storyRef.current) {
-        // captureRef에 ref 객체(storyRef.current)를 직접 전달
-        // captureRef에 ref 객체(storyRef.current)를 직접 전달
         const uri = await captureRef(storyRef, {
           format: "png",
           quality: 1.0,
@@ -140,10 +113,10 @@ const RunResultScreen = () => {
     }
   };
 
+  const isDarkMode = colorScheme === "dark";
+
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: isDarkMode ? "#000" : "#fff" }}
-    >
+    <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -151,13 +124,14 @@ const RunResultScreen = () => {
         <ViewShot
           ref={storyRef}
           options={{ format: "png", quality: 1.0 }}
-          style={{ backgroundColor: isDarkMode ? "#000" : "#fff" }}
+          style={{ width: "100%" }}
         >
-          <View style={localStyles.profileSection}>
-            <View style={localStyles.imageWrapper}>
+          {/* --- 상단 프로필 영역 --- */}
+          <View style={styles.profileContainer}>
+            <View style={styles.profileImageContainer}>
               <Image
                 source={require("@/assets/images/runboo.png")}
-                style={localStyles.mainImage}
+                style={styles.profileImage}
                 resizeMode="contain"
               />
             </View>
@@ -165,12 +139,12 @@ const RunResultScreen = () => {
             <Text style={styles.subtitleText}>Run Boo!</Text>
           </View>
 
+          {/* --- 요약 통계 --- */}
           <View style={styles.summaryContainer}>
             <View style={styles.summaryItem}>
               <MaterialCommunityIcons
                 name="map-marker-distance"
-                size={28}
-                color={iconColor}
+                style={styles.icon}
               />
               <Text style={styles.summaryLabel}>거리</Text>
               <Text style={styles.summaryValue}>
@@ -179,33 +153,32 @@ const RunResultScreen = () => {
               <Text style={styles.summaryUnit}>km</Text>
             </View>
             <View style={styles.summaryItem}>
-              <Ionicons name="time-outline" size={28} color={iconColor} />
+              <Ionicons name="time-outline" style={styles.icon} />
               <Text style={styles.summaryLabel}>시간</Text>
               <Text style={styles.summaryValue}>{formatTime(durationSec)}</Text>
               <Text style={styles.summaryUnit}>분:초</Text>
             </View>
             <View style={styles.summaryItem}>
-              <FontAwesome5 name="running" size={24} color={iconColor} />
+              <FontAwesome5 name="running" style={styles.icon} />
               <Text style={styles.summaryLabel}>페이스</Text>
               <Text style={styles.summaryValue}>{formatPace(avgPaceSec)}</Text>
               <Text style={styles.summaryUnit}>/km</Text>
             </View>
           </View>
 
+          {/* --- 지도 --- */}
           <View style={styles.mapContainer}>
             {routeCoordinates && routeCoordinates.length > 0 && midCoord ? (
               <View style={StyleSheet.absoluteFill}>
                 <MapView
                   ref={mapRef}
                   style={StyleSheet.absoluteFill}
-                  /* ✅ iOS / Android 분기 */
                   provider={
                     Platform.OS === "android"
                       ? PROVIDER_GOOGLE
                       : PROVIDER_DEFAULT
                   }
                   onMapReady={handleFocusRoute}
-                  customMapStyle={blurredMapStyle}
                   initialRegion={{
                     latitude: midCoord.latitude,
                     longitude: midCoord.longitude,
@@ -213,83 +186,72 @@ const RunResultScreen = () => {
                     longitudeDelta: 0.015,
                   }}
                 >
-                  {/* 1. ✅ 바닥 그림자 레이어: 경로의 깊이감을 줌 */}
+                  {/* 여러 레이어 Polyline */}
                   <Polyline
                     coordinates={routeCoordinates}
                     strokeColor="rgba(0,0,0,0.1)"
                     strokeWidth={16}
                   />
-
-                  {/* 2. ✅ 메인 발광 레이어 (Semi-transparent): 겹칠수록 밝아짐 */}
                   <Polyline
                     coordinates={routeCoordinates}
                     strokeColor={
                       isDarkMode
-                        ? "rgba(100, 150, 255, 0.4)"
-                        : "rgba(74, 110, 169, 0.4)"
+                        ? "rgba(100,150,255,0.4)"
+                        : "rgba(74,110,169,0.4)"
                     }
                     strokeWidth={10}
                   />
-
-                  {/* 3. ✅ 핵심 경로 레이어 (High Brightness): 겹치는 곳을 더 밝게 표현 */}
                   <Polyline
                     coordinates={routeCoordinates}
                     strokeColor={
                       isDarkMode
-                        ? "rgba(180, 210, 255, 0.6)"
-                        : "rgba(120, 160, 220, 0.5)"
+                        ? "rgba(180,210,255,0.6)"
+                        : "rgba(120,160,220,0.5)"
                     }
                     strokeWidth={6}
                   />
-
-                  {/* 4. ✅ 센터 하이라이트: 아주 얇은 선으로 경로의 중심을 잡음 */}
                   <Polyline
                     coordinates={routeCoordinates}
-                    strokeColor="rgba(255, 255, 255, 0.7)"
+                    strokeColor="rgba(255,255,255,0.7)"
                     strokeWidth={2}
                   />
 
                   {startCoord && (
                     <Marker coordinate={startCoord} anchor={{ x: 0.5, y: 0.5 }}>
-                      <View style={localStyles.markerCircle}>
-                        <View
-                          style={[
-                            localStyles.markerInner,
-                            { backgroundColor: "#4CAF50" },
-                          ]}
-                        />
-                      </View>
+                      <View
+                        style={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: 8,
+                          backgroundColor: "#4CAF50",
+                        }}
+                      />
                     </Marker>
                   )}
-
                   {endCoord && (
                     <Marker coordinate={endCoord} anchor={{ x: 0.5, y: 0.5 }}>
-                      <View style={localStyles.markerCircle}>
-                        <View
-                          style={[
-                            localStyles.markerInner,
-                            { backgroundColor: "#FF3B30" },
-                          ]}
-                        />
-                      </View>
+                      <View
+                        style={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: 8,
+                          backgroundColor: "#FF3B30",
+                        }}
+                      />
                     </Marker>
                   )}
                 </MapView>
 
-                <View
-                  style={[
-                    StyleSheet.absoluteFill,
-                    {
-                      backgroundColor: isDarkMode
-                        ? "rgba(0,0,0,0.15)"
-                        : "rgba(255,255,255,0.1)",
-                    },
-                  ]}
-                  pointerEvents="none"
-                />
-
                 <TouchableOpacity
-                  style={localStyles.focusButton}
+                  style={{
+                    position: "absolute",
+                    bottom: 16,
+                    right: 16,
+                    backgroundColor: "#FFFFFF",
+                    padding: 10,
+                    borderRadius: 30,
+                    elevation: 5,
+                  }}
                   onPress={handleFocusRoute}
                 >
                   <MaterialCommunityIcons
@@ -306,6 +268,7 @@ const RunResultScreen = () => {
             )}
           </View>
 
+          {/* --- 하단 정보 --- */}
           <View style={styles.bottomInfoContainer}>
             <View style={styles.bottomInfoCard}>
               <Text style={styles.bottomInfoLabel}>칼로리</Text>
@@ -320,13 +283,14 @@ const RunResultScreen = () => {
           </View>
         </ViewShot>
 
+        {/* --- 버튼 --- */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
             <Ionicons name="share-social-outline" size={24} color="#FFF" />
             <Text style={styles.shareButtonText}>기록 공유하기</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.homeButton} onPress={handleGoHome}>
-            <Ionicons name="home-outline" size={24} color={iconColor} />
+            <Ionicons name="home-outline" size={24} color={styles.icon.color} />
             <Text style={styles.homeButtonText}>홈으로 돌아가기</Text>
           </TouchableOpacity>
         </View>
@@ -334,47 +298,5 @@ const RunResultScreen = () => {
     </SafeAreaView>
   );
 };
-
-const localStyles = StyleSheet.create({
-  profileSection: { alignItems: "center", marginTop: 20, marginBottom: 10 },
-  imageWrapper: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#f0f0f0",
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-    marginBottom: 10,
-  },
-  mainImage: { width: "100%", height: "100%", backgroundColor: "#FFFFFF" },
-  focusButton: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    backgroundColor: "#FFFFFF",
-    padding: 10,
-    borderRadius: 30,
-    elevation: 5,
-  },
-  markerCircle: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-  },
-  markerInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-});
 
 export default RunResultScreen;
