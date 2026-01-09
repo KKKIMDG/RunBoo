@@ -5,9 +5,12 @@ import com.runboo.domain.ghost.dto.GhostProfileDto;
 import com.runboo.domain.ghost.dto.GhostProfileUpdateRequest;
 import com.runboo.domain.ghost.entity.GhostProfile;
 import com.runboo.domain.ghost.repository.GhostProfileRepository;
+import com.runboo.domain.record.entity.RunRecord;
+import com.runboo.domain.record.repository.RunRecordRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -15,7 +18,7 @@ import java.util.List;
 public class GhostProfileService {
 
     private final GhostProfileRepository ghostProfileRepository;
-
+    private final RunRecordRepository runRecordRepository;
     // 1) 유저 프로필 목록
     public List<GhostProfileDto> getProfiles(Long userId) {
         return ghostProfileRepository.findByUserIdOrderByCreatedAtDesc(userId)
@@ -75,5 +78,22 @@ public class GhostProfileService {
         }
 
         ghostProfileRepository.delete(gp);
+    }
+
+    public GhostProfileDto getTargetUserBest(Long targetUserId) {
+        RunRecord bestRecord = runRecordRepository.findTopByUserIdAndAvgPaceGreaterThanOrderByAvgPaceAsc(targetUserId, 0)
+                .orElse(null);
+
+        if (bestRecord == null) {
+            return null;
+        }
+        return GhostProfileDto.builder()
+                .id(0L)
+                .runRecordId(bestRecord.getId())
+                .type("TARGET_USER_BEST")
+                .targetDistanceKm(bestRecord.getDistanceM() / 1000.0)
+                .avgPace(bestRecord.getAvgPace())
+                .createdAt(bestRecord.getEndedAt().atZone(java.time.ZoneId.systemDefault()).toOffsetDateTime())
+                .build();
     }
 }

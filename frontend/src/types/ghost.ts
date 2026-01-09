@@ -2,6 +2,7 @@ export type GhostProfileType =
     | "SELF_BEST"
     | "SELF_YESTERDAY"
     | "SELF_WEEKLY_AVG"
+    | "TARGET_USER_BEST"
     | "RANKING_NATIONAL_1"
     | "RANKING_NATIONAL_2"
     | "RANKING_NATIONAL_3"

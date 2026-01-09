@@ -6,6 +6,7 @@ import com.runboo.domain.ghost.dto.GhostProfileUpdateRequest;
 import com.runboo.domain.ghost.service.GhostProfileService;
 import com.runboo.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,5 +47,15 @@ public class GhostProfileController {
     @DeleteMapping("/{ghostProfileId}")
     public void deleteProfile(@RequestParam Long userId, @PathVariable Long ghostProfileId) {
         ghostProfileService.deleteProfile(userId, ghostProfileId);
+    }
+
+    @GetMapping("/users/{userId}/best")
+    public ResponseEntity<GhostProfileDto> getTargetUserBest(@PathVariable Long userId) {
+        GhostProfileDto response = ghostProfileService.getTargetUserBest(userId);
+
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,6 +1,8 @@
 package com.runboo.domain.ghost.dto;
 
 import com.runboo.domain.ghost.entity.GhostProfile;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +10,8 @@ import java.time.OffsetDateTime;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class GhostProfileDto {
 
     private Long id;
