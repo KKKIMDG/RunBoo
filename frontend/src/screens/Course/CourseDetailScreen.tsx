@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
     View,
     Text,
@@ -6,12 +6,17 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
-    Platform, useColorScheme,
+    Platform,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
-// ✅ 데이터 타입 정의 (위도, 경도 추가)
+// ✅ API 및 훅 import
+import { api } from '@/services/api';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors } from '@/constants/theme';
+import { useMe } from '@/hooks/useMe'; // ✅ 내 정보(userId) 가져오기 위해 추가
+
 interface CourseDetailType {
     id: number;
     name: string;
@@ -20,29 +25,30 @@ interface CourseDetailType {
     imageUrl: string | null;
     description?: string;
     isSaved?: boolean;
-    // [중요] 구글맵은 좌표가 필수입니다.
     latitude: number;
     longitude: number;
 }
 
 export default function CourseDetailScreen({ route, navigation }: any) {
+    const { course }: { course: CourseDetailType } = route.params || {};
+    const [loading, setLoading] = useState(true);
+    const [isSaved, setIsSaved] = useState(false);
+
+    // ✅ 로그인 유저 정보 가져오기
+    const { me } = useMe();
 
     const colorScheme = useColorScheme() ?? "light";
+    const colors = Colors[colorScheme];
 
     const styles = useMemo(() => {
         return getStyles(colorScheme);
     }, [colorScheme]);
-
-    const { course }: { course: CourseDetailType } = route.params || {};
-    const [loading, setLoading] = useState(true);
-    const [isSaved, setIsSaved] = useState(false);
 
     useEffect(() => {
         if (!course) {
             Alert.alert('오류', '코스 정보가 없습니다.');
             navigation.goBack();
         } else {
-            // 데이터가 로드되면 로딩 해제
             setLoading(false);
             setIsSaved(!!course.isSaved);
         }
@@ -52,9 +58,37 @@ export default function CourseDetailScreen({ route, navigation }: any) {
         navigation.goBack();
     };
 
-    const handleToggleHeart = () => {
-        setIsSaved(!isSaved);
-        // TODO: API 호출 추가
+    // ✅ [수정됨] API 명세서에 맞춘 토글 로직 (POST /api/user-courses/toggle)
+    const handleToggleHeart = async () => {
+        if (!me) {
+            Alert.alert("알림", "로그인이 필요한 기능입니다.");
+            return;
+        }
+
+        const originalState = isSaved;
+        const newState = !isSaved;
+
+        // 1. 화면 먼저 변경 (낙관적 업데이트)
+        setIsSaved(newState);
+
+        try {
+            // 2. API 요청 (명세서 기준)
+            // Endpoint: POST /api/user-courses/toggle
+            // Body: { "userId": 1, "courseId": 1 }
+            await api.post('/api/user-courses/toggle', {
+                userId: me.userId,
+                courseId: course.id
+            });
+
+            console.log(`찜하기 토글 성공: ${newState ? 'ON' : 'OFF'}`);
+
+        } catch (error) {
+            console.error("찜하기 변경 실패:", error);
+
+            // 3. 실패 시 롤백 (원래 상태로 복구)
+            setIsSaved(originalState);
+            Alert.alert("오류", "찜하기 상태를 변경하지 못했습니다.");
+        }
     };
 
     const handleCopyAddress = async () => {
@@ -67,7 +101,7 @@ export default function CourseDetailScreen({ route, navigation }: any) {
     if (loading || !course) {
         return (
             <View style={styles.overlay}>
-                <ActivityIndicator size="large" color="#fff" />
+                <ActivityIndicator size="large" color={colors.text} />
             </View>
         );
     }
@@ -106,19 +140,18 @@ export default function CourseDetailScreen({ route, navigation }: any) {
                     </View>
                 </View>
 
-                {/* [변경] MapView 영역 */}
+                {/* MapView 영역 */}
                 <View style={styles.mapArea}>
                     <MapView
                         style={{ flex: 1 }}
-                        provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined} // iOS는 기본 맵, Android는 구글맵
+                        provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
                         initialRegion={{
-                            latitude: course.latitude || 37.5665, // 데이터 없으면 서울시청
+                            latitude: course.latitude || 37.5665,
                             longitude: course.longitude || 126.9780,
-                            latitudeDelta: 0.005, // 줌 레벨 (작을수록 확대)
+                            latitudeDelta: 0.005,
                             longitudeDelta: 0.005,
                         }}
                     >
-                        {/* 마커 표시 */}
                         <Marker
                             coordinate={{
                                 latitude: course.latitude || 37.5665,
@@ -152,96 +185,99 @@ export default function CourseDetailScreen({ route, navigation }: any) {
     );
 }
 
-const getStyles = (scheme: "light" | "dark") =>
-    StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    popupContainer: {
-        backgroundColor: '#fff',
-        width: '100%',
-        height: '70%',
-        borderRadius: 16,
-        overflow: 'hidden',
-    },
-    header: {
-        backgroundColor: '#2B3467',
-        padding: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#fff',
-        marginBottom: 4,
-    },
-    address: {
-        color: '#E5E7EB',
-        fontSize: 13,
-    },
-    headerButtons: {
-        flexDirection: 'row',
-        gap: 8,
-    },
-    iconButton: {
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        borderRadius: 20,
-        width: 36,
-        height: 36,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    closeButton: {
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        marginLeft: 8,
-    },
-    closeIconText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    heartIcon: {
-        color: '#FF6B6B',
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    mapArea: {
-        width: '100%',
-        flex: 1,
-        backgroundColor: '#E5E7EB',
-    },
-    infoContent: {
-        padding: 20,
-    },
-    badge: {
-        backgroundColor: '#F3F4F6',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 6,
-        alignSelf: 'flex-start',
-    },
-    distanceText: {
-        fontSize: 15,
-        color: '#1F2937',
-        fontWeight: '700',
-    },
-    copyButton: {
-        backgroundColor: '#1F2937',
-        padding: 16,
-        alignItems: 'center',
-        marginHorizontal: 20,
-        marginBottom: 20,
-        borderRadius: 10,
-    },
-    copyButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-});
+export const getStyles = (scheme: "light" | "dark") => {
+    const colors = Colors[scheme];
+
+    return StyleSheet.create({
+        overlay: {
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+        },
+        popupContainer: {
+            backgroundColor: colors.background,
+            width: '100%',
+            height: '70%',
+            borderRadius: 16,
+            overflow: 'hidden',
+        },
+        header: {
+            backgroundColor: '#2B3467',
+            padding: 20,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+        },
+        title: {
+            fontSize: 20,
+            fontWeight: 'bold',
+            color: '#fff',
+            marginBottom: 4,
+        },
+        address: {
+            color: '#E5E7EB',
+            fontSize: 13,
+        },
+        headerButtons: {
+            flexDirection: 'row',
+            gap: 8,
+        },
+        iconButton: {
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            borderRadius: 20,
+            width: 36,
+            height: 36,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        closeButton: {
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            marginLeft: 8,
+        },
+        closeIconText: {
+            color: '#fff',
+            fontSize: 18,
+            fontWeight: 'bold',
+        },
+        heartIcon: {
+            color: '#FF6B6B',
+            fontSize: 20,
+            fontWeight: 'bold',
+        },
+        mapArea: {
+            width: '100%',
+            flex: 1,
+            backgroundColor: '#E5E7EB',
+        },
+        infoContent: {
+            padding: 20,
+        },
+        badge: {
+            backgroundColor: scheme === 'dark' ? '#333' : '#F3F4F6',
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            borderRadius: 6,
+            alignSelf: 'flex-start',
+        },
+        distanceText: {
+            fontSize: 15,
+            color: colors.text,
+            fontWeight: '700',
+        },
+        copyButton: {
+            backgroundColor: scheme === 'dark' ? '#4B5563' : '#1F2937',
+            padding: 16,
+            alignItems: 'center',
+            marginHorizontal: 20,
+            marginBottom: 20,
+            borderRadius: 10,
+        },
+        copyButtonText: {
+            color: '#fff',
+            fontSize: 16,
+            fontWeight: 'bold',
+        },
+    });
+};
