@@ -49,7 +49,7 @@ export const Colors = {
   },
   dark: {
     text: "#ECEDEE",
-    subtext: "#222629ff",
+    subtext: "#60686eff",
     background: "#121212",
     secondaryBackground: "#2C2C2E",
     tint: tintColorDark,
