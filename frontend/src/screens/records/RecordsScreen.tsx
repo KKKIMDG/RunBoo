@@ -1,12 +1,12 @@
 //frontend/src/screens/records/RecordsScreen.tsx
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, {useEffect, useState, useCallback, useMemo} from "react";
 import {
     View,
     Text,
     FlatList,
     ActivityIndicator,
-    RefreshControl,
+    RefreshControl, useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -23,7 +23,7 @@ import PersonalBestList from "../stats/components/PersonalBestList";
 import { fetchMyRecords, fetchDashboardStats } from "@/services/record/recordsService";
 import type { RecordDto, DashboardStatsDto } from "@/types/record";
 
-import { styles as s } from "./RecordsScreen.style";
+import { getStyles } from "./RecordsScreen.style";
 import AiAnalysisCard from "./components/AiAnalysisCard";
 
 type TopTab = "record" | "stats";
@@ -50,6 +50,13 @@ function endOfDay(d: Date) {
 }
 
 export default function RecordsScreen() {
+
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     const tabBarHeight = useSafeBottomTabBarHeight();
 
     const [activeTab, setActiveTab] = useState<TopTab>("record");
@@ -145,17 +152,17 @@ export default function RecordsScreen() {
 
     if (currentLoading) {
         return (
-            <View style={s.center}>
+            <View style={styles.center}>
                 <ActivityIndicator />
             </View>
         );
     }
 
     return (
-        <SafeAreaView style={s.safeArea}>
-            <View style={s.container}>
-                <Text style={s.title}>{activeTab === "record" ? "기록" : "통계"}</Text>
-                <Text style={s.subTitle}>
+        <SafeAreaView style={styles.safeArea}>
+            <View style={styles.container}>
+                <Text style={styles.title}>{activeTab === "record" ? "기록" : "통계"}</Text>
+                <Text style={styles.subTitle}>
                     {activeTab === "record" ? "나의 런닝 기록" : "나의 런닝 통계"}
                 </Text>
 
@@ -187,7 +194,7 @@ export default function RecordsScreen() {
                             onReset={() => setMode(null)}
                         />
 
-                        {recordsError && <Text style={s.errorText}>{recordsError}</Text>}
+                        {recordsError && <Text style={styles.errorText}>{recordsError}</Text>}
 
                         <FlatList
                             data={filteredRecords}
@@ -208,7 +215,7 @@ export default function RecordsScreen() {
                             }
                             ListEmptyComponent={
                                 <View style={{ paddingTop: 40 }}>
-                                    <Text style={s.emptyText}>
+                                    <Text style={styles.emptyText}>
                                         {anyFilterOn
                                             ? "조건에 맞는 러닝 기록이 없어요."
                                             : "아직 러닝 기록이 없어요."}
@@ -224,7 +231,7 @@ export default function RecordsScreen() {
 
                 {activeTab === "stats" && (
                     <>
-                        {statsError && <Text style={s.errorText}>{statsError}</Text>}
+                        {statsError && <Text style={styles.errorText}>{statsError}</Text>}
 
                         <FlatList
                             data={[]}

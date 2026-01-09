@@ -1,7 +1,7 @@
 //frontend/src/screens/stats/components/MonthlyChart.tsx
 
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, {useMemo} from "react";
+import {View, Text, StyleSheet, useColorScheme} from "react-native";
 import type { MonthlySummaryDto } from "@/types/record";
 
 function km(m: number) {
@@ -13,36 +13,44 @@ function hours(sec: number) {
 }
 
 export default function MonthlyChart({ monthly }: { monthly: MonthlySummaryDto }) {
+
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     return (
-        <View style={s.card}>
+        <View style={styles.card}>
             {/* 헤더 영역 */}
-            <View style={s.headerRow}>
-                <Text style={s.h}>이번 달</Text>
-                <Text style={s.sub}>총 {monthly.totalRuns}회</Text>
+            <View style={styles.headerRow}>
+                <Text style={styles.h}>이번 달</Text>
+                <Text style={styles.sub}>총 {monthly.totalRuns}회</Text>
             </View>
 
-            <View style={s.grid}>
-                <View style={s.box}>
-                    <Text style={s.boxLabel}>거리</Text>
-                    <Text style={s.boxValue1}>{km(monthly.totalDistanceM)}</Text>
-                    <Text style={s.boxUnit}>km</Text>
+            <View style={styles.grid}>
+                <View style={styles.box}>
+                    <Text style={styles.boxLabel}>거리</Text>
+                    <Text style={styles.boxValue1}>{km(monthly.totalDistanceM)}</Text>
+                    <Text style={styles.boxUnit}>km</Text>
                 </View>
-                <View style={s.box}>
-                    <Text style={s.boxLabel}>시간</Text>
-                    <Text style={s.boxValue2}>{hours(monthly.totalDurationSec)}</Text>
-                    <Text style={s.boxUnit}>시간</Text>
+                <View style={styles.box}>
+                    <Text style={styles.boxLabel}>시간</Text>
+                    <Text style={styles.boxValue2}>{hours(monthly.totalDurationSec)}</Text>
+                    <Text style={styles.boxUnit}>시간</Text>
                 </View>
-                <View style={s.box}>
-                    <Text style={s.boxLabel}>칼로리</Text>
-                    <Text style={s.boxValue1}>{Math.round(monthly.totalCalories)}</Text>
-                    <Text style={s.boxUnit}>kcal</Text>
+                <View style={styles.box}>
+                    <Text style={styles.boxLabel}>칼로리</Text>
+                    <Text style={styles.boxValue1}>{Math.round(monthly.totalCalories)}</Text>
+                    <Text style={styles.boxUnit}>kcal</Text>
                 </View>
             </View>
         </View>
     );
 }
 
-const s = StyleSheet.create({
+export const getStyles = (scheme: "light" | "dark" ) =>
+    StyleSheet.create({
     card: {
         backgroundColor: "#F5F7FB",
         borderRadius: 18,

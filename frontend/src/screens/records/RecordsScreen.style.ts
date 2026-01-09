@@ -1,8 +1,10 @@
 //frontend/src/screens/records/RecordsScreen.style.ts
 
 import { StyleSheet } from "react-native";
+import { Colors } from "@/constants/theme";
 
-export const styles = StyleSheet.create({
+export const getStyles = (scheme: "light" | "dark")=>
+    StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: "#FFF",

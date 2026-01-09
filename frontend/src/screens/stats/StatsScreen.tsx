@@ -1,12 +1,12 @@
 //frontend/src/screens/stats/StatsScreen.tsx
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, {useEffect, useState, useCallback, useMemo} from "react";
 import {
     View,
     Text,
     ActivityIndicator,
     RefreshControl,
-    FlatList,
+    FlatList, useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -18,9 +18,16 @@ import MonthlyChart from "./components/MonthlyChart";
 import WeeklyChart from "./components/WeeklyChart";
 import PersonalBestList from "./components/PersonalBestList";
 
-import { styles as s } from "./StatsScreen.style";
+import { getStyles } from "./StatsScreen.style";
 
 export default function StatsScreen() {
+
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     const tabBarHeight = useBottomTabBarHeight();
 
     const [loading, setLoading] = useState(true);
@@ -52,20 +59,20 @@ export default function StatsScreen() {
 
     if (loading) {
         return (
-            <View style={s.center}>
+            <View style={styles.center}>
                 <ActivityIndicator />
             </View>
         );
     }
 
     return (
-        <SafeAreaView style={s.safeArea}>
-            <View style={s.container}>
-                <Text style={s.title}>통계</Text>
-                <Text style={s.subTitle}>나의 러닝 통계</Text>
+        <SafeAreaView style={styles.safeArea}>
+            <View style={styles.container}>
+                <Text style={styles.title}>통계</Text>
+                <Text style={styles.subTitle}>나의 러닝 통계</Text>
 
                 {errorMsg && (
-                    <Text style={s.errorText}>{errorMsg}</Text>
+                    <Text style={styles.errorText}>{errorMsg}</Text>
                 )}
 
                 <FlatList

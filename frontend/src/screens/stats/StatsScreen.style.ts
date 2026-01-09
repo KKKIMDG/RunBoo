@@ -2,7 +2,8 @@
 
 import { StyleSheet } from "react-native";
 
-export const styles = StyleSheet.create({
+export const getStyles = (scheme: "light" | "dark") =>
+    StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: "#F5F7FB",

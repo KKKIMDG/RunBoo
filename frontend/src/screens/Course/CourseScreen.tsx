@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import { View, Text, FlatList, StatusBar, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,8 +20,12 @@ const FILTERS: { label: string; type: FilterType }[] = [
 export default function CourseScreen() {
     const { activeFilter, courses, loading, handlers } = useCourseScreen();
 
-    const colorScheme = useColorScheme() ?? 'light';
-    const styles = getStyles(colorScheme);
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     const colors = Colors[colorScheme];
 
     const renderItem = ({ item }: { item: CourseType }) => (
