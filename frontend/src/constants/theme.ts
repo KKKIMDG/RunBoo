@@ -39,13 +39,13 @@ export const Colors = {
     inactiveIcon: "#ffffffff",
     borders: "#E9ECEF",
     muted: "#ADB5BD",
-    subText: "#687076",
     warningBox: "#EEF2FF",
     warningTitle: "#3A4A98",
     warningText: "#4B5563",
-    destructiveBox: "#FEF2F2",      // 매우 연한 레드 배경
-    destructiveTitle: "#DC2626",   // 또렷한 레드 타이틀
+    destructiveBox: "#FEF2F2", // 매우 연한 레드 배경
+    destructiveTitle: "#DC2626", // 또렷한 레드 타이틀
     destructiveText: "#7F1D1D",
+    infoText: "#687076",
   },
   dark: {
     text: "#ECEDEE",
@@ -74,13 +74,13 @@ export const Colors = {
     inactiveIcon: "#868E96",
     borders: "#38383A",
     muted: "#48484A",
-    subText: "#222629ff",
     warningBox: "#1F2A44",
     warningTitle: "#A5B4FC",
     warningText: "#CBD5E1",
-    destructiveBox: "#2A1215",     // 다크 레드 배경 (블랙 아님)
-    destructiveTitle: "#FCA5A5",  // 밝은 레드 타이틀
-    destructiveText: "#FECACA",   // 연한 레드 설명 텍스트
+    destructiveBox: "#2A1215", // 다크 레드 배경 (블랙 아님)
+    destructiveTitle: "#FCA5A5", // 밝은 레드 타이틀
+    destructiveText: "#FECACA", // 연한 레드 설명 텍스트
+    infoText: "#c6d5df",
   },
 } as const;
 

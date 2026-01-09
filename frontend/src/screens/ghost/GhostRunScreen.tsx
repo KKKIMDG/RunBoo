@@ -32,6 +32,7 @@ type IoniconName =
     | "glasses-sharp";
 
 export default function GhostRunScreen() {
+
     const scheme = (useColorScheme() ?? "light") as "light" | "dark";
     const base = Colors[scheme] as any;
 

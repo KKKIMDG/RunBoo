@@ -71,7 +71,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="chevron-back" size={20} color="#000" />
+          <Ionicons name="chevron-back" style={styles.icon} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>설정</Text>
       </View>
@@ -87,42 +87,31 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
             }}
           />
           <View
-            style={{
-              position: "absolute",
-              top: dropdown.y + dropdown.height,
-              right: 20,
-              backgroundColor: "#FFF",
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: "#E9ECEF",
-              elevation: 6,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.08,
-              shadowRadius: 8,
-              minWidth: 160,
-            }}
+              style={[
+                styles.dropdownContainer,
+                {
+                  top: dropdown.y + dropdown.height,
+                  right: 20,
+                },
+              ]}
           >
             {dropdown.options.map((opt) => (
-              <TouchableOpacity
-                key={String(opt.value)}
-                style={{
-                  height: 48,
-                  justifyContent: "center",
-                  paddingHorizontal: 18,
-                }}
-                onPress={() => {
-                  dropdown.onSelect(opt.value);
-                  setDropdown(null);
-                  setOpenSelectKey(null);
-                }}
-              >
-                <Text style={{ fontSize: 15, color: "#1F2937" }}>
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                    key={String(opt.value)}
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      dropdown.onSelect(opt.value);
+                      setDropdown(null);
+                      setOpenSelectKey(null);
+                    }}
+                >
+                  <Text style={styles.dropdownItemText}>
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
             ))}
           </View>
+
         </Modal>
       )}
 

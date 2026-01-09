@@ -1,8 +1,9 @@
 // frontend/src/screens/stats/components/PersonalBestList.tsx
 
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useMemo } from "react";
+import { View, Text, StyleSheet, useColorScheme } from "react-native";
 import type { PersonalBestsDto, RecordDto } from "@/types/record";
+import { Colors } from "@/constants/theme";
 import {
     formatDate,
     formatDuration,
@@ -15,125 +16,135 @@ function Row({
                  record,
                  valueText,
                  accentColor,
+                 styles,
              }: {
     title: string;
     record: RecordDto | null;
     valueText: string;
     accentColor: string;
+    styles: ReturnType<typeof getStyles>;
 }) {
     return (
-        <View style={s.row}>
+        <View style={styles.row}>
             {/* 왼쪽 포인트 컬러 */}
-            <View style={[s.accent, { backgroundColor: accentColor }]} />
+            <View style={[styles.accent, { backgroundColor: accentColor }]} />
 
             {/* 왼쪽 영역 (제목 + 날짜) */}
-            <View style={s.left}>
-                <Text style={s.rowTitle}>{title}</Text>
-                <Text style={s.rowDate}>
+            <View style={styles.left}>
+                <Text style={styles.rowTitle}>{title}</Text>
+                <Text style={styles.rowDate}>
                     {record ? formatDate(record.startedAt) : "-"}
                 </Text>
             </View>
 
             {/* 오른쪽 영역 (값) */}
-            <Text style={s.rowValueRight}>{valueText}</Text>
+            <Text style={styles.rowValueRight}>{valueText}</Text>
         </View>
     );
 }
 
 export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     const longestDistance = pb.longestDistance;
     const longestDuration = pb.longestDuration;
     const bestPace = pb.bestPace;
 
     return (
-        <View style={[s.card, { marginTop: 12 }]}>
-            <Text style={s.h}>최고 기록</Text>
+        <View style={[styles.card, { marginTop: 12 }]}>
+            <Text style={styles.h}>최고 기록</Text>
 
             <Row
                 title="최장 거리"
                 record={longestDistance}
-                valueText={
-                    longestDistance ? formatKm(longestDistance.distanceM) : "-"
-                }
-                accentColor="#2F4AA0"
+                valueText={longestDistance ? formatKm(longestDistance.distanceM) : "-"}
+                accentColor={Colors[colorScheme].primary}
+                styles={styles}
             />
 
             <Row
                 title="최고 페이스"
                 record={bestPace}
-                valueText={bestPace && bestPace.avgPace != null ? formatPace(bestPace.avgPace) : "-"}
-                accentColor="#111827"
+                valueText={
+                    bestPace && bestPace.avgPace != null ? formatPace(bestPace.avgPace) : "-"
+                }
+                accentColor={Colors[colorScheme].text}
+                styles={styles}
             />
 
             <Row
                 title="최장 시간"
                 record={longestDuration}
                 valueText={
-                    longestDuration
-                        ? formatDuration(longestDuration.durationSec)
-                        : "-"
+                    longestDuration ? formatDuration(longestDuration.durationSec) : "-"
                 }
-                accentColor="#2F4AA0"
+                accentColor={Colors[colorScheme].primary}
+                styles={styles}
             />
         </View>
     );
 }
 
-const s = StyleSheet.create({
-    card: {
-        backgroundColor: "#F5F7FB",
-        borderRadius: 18,
-        padding: 14,
-        borderWidth: 1,
-        borderColor: "#EEF1F7",
-    },
-    h: {
-        color: "#000",
-        fontWeight: "700",
-        marginBottom: 14,
-    },
-    row: {
-        backgroundColor: "#FFF",
-        borderRadius: 16,
-        paddingVertical: 12,
-        paddingHorizontal: 14,
-        marginTop: 10,
+export const getStyles = (scheme: "light" | "dark") =>
+    StyleSheet.create({
+        card: {
+            backgroundColor: Colors[scheme].background,
+            borderRadius: 18,
+            padding: 14,
+            borderWidth: 1,
+            borderColor: Colors[scheme].border,
+        },
+        h: {
+            color: Colors[scheme].text,
+            fontWeight: "700",
+            marginBottom: 14,
+        },
+        row: {
+            backgroundColor: Colors[scheme].card,
+            borderRadius: 16,
+            paddingVertical: 12,
+            paddingHorizontal: 14,
+            marginTop: 10,
 
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
 
-        position: "relative",
-        overflow: "hidden",
-    },
-    accent: {
-        position: "absolute",
-        left: 0,
-        top: 8,
-        bottom: 8,
-        width: 5,
-        borderTopRightRadius: 6,
-        borderBottomRightRadius: 6,
-    },
-    left: {
-        flex: 1,
-        paddingLeft: 6,
-        paddingRight: 10,
-    },
-    rowTitle: {
-        color: "#6B7280",
-        fontWeight: "600",
-    },
-    rowDate: {
-        marginTop: 6,
-        color: "#9CA3AF",
-        fontWeight: "600",
-        fontSize: 12,
-    },
-    rowValueRight: {
-        color: "#3A4A98",
-        fontSize: 20,
-        fontWeight: "800",
-        textAlign: "right",
-    },
-});
+            position: "relative",
+            overflow: "hidden",
+        },
+        accent: {
+            position: "absolute",
+            left: 0,
+            top: 8,
+            bottom: 8,
+            width: 5,
+            borderTopRightRadius: 6,
+            borderBottomRightRadius: 6,
+        },
+        left: {
+            flex: 1,
+            paddingLeft: 6,
+            paddingRight: 10,
+        },
+        rowTitle: {
+            color: Colors[scheme].text,
+            fontWeight: "600",
+        },
+        rowDate: {
+            marginTop: 6,
+            color: Colors[scheme].tabIconDefault,
+            fontWeight: "600",
+            fontSize: 12,
+        },
+        rowValueRight: {
+            color: Colors[scheme].primary,
+            fontSize: 20,
+            fontWeight: "800",
+            textAlign: "right",
+        },
+    });
