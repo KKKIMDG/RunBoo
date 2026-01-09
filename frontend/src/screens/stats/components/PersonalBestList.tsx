@@ -1,7 +1,7 @@
 // frontend/src/screens/stats/components/PersonalBestList.tsx
 
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, {useMemo} from "react";
+import {View, Text, StyleSheet, useColorScheme} from "react-native";
 import type { PersonalBestsDto, RecordDto } from "@/types/record";
 import {
     formatDate,
@@ -15,39 +15,48 @@ function Row({
                  record,
                  valueText,
                  accentColor,
+                 styles,
              }: {
     title: string;
     record: RecordDto | null;
     valueText: string;
     accentColor: string;
+    styles: ReturnType<typeof getStyles>;
 }) {
     return (
-        <View style={s.row}>
+        <View style={styles.row}>
             {/* 왼쪽 포인트 컬러 */}
-            <View style={[s.accent, { backgroundColor: accentColor }]} />
+            <View style={[styles.accent, { backgroundColor: accentColor }]} />
 
             {/* 왼쪽 영역 (제목 + 날짜) */}
-            <View style={s.left}>
-                <Text style={s.rowTitle}>{title}</Text>
-                <Text style={s.rowDate}>
+            <View style={styles.left}>
+                <Text style={styles.rowTitle}>{title}</Text>
+                <Text style={styles.rowDate}>
                     {record ? formatDate(record.startedAt) : "-"}
                 </Text>
             </View>
 
             {/* 오른쪽 영역 (값) */}
-            <Text style={s.rowValueRight}>{valueText}</Text>
+            <Text style={styles.rowValueRight}>{valueText}</Text>
         </View>
     );
 }
 
 export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
+
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     const longestDistance = pb.longestDistance;
     const longestDuration = pb.longestDuration;
     const bestPace = pb.bestPace;
 
     return (
-        <View style={[s.card, { marginTop: 12 }]}>
-            <Text style={s.h}>최고 기록</Text>
+        <View style={[styles.card, { marginTop: 12 }]}>
+            <Text style={styles.h}>최고 기록</Text>
 
             <Row
                 title="최장 거리"
@@ -56,6 +65,7 @@ export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
                     longestDistance ? formatKm(longestDistance.distanceM) : "-"
                 }
                 accentColor="#2F4AA0"
+                styles={styles}
             />
 
             <Row
@@ -63,6 +73,7 @@ export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
                 record={bestPace}
                 valueText={bestPace && bestPace.avgPace != null ? formatPace(bestPace.avgPace) : "-"}
                 accentColor="#111827"
+                styles={styles}
             />
 
             <Row
@@ -74,12 +85,14 @@ export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
                         : "-"
                 }
                 accentColor="#2F4AA0"
+                styles={styles}
             />
         </View>
     );
 }
 
-const s = StyleSheet.create({
+export const getStyles = (scheme: "light" | "dark") =>
+    StyleSheet.create({
     card: {
         backgroundColor: "#F5F7FB",
         borderRadius: 18,
