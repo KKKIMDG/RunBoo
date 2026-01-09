@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { Colors } from "@/constants/theme";
+import {Borders, Colors, Shadows} from "@/constants/theme";
 
 export const getStyles = (scheme: "light" | "dark") =>
   StyleSheet.create({
@@ -52,7 +52,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     valueText: {
       fontSize: 14,
       marginRight: 4,
-      color: Colors[scheme].subText,
+      color: Colors[scheme].infoText,
     },
 
     valueDisabled: {

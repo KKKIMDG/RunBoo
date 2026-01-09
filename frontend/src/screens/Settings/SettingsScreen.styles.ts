@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/theme";
+import {Borders, Colors, Shadows} from "@/constants/theme";
 import { StyleSheet, Platform } from "react-native";
 
 export const getStyles = (scheme: "light" | "dark") =>
@@ -90,4 +90,32 @@ export const getStyles = (scheme: "light" | "dark") =>
       backgroundColor: Colors[scheme].background,
       shadowColor: Colors[scheme].shadow,
     },
+    icon:{
+        color: Colors[scheme].icon,
+        fontSize: 22,
+    },
+      dropdownContainer: {
+          position: "absolute",
+          backgroundColor: Colors[scheme].card,
+          borderRadius: Borders.radius.md,
+          borderWidth: 1,
+          borderColor: Colors[scheme].border,
+          minWidth: 160,
+          ...Shadows.card,
+      },
+
+      dropdownItem: {
+          height: 48,
+          justifyContent: "center",
+          paddingHorizontal: 18,
+      },
+
+      dropdownItemText: {
+          fontSize: 15,
+          color: Colors[scheme].text,
+      },
+
+      dropdownItemDisabled: {
+          color: Colors[scheme].muted,
+      },
   });
