@@ -1,108 +1,118 @@
 import { StyleSheet } from "react-native";
+import { Colors } from "@/constants/theme";
 
-export const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: "#F8FAFC",
-        paddingHorizontal: 20,
-    },
+export const getStyles = (scheme: "light" | "dark") =>
+    StyleSheet.create({
+        safeArea: {
+            flex: 1,
+            backgroundColor: Colors[scheme].background,
+            paddingHorizontal: 20,
+        },
 
-    header: {
-        height: 56,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-    },
+        header: {
+            height: 56,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+        },
 
-    headerTitle: {
-        fontSize: 17,
-        fontWeight: "bold",
-        color: "#111827",
-    },
+        headerTitle: {
+            fontSize: 17,
+            fontWeight: "bold",
+            color: Colors[scheme].text,
+        },
 
-    scrollContent: {
-        paddingBottom: 24,
-    },
+        icon: {
+            fontSize: 22,
+            color: Colors[scheme].icon,
+        },
 
-    noticeBox: {
-        flexDirection: "row",
-        backgroundColor: "#FEF2F2", // 탈퇴용 경고 톤
-        borderRadius: 14,
-        padding: 14,
-        marginBottom: 20,
-    },
+        scrollContent: {
+            paddingBottom: 24,
+        },
 
-    noticeTextWrapper: {
-        marginLeft: 10,
-        flex: 1,
-    },
+        /* =========================
+           탈퇴 경고 박스 (Destructive)
+           ========================= */
+        noticeBox: {
+            flexDirection: "row",
+            backgroundColor: Colors[scheme].destructiveBox,
+            borderRadius: 14,
+            padding: 14,
+            marginBottom: 20,
+        },
 
-    noticeTitle: {
-        fontSize: 13,
-        fontWeight: "600",
-        color: "#DC2626",
-        marginBottom: 4,
-    },
+        noticeIcon: {
+            fontSize: 18,
+            color: Colors[scheme].error, // 아이콘은 강하게
+        },
 
-    noticeDesc: {
-        fontSize: 12,
-        color: "#7F1D1D",
-        lineHeight: 18,
-    },
+        noticeTextWrapper: {
+            marginLeft: 10,
+            flex: 1,
+        },
 
-    form: {
-        flex: 1,
-    },
+        noticeTitle: {
+            fontSize: 13,
+            fontWeight: "600",
+            color: Colors[scheme].destructiveTitle,
+            marginBottom: 4,
+        },
 
-    label: {
-        fontSize: 13,
-        fontWeight: "600",
-        color: "#111827",
-        marginBottom: 6,
-        marginTop: 12,
-    },
+        noticeDesc: {
+            fontSize: 12,
+            color: Colors[scheme].destructiveText,
+            lineHeight: 18,
+        },
 
-    inputWrapper: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#FFF",
-        borderRadius: 14,
-        paddingHorizontal: 14,
-        height: 48,
-        borderWidth: 1,
-        borderColor: "#E5E7EB",
-    },
+        form: {
+            flex: 1,
+        },
 
-    input: {
-        flex: 1,
-        fontSize: 14,
-        color: "#111827",
-    },
+        label: {
+            fontSize: 13,
+            fontWeight: "600",
+            color: Colors[scheme].text,
+            marginBottom: 6,
+            marginTop: 12,
+        },
 
-    withdrawButton: {
-        height: 56,
-        borderRadius: 16,
-        backgroundColor: "#DC2626", // 빨강 계열
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: 28,
-    },
+        inputWrapper: {
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: Colors[scheme].background,
+            borderRadius: 14,
+            paddingHorizontal: 14,
+            height: 48,
+            borderWidth: 1,
+            borderColor: Colors[scheme].border,
+        },
 
-    withdrawButtonDisabled: {
-        backgroundColor: "#FCA5A5",
-    },
+        input: {
+            flex: 1,
+            fontSize: 14,
+            color: Colors[scheme].text,
+        },
 
-    withdrawButtonText: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#FFFFFF",
-    },
+        /* =========================
+           탈퇴 버튼
+           ========================= */
+        withdrawButton: {
+            height: 56,
+            borderRadius: 16,
+            backgroundColor: Colors[scheme].error,
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 28,
+        },
 
-    cancelText: {
-        marginTop: 18,
-        textAlign: "center",
-        fontSize: 13,
-        color: "#6B7280",
-        textDecorationLine: "underline",
-    },
-});
+        withdrawButtonDisabled: {
+            backgroundColor: Colors[scheme].disabled,
+        },
+
+        withdrawButtonText: {
+            fontSize: 16,
+            fontWeight: "600",
+            color: Colors[scheme].white,
+        },
+    });
