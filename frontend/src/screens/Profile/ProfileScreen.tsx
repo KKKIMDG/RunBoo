@@ -31,7 +31,12 @@ export default function ProfileScreen({ navigation }: any) {
       {/* ===== 헤더 ===== */}
       <View style={styles.headerContainer}>
         <BackButton />
+
+
+
         <Text style={styles.headerTitle}>프로필</Text>
+
+
         <TouchableOpacity
           style={styles.headerRightIcon}
           onPress={() => navigation.navigate("Settings")}

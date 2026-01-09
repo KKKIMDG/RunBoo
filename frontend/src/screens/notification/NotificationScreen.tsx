@@ -83,7 +83,7 @@ const NotificationScreen = () => {
                     style={styles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Ionicons name="chevron-back" size={20} color="#000" />
+                    <Ionicons name="chevron-back" style={styles.icon} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>알림</Text>
             </View>
