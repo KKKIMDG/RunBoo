@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity, useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
@@ -19,8 +19,10 @@ export function BottomNavBar({
   onTabPress,
 }: BottomNavBarProps) {
   const colorScheme = useColorScheme() ?? "light";
-  const styles = getStyles(colorScheme);
 
+  const styles = useMemo(() => {
+    return getStyles(colorScheme);
+  }, [colorScheme]);
   const tabs: {
     name: string;
     icon: IoniconName;

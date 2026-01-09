@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useUserMe } from "@/contexts/UserMeContext";
 import { getStyles } from "@/components/layout/TopNavBar.styles";
+import { useMemo } from "react";
 
 import { useFonts, FugazOne_400Regular } from "@expo-google-fonts/fugaz-one";
 
@@ -23,7 +24,10 @@ export function TopNavBar({ onLeftPress, onRightPress }: TopNavBarProps) {
   const { userMe } = useUserMe();
   const [imageLoading, setImageLoading] = useState(false);
   const colorScheme = useColorScheme() ?? "light";
-  const styles = getStyles(colorScheme);
+
+  const styles = useMemo(() => {
+    return getStyles(colorScheme);
+  }, [colorScheme]);
 
   const [fontsLoaded] = useFonts({
     FugazOne_400Regular,
