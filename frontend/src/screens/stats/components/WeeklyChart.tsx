@@ -1,7 +1,7 @@
 //frontend/src/screens/stats/components/WeeklyChart.tsx
 
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, {useMemo} from "react";
+import {View, Text, StyleSheet, useColorScheme} from "react-native";
 import type { WeeklySummaryDto } from "@/types/record";
 
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
@@ -20,6 +20,13 @@ function getMonStartIndex(item: any): number | null {
 }
 
 export default function WeeklyChart({ weekly }: { weekly: WeeklySummaryDto }) {
+
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     // ✅ 주간 총 러닝 횟수
     const totalRuns = weekly.items.reduce(
         (sum, it) => sum + (it.runs ?? 0),
@@ -39,14 +46,14 @@ export default function WeeklyChart({ weekly }: { weekly: WeeklySummaryDto }) {
     const max = Math.max(1, ...points);
 
     return (
-        <View style={[s.card, { marginTop: 12 }]}>
+        <View style={[styles.card, { marginTop: 12 }]}>
             {/* 헤더 */}
-            <View style={s.header}>
-                <Text style={s.h}>이번 주</Text>
-                <Text style={s.sub}>총 {totalRuns}회</Text>
+            <View style={styles.header}>
+                <Text style={styles.h}>이번 주</Text>
+                <Text style={styles.sub}>총 {totalRuns}회</Text>
             </View>
 
-            <View style={s.chartRow}>
+            <View style={styles.chartRow}>
                 {points.map((v, idx) => {
                     const ratio = v / max;
                     const barHeight = Math.max(
@@ -56,16 +63,16 @@ export default function WeeklyChart({ weekly }: { weekly: WeeklySummaryDto }) {
                     const hasValue = v > 0;
 
                     return (
-                        <View key={idx} style={s.col}>
-                            <View style={s.barWrap}>
-                                <View style={[s.bar,
-                                    !hasValue && s.barZero,
+                        <View key={idx} style={styles.col}>
+                            <View style={styles.barWrap}>
+                                <View style={[styles.bar,
+                                    !hasValue && styles.barZero,
                                     { height: barHeight }]} />
                             </View>
 
-                            <View style={s.labelWrap}>
-                                <Text style={[s.day, !hasValue && s.dayZero]}>{DAYS[idx]}</Text>
-                                <Text style={[s.km, !hasValue && s.kmZero]}>{v.toFixed(1)}km</Text>
+                            <View style={styles.labelWrap}>
+                                <Text style={[styles.day, !hasValue && styles.dayZero]}>{DAYS[idx]}</Text>
+                                <Text style={[styles.km, !hasValue && styles.kmZero]}>{v.toFixed(1)}km</Text>
                             </View>
                         </View>
                     );
@@ -75,7 +82,8 @@ export default function WeeklyChart({ weekly }: { weekly: WeeklySummaryDto }) {
     );
 }
 
-const s = StyleSheet.create({
+export const getStyles = (scheme: "light" | "dark") =>
+    StyleSheet.create({
     card: {
         backgroundColor: "#F5F7FB",
         borderRadius: 18,
