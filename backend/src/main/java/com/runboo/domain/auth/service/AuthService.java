@@ -27,12 +27,122 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+
     private final EmailAuthService emailAuthService;
+
+    /**
+     * 소셜 OAuth 공통 처리용 서비스
+     * - provider별 분기 책임
+     */
     private final SocialOAuthService socialOAuthService;
+
+    /** provider별 accessToken 발급 전용 */
+    private final KakaoOAuthService kakaoOAuthService;
+    private final GoogleOAuthService googleOAuthService;
+
+    /** refresh token 영속화 */
     private final RefreshTokenRepository refreshTokenRepository;
+
+    /** 비밀번호 재설정 플로우 관리 */
     private final PasswordResetService passwordResetService;
+
+    /* =====================
+       소셜 로그인 (Redirect 전용)
+       ===================== */
+
+    /**
+     * 소셜 로그인 공통 처리 (redirect 전용)
+     *
+     * 정책
+     * - LOCAL 계정 → 소셜 로그인 차단
+     * - 탈퇴 계정 → 로그인 차단
+     * - 신규 소셜 계정 → 자동 회원가입
+     *
+     * ! 예외를 throw 하지 않고 결과 객체로 반환
+     *    → OAuth redirect 흐름에서 사용
+     */
+    @Transactional
+    public SocialLoginResult loginBySocialForRedirect(SocialLoginRequestDto request) {
+
+        SocialProvider provider = request.getProvider();
+
+        // 소셜 서버에서 사용자 정보 조회
+        SocialUserInfo socialUser =
+                socialOAuthService.getUserInfo(provider, request.getAccessToken());
+
+        User user = userRepository.findByEmail(socialUser.getEmail()).orElse(null);
+
+        // LOCAL 계정이면 소셜 로그인 불가
+        if (user != null && user.getSocialProvider() == SocialProvider.LOCAL) {
+            return new SocialLoginResult(false, "LOCAL_ACCOUNT", null, null);
+        }
+
+        // 탈퇴 / 비활성 계정 차단
+        if (user != null && user.getUserState() != UserState.ACTIVATION) {
+            return new SocialLoginResult(false, "DEACTIVATED", null, null);
+        }
+
+        // 신규 소셜 회원 자동 생성
+        if (user == null) {
+            user = userRepository.save(
+                    User.createSocial(
+                            socialUser.getEmail(),
+                            provider,
+                            socialUser.getNickname()
+                    )
+            );
+        }
+
+        // 로그인 토큰 발급
+        LoginResponseDto tokenDto = generateLoginResponse(user, false);
+
+        return new SocialLoginResult(
+                true,
+                "SUCCESS",
+                tokenDto.getAccessToken(),
+                tokenDto.getRefreshToken()
+        );
+    }
+
+    /**
+     * 카카오 OAuth callback 전용
+     * - 인가 코드 → accessToken 교환
+     * - 공통 소셜 로그인 로직 위임
+     */
+    @Transactional
+    public SocialLoginResult loginByKakaoCodeForRedirect(String code) {
+
+        String kakaoAccessToken =
+                kakaoOAuthService.getKakaoAccessToken(code);
+
+        return loginBySocialForRedirect(
+                new SocialLoginRequestDto(kakaoAccessToken, SocialProvider.KAKAO)
+        );
+    }
+
+    /**
+     * 구글 OAuth callback 전용
+     */
+    @Transactional
+    public SocialLoginResult loginByGoogleCodeForRedirect(String code) {
+
+        String googleAccessToken =
+                googleOAuthService.getGoogleAccessToken(code);
+
+        return loginBySocialForRedirect(
+                new SocialLoginRequestDto(googleAccessToken, SocialProvider.GOOGLE)
+        );
+    }
+
+    /* =====================
+       로컬 회원가입 / 로그인
+       ===================== */
+
     /**
      * 로컬 회원가입
+     *
+     * 선행 조건
+     * - 이메일 인증 완료
      */
     @Transactional
     public void signupLocal(LocalSignupRequestDto request) {
@@ -46,11 +156,9 @@ public class AuthService {
             );
         }
 
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-
         User user = User.createLocal(
                 request.getEmail(),
-                encodedPassword,
+                passwordEncoder.encode(request.getPassword()),
                 request.getNickname()
         );
 
@@ -58,7 +166,53 @@ public class AuthService {
     }
 
     /**
-     * 이메일 인증 코드 발송
+     * 이메일 로그인
+     *
+     * 정책
+     * - 소셜 계정 로그인 불가
+     * - 탈퇴 계정 로그인 불가
+     */
+    @Transactional
+    public LoginResponseDto loginByEmail(LocalLoginRequestDto request) {
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST,
+                                "이메일 또는 비밀번호가 올바르지 않습니다."
+                        )
+                );
+
+        if (user.isSocialUser()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "소셜 로그인 계정입니다."
+            );
+        }
+
+        if (user.getUserState() != UserState.ACTIVATION) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "이메일 또는 비밀번호가 올바르지 않습니다."
+            );
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "이메일 또는 비밀번호가 올바르지 않습니다."
+            );
+        }
+
+        return generateLoginResponse(user, true);
+    }
+
+    /* =====================
+       이메일 인증
+       ===================== */
+
+    /**
+     * 회원가입용 이메일 인증 코드 발송
      */
     @Transactional
     public void sendEmailVerifyCode(EmailVerifyRequestDto request) {
@@ -83,111 +237,62 @@ public class AuthService {
         emailAuthService.verify(request.getEmail(), request.getCode());
     }
 
+    /* =====================
+       토큰 발급 공통 로직
+       ===================== */
+
     /**
-     * 이메일 로그인
+     * 로그인 성공 시 토큰 발급 + refresh token 저장
+     *
+     * 정책
+     * - LOCAL: 3개월
+     * - SOCIAL: 14일
+     *
+     * 기존 refresh token은 항상 제거 (단일 세션 정책)
      */
-    @Transactional
-    public LoginResponseDto loginByEmail(LocalLoginRequestDto request) {
+    private LoginResponseDto generateLoginResponse(User user, boolean isLocal) {
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.BAD_REQUEST,
-                                "이메일 또는 비밀번호가 올바르지 않습니다."
-                        )
-                );
-
-        if (user.isSocialUser()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "소셜 로그인 계정입니다."
-            );
-        }
-
-        // 탈퇴 계정도 없는 취급
-        if (user.getUserState() != UserState.ACTIVATION) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "이메일 또는 비밀번호가 올바르지 않습니다."
-            );
-        }
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "이메일 또는 비밀번호가 올바르지 않습니다."
-            );
-        }
         Long userId = user.getId();
-        String accessToken = jwtTokenProvider.createAccessToken(userId);
-        String refreshToken = jwtTokenProvider.createRefreshToken(userId);
 
-        // refresh token 해시
-        String hashedRefreshToken = passwordEncoder.encode(refreshToken);
+        String accessToken =
+                jwtTokenProvider.createAccessToken(userId);
+        String refreshToken =
+                jwtTokenProvider.createRefreshToken(userId);
 
-        refreshTokenRepository.deleteByUserId(userId); //기존 refresh 토큰 삭제
+        refreshTokenRepository.deleteByUserId(userId);
 
-        RefreshToken entity = new RefreshToken( //refresh 토큰 재발급
-                userId,
-                hashedRefreshToken,
-                LocalDateTime.now().plusMonths(3) // 만료 정책
+        LocalDateTime expiresAt =
+                isLocal
+                        ? LocalDateTime.now().plusMonths(3)
+                        : LocalDateTime.now().plusDays(14);
+
+        refreshTokenRepository.save(
+                new RefreshToken(
+                        userId,
+                        passwordEncoder.encode(refreshToken),
+                        expiresAt
+                )
         );
-        refreshTokenRepository.save(entity); //refresh 토큰 저장
 
         return LoginResponseDto.from(user, accessToken, refreshToken);
     }
 
-    /**
-     * 소셜 로그인
-     */
-    @Transactional
-    public LoginResponseDto loginBySocial(SocialLoginRequestDto request) {
-
-        SocialProvider provider = request.getProvider();
-
-        SocialUserInfo socialUser =
-                socialOAuthService.getUserInfo(provider, request.getAccessToken());
-
-        User user = userRepository.findByEmail(socialUser.getEmail())
-                .orElseGet(() ->
-                        userRepository.save(
-                                User.createSocial(
-                                        socialUser.getEmail(),
-                                        socialUser.getProvider(),
-                                        socialUser.getNickname()
-                                )
-                        )
-                );
-
-        if (user.getUserState() != UserState.ACTIVATION) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "탈퇴된 계정입니다. 탈퇴 후 한달 동안 동일 이메일로 가입이 불가합니다."
-            );
-        }
-
-        Long userId = user.getId();
-        String accessToken = jwtTokenProvider.createAccessToken(userId);
-        String refreshToken = jwtTokenProvider.createRefreshToken(userId);
-
-        refreshTokenRepository.deleteByUserId(userId); //기존 refresh 토큰 삭제
-        RefreshToken entity = new RefreshToken( //refresh 토큰 재발급
-                userId,
-                refreshToken,
-                LocalDateTime.now().plusDays(14) // 만료 정책
-        );
-        refreshTokenRepository.save(entity); //refresh 토큰 저장
-
-        return LoginResponseDto.from(user, accessToken, refreshToken);
-    }
+    /* =====================
+       토큰 재발급
+       ===================== */
 
     /**
-     * 토큰재발급
+     * refresh token 기반 access token 재발급
+     *
+     * 검증 순서
+     * 1. JWT 형식 검증
+     * 2. DB 저장 여부
+     * 3. 만료 여부
+     * 4. 해시 일치 여부
      */
     @Transactional
     public String reissueAccessToken(String refreshToken) {
 
-        // 1. refresh token 서명 + 만료 검증
         if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
@@ -195,93 +300,105 @@ public class AuthService {
             );
         }
 
-        // 2. refresh token에서 userId 추출
-        Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        Long userId =
+                jwtTokenProvider.getUserIdFromToken(refreshToken);
 
-        // 3. DB에 저장된 refresh token 조회
-        RefreshToken savedToken = refreshTokenRepository
-                .findByUserId(userId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.UNAUTHORIZED,
-                        "로그인 정보 없음"
-                ));
+        RefreshToken savedToken =
+                refreshTokenRepository.findByUserId(userId)
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.UNAUTHORIZED,
+                                        "로그인 정보 없음"
+                                )
+                        );
 
-        // 4. DB 만료 시간 검증 (중요)
         if (savedToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "refresh token 만료"
             );
         }
-        // 5. 해시 비교
+
         if (!passwordEncoder.matches(refreshToken, savedToken.getToken())) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "refresh token 불일치"
             );
         }
-        // 6. 새 access token 발급
+
         return jwtTokenProvider.createAccessToken(userId);
     }
 
+    /* =====================
+       비밀번호 재설정
+       ===================== */
 
     /**
      * 비밀번호 재설정 요청 (1단계)
+     *
+     * 보안 정책
+     * - 존재하지 않는 이메일도 성공 처리
+     * - 소셜 계정은 내부적으로만 차단
      */
     @Transactional
     public void requestPasswordReset(PasswordResetRequestDto request) {
 
         userRepository.findByEmail(request.getEmail())
                 .ifPresent(user -> {
-                    // 소셜 계정은 내부적으로만 차단
                     if (user.isSocialUser()) return;
 
                     String code = passwordResetService.generateCode();
                     passwordResetService.saveCode(request.getEmail(), code);
                     passwordResetService.sendMail(request.getEmail(), code);
                 });
-
-        // 존재하지 않는 이메일도 항상 성공 처리
     }
+
     /**
      * 비밀번호 재설정 코드 검증 (2단계)
-     *
-     * 처리 흐름
-     * 1. 이메일 + 코드 검증
-     * 2. 성공 시 resetToken 발급
-     * 3. 인증 코드 즉시 삭제 (재사용 방지)
      */
     @Transactional
     public PasswordResetVerifyResponseDto verifyPasswordResetCode(
             PasswordResetVerifyRequestDto request
     ) {
-        // 1. 코드 검증 (만료 + 일치 여부)
-        PasswordReset passwordReset = passwordResetService.verifyCode(
-                request.getEmail(),
-                request.getCode()
-        );
 
-        // 2. 비밀번호 재설정 전용 토큰 발급
-        String resetToken = jwtTokenProvider.createPasswordResetToken(
-                passwordReset.getEmail()
-        );
+        PasswordReset passwordReset =
+                passwordResetService.verifyCode(
+                        request.getEmail(),
+                        request.getCode()
+                );
+
+        String resetToken =
+                jwtTokenProvider.createPasswordResetToken(
+                        passwordReset.getEmail()
+                );
 
         return new PasswordResetVerifyResponseDto(resetToken);
     }
+
     /**
      * 비밀번호 재설정 (3단계)
-     * - resetToken 검증 후 새 비밀번호로 변경
+     *
+     * 처리
+     * - 비밀번호 변경
+     * - 모든 refresh token 무효화
+     * - 인증 코드 제거
      */
     @Transactional
-    public void resetPassword(String resetToken, PasswordResetChangeRequestDto request) {
+    public void resetPassword(
+            String resetToken,
+            PasswordResetChangeRequestDto request
+    ) {
 
-        String email = jwtTokenProvider.getEmailFromPasswordResetToken(resetToken);
+        String email =
+                jwtTokenProvider.getEmailFromPasswordResetToken(resetToken);
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "사용자를 찾을 수 없습니다."
-                ));
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST,
+                                "사용자를 찾을 수 없습니다."
+                        )
+                );
 
         if (user.getSocialProvider() != SocialProvider.LOCAL) {
             throw new ResponseStatusException(
@@ -297,15 +414,11 @@ public class AuthService {
             );
         }
 
-        user.changePassword(passwordEncoder.encode(request.getNewPassword()));
+        user.changePassword(
+                passwordEncoder.encode(request.getNewPassword())
+        );
 
-        // 기존 로그인 세션 무효화
         refreshTokenRepository.deleteByUserId(user.getId());
-
-        // 인증 코드 제거
-        //    - 같은 코드 재사용 방지
-        //    - resetToken만 유효한 상태로 전환
         passwordResetService.delete(email);
     }
 }
-

@@ -1,39 +1,64 @@
 package com.runboo.domain.auth.service;
 
 import com.runboo.domain.user.dto.KakaoUserInfo;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 @Service
 public class KakaoOAuthService {
 
-    // 카카오 OAuth API 호출 전용 RestTemplate
-    // (소셜 API 호출 책임만 가지며, 도메인 로직은 절대 포함하지 않는다)
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Value("${kakao.rest-api-key}")
+    private String clientId;
+
+    @Value("${kakao.redirect-uri}")
+    private String redirectUri;
+
     /**
-     * 카카오 AccessToken을 이용해 사용자 정보를 조회한다.
-     * 책임:
-     * - 카카오 서버와 통신
-     * - 카카오 응답(JSON)을 KakaoUserResponse DTO로 역직렬화
-     * 책임 아님:
-     * - SocialUserInfo 변환
-     * - 회원 가입/로그인 판단
+     * [신규 추가] 1. 인가 코드(code)를 이용해 카카오 AccessToken을 발급받는다.
+     */
+    public String getKakaoAccessToken(String code) {
+        String tokenUrl = "https://kauth.kakao.com/oauth/token";
+
+        // 헤더 설정: Content-type은 반드시 x-www-form-urlencoded여야 함
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        // 파라미터 설정
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("client_id", clientId);
+        params.add("redirect_uri", redirectUri);
+        params.add("code", code);
+
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+
+        // 카카오 서버에 POST 요청
+        ResponseEntity<Map> response = restTemplate.postForEntity(tokenUrl, request, Map.class);
+
+        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+            return (String) response.getBody().get("access_token");
+        }
+
+        throw new RuntimeException("카카오 액세스 토큰 획득 실패");
+    }
+
+    /**
+     * 2. 카카오 AccessToken을 이용해 사용자 정보를 조회한다. (기존 유지)
      */
     public KakaoUserInfo getUserInfo(String accessToken) {
-
-        // Authorization: Bearer {accessToken} 헤더 구성
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
 
-        // 요청 바디는 없고, 헤더만 전달
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        // 카카오 사용자 정보 조회 API 호출
         ResponseEntity<KakaoUserInfo> response =
                 restTemplate.exchange(
                         "https://kapi.kakao.com/v2/user/me",
@@ -42,8 +67,6 @@ public class KakaoOAuthService {
                         KakaoUserInfo.class
                 );
 
-        // 응답 DTO 그대로 반환
-        // (null 처리 및 공통 모델 변환은 상위 서비스에서 담당)
         return response.getBody();
     }
 }

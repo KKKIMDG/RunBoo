@@ -33,8 +33,7 @@ export const AuthService = {
 
     /** 이메일 로그인 */
     login: async (data: LoginRequest): Promise<LoginResponse> => {
-        // @ts-ignore
-        const res = await api.post<LoginRequest>('/api/auth/login', data);
+        const res = await api.post<LoginResponse>('/api/auth/login', data);
 
         // 토큰 저장 책임은 로그인에만 둔다
         if (res.accessToken) {
@@ -68,21 +67,21 @@ export const AuthService = {
         return api.post('/api/auth/signup', data);
     },
 
-    /** 구글 로그인 */
-    googleLogin: (googleAccessToken: string) => {
-        return api.post('/api/auth/login/oauth', {
-            provider: 'GOOGLE',
-            accessToken: googleAccessToken,
-        });
-    },
-
-    /** 카카오 로그인 */
-    kakaoLogin: (kakaoAccessToken: string) => {
-        return api.post('/api/auth/login/oauth', {
-            provider: 'KAKAO',
-            accessToken: kakaoAccessToken,
-        });
-    },
+    // /** 구글 로그인 */
+    // googleLogin: (googleAccessToken: string) => {
+    //     return api.post('/api/auth/login/oauth', {
+    //         provider: 'GOOGLE',
+    //         accessToken: googleAccessToken,
+    //     });
+    // },
+    //
+    // /** 카카오 로그인 */
+    // kakaoLogin: (kakaoAccessToken: string) => {
+    //     return api.post('/api/auth/login/oauth', {
+    //         provider: 'KAKAO',
+    //         accessToken: kakaoAccessToken,
+    //     });
+    // },
 
     /** 로그아웃 */
     logout: async () => {

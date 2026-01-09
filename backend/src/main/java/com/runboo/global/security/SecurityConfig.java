@@ -44,6 +44,8 @@ public class SecurityConfig {
                                 "/api/auth/password/verify",
                                 "/api/auth/password/reset",
                                 "/api/notifications/test/reminder",
+                                "/api/auth/kakao/callback",
+                                "/api/auth/google/callback",
 
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
