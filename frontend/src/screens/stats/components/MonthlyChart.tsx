@@ -3,6 +3,7 @@
 import React, {useMemo} from "react";
 import {View, Text, StyleSheet, useColorScheme} from "react-native";
 import type { MonthlySummaryDto } from "@/types/record";
+import {Colors} from "@/constants/theme";
 
 function km(m: number) {
     return (m / 1000).toFixed(2);
@@ -52,11 +53,11 @@ export default function MonthlyChart({ monthly }: { monthly: MonthlySummaryDto }
 export const getStyles = (scheme: "light" | "dark" ) =>
     StyleSheet.create({
     card: {
-        backgroundColor: "#F5F7FB",
+        backgroundColor: Colors[scheme].background,
         borderRadius: 18,
         padding: 14,
         borderWidth: 1,
-        borderColor: "#EEF1F7",
+        borderColor: Colors[scheme].border,
     },
     headerRow: {
         flexDirection: "row",
@@ -64,12 +65,12 @@ export const getStyles = (scheme: "light" | "dark" ) =>
         alignItems: "center",
     },
     h: {
-        color: "#000",
+        color: Colors[scheme].text,
         fontWeight: "700",
         marginBottom: 10,
     },
     sub: {
-        color: "#6B7280",
+        color: Colors[scheme].tabIconDefault,
         fontWeight: "600",
         marginBottom: 10,
     },
@@ -80,30 +81,30 @@ export const getStyles = (scheme: "light" | "dark" ) =>
     },
     box: {
         flex: 1,
-        backgroundColor: "#FFF",
+        backgroundColor: Colors[scheme].secondaryBackground,
         borderRadius: 14,
         padding: 12,
         alignItems: "center",
     },
     boxLabel: {
-        color: "#9CA3AF",
+        color: Colors[scheme].tabIconDefault,
         fontWeight: "600",
     },
     boxValue1: {
         marginTop: 6,
         fontSize: 25,
         fontWeight: "900",
-        color: "#3A4A98",
+        color: Colors[scheme].primary,
     },
     boxValue2: {
         marginTop: 6,
         fontSize: 25,
         fontWeight: "900",
-        color: "#111827",
+        color: Colors[scheme].primary,
     },
     boxUnit: {
         marginTop: 2,
-        color: "#9CA3AF",
+        color: Colors[scheme].tabIconDefault,
         fontWeight: "500",
     },
 });

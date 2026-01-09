@@ -10,8 +10,10 @@ import {
     Modal,
     LayoutAnimation,
     UIManager,
+    useColorScheme,
 } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import { Colors } from "@/constants/theme";
 
 type Props = {
     fromDate: Date | null;
@@ -53,6 +55,12 @@ export default function DateRangeFilter({
                                             onChangeToDate,
                                             onReset,
                                         }: Props) {
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     const [expanded, setExpanded] = useState(false);
     const [pickerTarget, setPickerTarget] = useState<"from" | "to" | null>(null);
 
@@ -137,53 +145,44 @@ export default function DateRangeFilter({
     };
 
     return (
-        <View style={s.wrap}>
-            <TouchableOpacity style={s.bar} onPress={toggleExpanded} activeOpacity={0.85}>
-                <View style={s.barLeft}>
-                    <Text style={s.title}>기간 조회</Text>
+        <View style={styles.wrap}>
+            <TouchableOpacity style={styles.bar} onPress={toggleExpanded} activeOpacity={0.85}>
+                <View style={styles.barLeft}>
+                    <Text style={styles.title}>기간 조회</Text>
                 </View>
 
-                <View style={s.barRight}>
-                    <Text style={s.subRight}>{summaryText}</Text>
+                <View style={styles.barRight}>
+                    <Text style={styles.subRight}>{summaryText}</Text>
                 </View>
             </TouchableOpacity>
 
             {expanded && (
-                <View style={s.panel}>
-                    <View style={s.controls}>
-                        <TouchableOpacity style={s.pickBtn} onPress={onPressFrom} activeOpacity={0.85}>
-                            <Text style={s.pickLabel}>시작일</Text>
-                            <Text style={s.pickValue}>{fmt(fromDate)}</Text>
+                <View style={styles.panel}>
+                    <View style={styles.controls}>
+                        <TouchableOpacity style={styles.pickBtn} onPress={onPressFrom} activeOpacity={0.85}>
+                            <Text style={styles.pickLabel}>시작일</Text>
+                            <Text style={styles.pickValue}>{fmt(fromDate)}</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={s.pickBtn} onPress={onPressTo} activeOpacity={0.85}>
-                            <Text style={s.pickLabel}>종료일</Text>
-                            <Text style={s.pickValue}>{fmt(toDate)}</Text>
+                        <TouchableOpacity style={styles.pickBtn} onPress={onPressTo} activeOpacity={0.85}>
+                            <Text style={styles.pickLabel}>종료일</Text>
+                            <Text style={styles.pickValue}>{fmt(toDate)}</Text>
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={[s.resetBtn]}
-                            onPress={onPressReset}
-                            activeOpacity={0.85}
-                        >
-                            <Text style={s.resetText}>초기화</Text>
+                        <TouchableOpacity style={styles.resetBtn} onPress={onPressReset} activeOpacity={0.85}>
+                            <Text style={styles.resetText}>초기화</Text>
                         </TouchableOpacity>
                     </View>
 
                     {pickerTarget && Platform.OS === "android" && (
-                        <DateTimePicker
-                            value={pickerValue}
-                            mode="date"
-                            display="calendar"
-                            onChange={onPickerChange}
-                        />
+                        <DateTimePicker value={pickerValue} mode="date" display="calendar" onChange={onPickerChange} />
                     )}
 
                     {pickerTarget && Platform.OS === "ios" && (
                         <Modal visible transparent animationType="fade" onRequestClose={closePicker}>
-                            <View style={s.modalDim}>
-                                <View style={s.modalCard}>
-                                    <Text style={s.modalTitle}>
+                            <View style={styles.modalDim}>
+                                <View style={styles.modalCard}>
+                                    <Text style={styles.modalTitle}>
                                         {pickerTarget === "from" ? "시작일 선택" : "종료일 선택"}
                                     </Text>
 
@@ -195,20 +194,20 @@ export default function DateRangeFilter({
                                         style={{ alignSelf: "stretch" }}
                                     />
 
-                                    <View style={s.modalBtns}>
+                                    <View style={styles.modalBtns}>
                                         <TouchableOpacity
-                                            style={[s.modalBtn, s.modalBtnGhost]}
+                                            style={[styles.modalBtn, styles.modalBtnGhost]}
                                             onPress={closePicker}
                                             activeOpacity={0.85}
                                         >
-                                            <Text style={s.modalBtnGhostText}>닫기</Text>
+                                            <Text style={styles.modalBtnGhostText}>닫기</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
-                                            style={[s.modalBtn, s.modalBtnPrimary]}
+                                            style={[styles.modalBtn, styles.modalBtnPrimary]}
                                             onPress={closePicker}
                                             activeOpacity={0.85}
                                         >
-                                            <Text style={s.modalBtnPrimaryText}>확인</Text>
+                                            <Text style={styles.modalBtnPrimaryText}>확인</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -217,7 +216,7 @@ export default function DateRangeFilter({
                     )}
 
                     {!isActive && (fromDate || toDate) && (
-                        <Text style={s.hint}>시작일과 종료일을 모두 선택하면 기간 필터가 적용돼요.</Text>
+                        <Text style={styles.hint}>시작일과 종료일을 모두 선택하면 기간 필터가 적용돼요.</Text>
                     )}
                 </View>
             )}
@@ -225,116 +224,134 @@ export default function DateRangeFilter({
     );
 }
 
-const s = StyleSheet.create({
-    wrap: {
-        marginBottom: 0,
-    },
-    bar: {
-        backgroundColor: "transparent",
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderRadius: 16,
-        flexDirection: "row",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-    },
-    barLeft: {
-        flex: 1,
-        paddingRight: 10
-    },
-    title: {
-        color: "#6B7280",
-        fontWeight: "700"
-    },
-    barRight: {
-        alignItems: "flex-end",
-        justifyContent: "flex-end",
-        minWidth: 80,
-    },
-    subRight: {
-        color: "#6B7280",
-        fontWeight: "700",
-        marginTop: 0,
-    },
-    panel: {
-        marginTop: 10,
-        backgroundColor: "#EEF1F7",
-        borderRadius: 16,
-        padding: 10,
-    },
-    controls: {
-        flexDirection: "row",
-        gap: 10,
-        alignItems: "stretch"
-    },
-    pickBtn: {
-        flex: 1,
-        backgroundColor: "#F7F8FC",
-        borderRadius: 14,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-    },
-    pickLabel: {
-        color: "#6B7280",
-        fontWeight: "900",
-        fontSize: 12
-    },
-    pickValue: {
-        marginTop: 4,
-        color: "#111827",
-        fontWeight: "900"
-    },
-    resetBtn: {
-        width: 86,
-        borderRadius: 14,
-        backgroundColor: "#FFF1F2",
-        alignItems: "center",
-        justifyContent: "center",
-        paddingHorizontal: 10,
-    },
-    resetText: {
-        color: "#EF4444",
-        fontWeight: "900",
-        fontSize: 12,
-    },
-    hint: {
-        marginTop: 8,
-        color: "#6B7280",
-        fontWeight: "700",
-        fontSize: 12,
-    },
-    // iOS Modal
-    modalDim: {
-        flex: 1,
-        backgroundColor: "rgba(0,0,0,0.35)",
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 18,
-    },
-    modalCard: {
-        width: "100%",
-        backgroundColor: "white",
-        borderRadius: 18,
-        padding: 14,
-    },
-    modalTitle: {
-        fontWeight: "900",
-        color: "#111827",
-        marginBottom: 10
-    },
-    modalBtns: {
-        flexDirection: "row",
-        gap: 10,
-        marginTop: 10,
-        justifyContent: "flex-end",
-    },
-    modalBtn: {
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderRadius: 12,
-    },
-    modalBtnGhost: { backgroundColor: "#EEF1F7" },
-    modalBtnGhostText: { color: "#687076", fontWeight: "900" },
-    modalBtnPrimary: { backgroundColor: "#3A4A98" },
-    modalBtnPrimaryText: { color: "white", fontWeight: "900" },
-});
+export const getStyles = (scheme: "light" | "dark") =>
+    StyleSheet.create({
+        wrap: {
+            marginBottom: 0,
+        },
+        bar: {
+            backgroundColor: "transparent",
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            borderRadius: 16,
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+        },
+        barLeft: {
+            flex: 1,
+            paddingRight: 10,
+        },
+        title: {
+            color: Colors[scheme].icon,
+            fontWeight: "700",
+        },
+        barRight: {
+            alignItems: "flex-end",
+            justifyContent: "flex-end",
+            minWidth: 80,
+        },
+        subRight: {
+            color: Colors[scheme].icon,
+            fontWeight: "700",
+            marginTop: 0,
+        },
+        panel: {
+            marginTop: 10,
+            backgroundColor: Colors[scheme].secondaryBackground,
+            borderRadius: 16,
+            padding: 10,
+        },
+        controls: {
+            flexDirection: "row",
+            gap: 10,
+            alignItems: "stretch",
+        },
+        pickBtn: {
+            flex: 1,
+            backgroundColor: Colors[scheme].background,
+            borderRadius: 14,
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderWidth: 1,
+            borderColor: Colors[scheme].border,
+        },
+        pickLabel: {
+            color: Colors[scheme].icon,
+            fontWeight: "900",
+            fontSize: 12,
+        },
+        pickValue: {
+            marginTop: 4,
+            color: Colors[scheme].text,
+            fontWeight: "900",
+        },
+        resetBtn: {
+            width: 86,
+            borderRadius: 14,
+            backgroundColor: Colors[scheme].card,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 10,
+            borderWidth: 1,
+            borderColor: Colors[scheme].border,
+        },
+        resetText: {
+            color: Colors[scheme].error,
+            fontWeight: "900",
+            fontSize: 12,
+        },
+        hint: {
+            marginTop: 8,
+            color: Colors[scheme].subtext,
+            fontWeight: "700",
+            fontSize: 12,
+        },
+
+        // iOS Modal
+        modalDim: {
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.35)",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 18,
+        },
+        modalCard: {
+            width: "100%",
+            backgroundColor: Colors[scheme].card,
+            borderRadius: 18,
+            padding: 14,
+            borderWidth: 1,
+            borderColor: Colors[scheme].border,
+        },
+        modalTitle: {
+            fontWeight: "900",
+            color: Colors[scheme].text,
+            marginBottom: 10,
+        },
+        modalBtns: {
+            flexDirection: "row",
+            gap: 10,
+            marginTop: 10,
+            justifyContent: "flex-end",
+        },
+        modalBtn: {
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            borderRadius: 12,
+        },
+        modalBtnGhost: {
+            backgroundColor: Colors[scheme].secondaryBackground,
+        },
+        modalBtnGhostText: {
+            color: Colors[scheme].icon,
+            fontWeight: "900",
+        },
+        modalBtnPrimary: {
+            backgroundColor: Colors[scheme].primary,
+        },
+        modalBtnPrimaryText: {
+            color: Colors[scheme].primaryButtonText,
+            fontWeight: "900",
+        },
+    });
