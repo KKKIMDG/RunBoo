@@ -1,11 +1,10 @@
-// frontend/src/screens/ghost/GhostRunScreen.tsx
-
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import {
     View,
     Text,
     StyleSheet,
     TouchableOpacity,
+    Pressable,
     ScrollView,
     Dimensions,
     Platform,
@@ -32,14 +31,12 @@ type IoniconName =
     | "glasses-sharp";
 
 export default function GhostRunScreen() {
-    // ✅ Segmented 방식: react-native useColorScheme + useMemo(getStyles)
     const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
 
     const styles = useMemo(() => {
         return getStyles(colorScheme);
     }, [colorScheme]);
 
-    // ✅ 화면에서 자주 쓰는 색 묶음 (Colors 기반)
     const c = Colors[colorScheme] as any;
     const colors = {
         background: c?.background ?? "#F5F6F8",
@@ -149,7 +146,8 @@ export default function GhostRunScreen() {
     const compareBlockUntilRef = useRef<number>(0);
 
     const buildStartMessage = () => {
-        const km = ghostTotalDistanceM > 0 ? (ghostTotalDistanceM / 1000).toFixed(2) : "0";
+        const km =
+            ghostTotalDistanceM > 0 ? (ghostTotalDistanceM / 1000).toFixed(2) : "0";
         const targetPace = formatPace(ghostAvgPaceSec || 0);
         return `고스트 런닝을 시작합니다. 목표 거리는 ${km}킬로미터, 목표 페이스는 ${targetPace}입니다.`;
     };
@@ -189,7 +187,7 @@ export default function GhostRunScreen() {
 
     const handleStopPress = () => {
         if (isSoundOn) speak(buildEndMessage());
-        stopRun();
+        stopRun(); // ✅ 오른쪽 버튼(롱프레스)이 측정 종료/결과화면 이동 담당
     };
 
     // ============================================================
@@ -247,16 +245,12 @@ export default function GhostRunScreen() {
         let msg = "";
 
         if (bucket === 0) {
-            if (isPaceSimilar) {
-                msg = "고스트와 거의 나란히 달리고 있어요. 페이스도 비슷해요. 지금처럼 유지해요.";
-            } else {
-                msg = "고스트와 거의 나란히 달리고 있어요.";
-            }
+            msg = isPaceSimilar
+                ? "고스트와 거의 나란히 달리고 있어요. 페이스도 비슷해요. 지금처럼 유지해요."
+                : "고스트와 거의 나란히 달리고 있어요.";
         } else {
             const m = bucket * UNIT_M;
-            if (sign > 0) msg = `고스트보다 ${m}미터 뒤처지고 있어요.`;
-            else msg = `좋아요. 고스트보다 ${m}미터 앞서고 있어요.`;
-
+            msg = sign > 0 ? `고스트보다 ${m}미터 뒤처지고 있어요.` : `좋아요. 고스트보다 ${m}미터 앞서고 있어요.`;
             if (isPaceSimilar) msg += " 페이스는 거의 비슷해요.";
         }
 
@@ -341,9 +335,7 @@ export default function GhostRunScreen() {
         decimalPlaces: 1,
         color: (opacity = 1) => `rgba(44, 63, 110, ${opacity})`,
         labelColor: (opacity = 1) =>
-            colorScheme === "dark"
-                ? `rgba(255,255,255,${opacity})`
-                : `rgba(0,0,0,${opacity})`,
+            colorScheme === "dark" ? `rgba(255,255,255,${opacity})` : `rgba(0,0,0,${opacity})`,
         style: { borderRadius: 16 },
         propsForDots: { r: "0" },
         propsForBackgroundLines: { stroke: "rgba(0,0,0,0.08)" },
@@ -380,10 +372,7 @@ export default function GhostRunScreen() {
     return (
         <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
             {isReady && (
-                <View
-                    pointerEvents="auto"
-                    style={[styles.countdownOverlay, { backgroundColor: colors.background }]}
-                >
+                <View pointerEvents="auto" style={[styles.countdownOverlay, { backgroundColor: colors.background }]}>
                     <Text style={[styles.countdownText, { color: colors.primary }]}>
                         {countdown > 0 ? countdown : "GO!"}
                     </Text>
@@ -483,23 +472,13 @@ export default function GhostRunScreen() {
                         <Text style={[styles.metricValue, { color: colors.text2 }]}>{formatTime(time)}</Text>
                     </View>
 
-                    <View
-                        style={[
-                            styles.metric,
-                            { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 },
-                        ]}
-                    >
+                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 }]}>
                         <Text style={[styles.metricLabel, { color: colors.mutedText }]}>거리</Text>
                         <Text style={[styles.metricValue, { color: colors.text2 }]}>{youKmText}</Text>
                         <Text style={[styles.metricUnit, { color: colors.mutedText }]}>km</Text>
                     </View>
 
-                    <View
-                        style={[
-                            styles.metric,
-                            { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 },
-                        ]}
-                    >
+                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 }]}>
                         <Text style={[styles.metricLabel, { color: colors.mutedText }]}>페이스</Text>
                         <Text style={[styles.metricValue, { color: colors.text2 }]}>{formatPace(currentPaceSec)}</Text>
                         <Text style={[styles.metricUnit, { color: colors.mutedText }]}>/km</Text>
@@ -539,16 +518,26 @@ export default function GhostRunScreen() {
                 </View>
             </ScrollView>
 
+            {/* ✅ 컨트롤: 왼쪽=일시정지/재개, 오른쪽=측정 종료(롱프레스) */}
             <View style={[styles.controls, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <TouchableOpacity
-                    style={[styles.controlBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-                    onPress={isPaused ? resumeRun : pauseRun}
-                    activeOpacity={0.85}
+                {/* 왼쪽: Pause/Play */}
+                <Pressable
                     disabled={isFinished}
+                    onPress={isPaused ? resumeRun : pauseRun}
+                    style={({ pressed }) => [
+                        styles.controlBtn,
+                        {
+                            backgroundColor: colors.card,
+                            borderColor: colors.border,
+                            opacity: isFinished ? 0.6 : pressed ? 0.75 : 1,
+                            transform: [{ scale: pressed ? 0.96 : 1 }],
+                        },
+                    ]}
                 >
-                    <Ionicons name={(isPaused ? "play" : "pause") as IoniconName} size={22} color={colors.text} />
-                </TouchableOpacity>
+                    <Ionicons name={(isPaused ? "play" : "pause") as IoniconName} size={26} color={colors.text} />
+                </Pressable>
 
+                {/* 오른쪽: Stop (롱프레스 3초) */}
                 <TouchableOpacity
                     style={[
                         styles.stopBtn,
@@ -682,23 +671,26 @@ export const getStyles = (scheme: "light" | "dark") => {
             paddingBottom: 24,
             borderTopWidth: 2,
         },
+
         controlBtn: {
-            width: 60,
-            height: 60,
-            borderRadius: 16,
+            width: 72,
+            height: 72,
+            borderRadius: 22,
             borderWidth: 1,
             alignItems: "center",
             justifyContent: "center",
             ...shadow2,
         },
+
         stopBtn: {
-            width: 60,
-            height: 60,
-            borderRadius: 18,
+            width: 72,
+            height: 72,
+            borderRadius: 22,
             alignItems: "center",
             justifyContent: "center",
             ...shadow2,
         },
+
         countdownOverlay: {
             ...StyleSheet.absoluteFillObject,
             justifyContent: "center",
