@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,17 +9,24 @@ import {
   Alert,
   Linking,
   ActivityIndicator,
+  useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { styles } from "./SettingsScreen.styles";
+import { getStyles } from "./SettingsScreen.styles";
 import SettingItem from "@/components/setting/SettingItem";
 import { useSettings } from "./useSettings";
 import { useUserMe } from "@/contexts/UserMeContext";
 import { useNotificationPreference } from "./useNotificationPreference";
 
 export default function SettingsScreen({ navigation, onLogout }: any) {
+  const colorScheme = useColorScheme() ?? "light";
+
+  const styles = useMemo(() => {
+    return getStyles(colorScheme);
+  }, [colorScheme]);
+
   const { userMe } = useUserMe();
 
   /** 일반 설정 */
@@ -175,7 +182,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
               }
             />
             {openSelectKey === "push" && (
-              <View style={{ backgroundColor: "#f6f6f6" }}>
+              <View style={styles.openBackground}>
                 <View style={{ paddingLeft: 20 }}>
                   <SettingItem
                     label="알림"

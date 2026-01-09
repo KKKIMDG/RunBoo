@@ -38,6 +38,8 @@ export const Colors = {
     activeIcon: "#3A4A98",
     inactiveIcon: "#ffffffff",
     borders: "#E9ECEF",
+    muted: "#ADB5BD",
+    subText: "#687076",
   },
   dark: {
     text: "#ECEDEE",
@@ -65,6 +67,8 @@ export const Colors = {
     activeIcon: "#FFFFFF",
     inactiveIcon: "#868E96",
     borders: "#38383A",
+    muted: "#48484A",
+    subText: "#222629ff",
   },
 } as const;
 

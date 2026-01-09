@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -7,17 +7,24 @@ import {
   Image,
   ActivityIndicator,
   TextInput,
+  useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import BackButton from "@/components/ui/BackButton";
-import { styles } from "./ProfileScreen.styles";
+import { getStyles } from "./ProfileScreen.styles";
 import { useProfile } from "./useProfile";
 import { TIER_ID_MAP } from "@/constants/TierImages";
+import { Colors } from "@/constants/theme";
 
 export default function ProfileScreen({ navigation }: any) {
   const profile = useProfile(12);
+  const colorScheme = useColorScheme() ?? "light";
+
+  const styles = useMemo(() => {
+    return getStyles(colorScheme);
+  }, [colorScheme]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -29,7 +36,7 @@ export default function ProfileScreen({ navigation }: any) {
           style={styles.headerRightIcon}
           onPress={() => navigation.navigate("Settings")}
         >
-          <Ionicons name="settings-outline" size={24} color="#333" />
+          <Ionicons name="settings-outline" style={styles.icon} />
         </TouchableOpacity>
       </View>
 
@@ -149,14 +156,14 @@ export default function ProfileScreen({ navigation }: any) {
             </View>
 
             {/* 총 거리 데이터 반영 */}
-              <View style={styles.metricBox}>
-                  <Text style={styles.metricValue}>
-                      {profile.totalDistanceLoading
-                          ? "-"
-                          : (profile.totalDistanceM / 1000).toFixed(1)}
-                  </Text>
-                  <Text style={styles.metricSubLabel}>총 KM</Text>
-              </View>
+            <View style={styles.metricBox}>
+              <Text style={styles.metricValue}>
+                {profile.totalDistanceLoading
+                  ? "-"
+                  : (profile.totalDistanceM / 1000).toFixed(1)}
+              </Text>
+              <Text style={styles.metricSubLabel}>총 KM</Text>
+            </View>
           </View>
 
           {/* ===== 배지 섹션 ===== */}
@@ -167,9 +174,8 @@ export default function ProfileScreen({ navigation }: any) {
               activeOpacity={0.7}
             >
               <Ionicons
+                style={styles.icon}
                 name="arrow-forward-circle-outline"
-                size={24}
-                color="#000"
               />
             </TouchableOpacity>
           </View>
@@ -214,7 +220,7 @@ export default function ProfileScreen({ navigation }: any) {
 
           <View style={styles.miniStatCard}>
             <View style={styles.miniStatIconBox}>
-              <Ionicons name="ribbon" size={18} color="#000" />
+              <Ionicons name="ribbon" style={styles.icon} />
             </View>
             <View>
               <Text style={styles.miniStatLabel}>배지 갯수</Text>
