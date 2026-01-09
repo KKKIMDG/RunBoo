@@ -1,19 +1,25 @@
 // screens/records/components/AiAnalysisCard.tsx
 
-import React, { useState } from "react";
+import React, {useMemo, useState} from "react";
 import {
     View,
     Text,
     StyleSheet,
     TouchableOpacity,
     ActivityIndicator,
-    Alert,
+    Alert, useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { fetchMonthlyAnalysis } from "@/services/record/recordsService";
 import Markdown from 'react-native-markdown-display';
 
 export default function AiAnalysisCard() {
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     const [loading, setLoading] = useState(false);
     const [analysisResult, setAnalysisResult] = useState<string | null>(null);
 
@@ -74,7 +80,9 @@ export default function AiAnalysisCard() {
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (scheme: "light" | "dark" ) =>
+    StyleSheet.create({
+
     container: {
         // ✅ [변경] DateRangeFilter의 panel 색상 적용 (은은한 푸른 회색)
         backgroundColor: "#EEF1F7",

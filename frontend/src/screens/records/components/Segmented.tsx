@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, {useMemo} from "react";
+import {View, Text, TouchableOpacity, StyleSheet, useColorScheme} from "react-native";
 
 type Props = {
     leftLabel: string;
@@ -14,31 +14,39 @@ export default function Segmented({
                                       value,
                                       onChange,
                                   }: Props) {
+
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     const leftActive = value === "left";
     const rightActive = value === "right";
 
     return (
-        <View style={s.wrap}>
+        <View style={styles.wrap}>
             <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={() => onChange("left")}
-                style={[s.btn, leftActive && s.btnActive]}
+                style={[styles.btn, leftActive && styles.btnActive]}
             >
-                <Text style={[s.txt, leftActive && s.txtActive]}>{leftLabel}</Text>
+                <Text style={[styles.txt, leftActive && styles.txtActive]}>{leftLabel}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={() => onChange("right")}
-                style={[s.btn, rightActive && s.btnActive]}
+                style={[styles.btn, rightActive && styles.btnActive]}
             >
-                <Text style={[s.txt, rightActive && s.txtActive]}>{rightLabel}</Text>
+                <Text style={[styles.txt, rightActive && styles.txtActive]}>{rightLabel}</Text>
             </TouchableOpacity>
         </View>
     );
 }
 
-const s = StyleSheet.create({
+export const getStyles = (scheme: "light" | "dark") =>
+    StyleSheet.create({
     // ✅ ChallengeScreen의 tabSwitcher 느낌
     wrap: {
         flexDirection: "row",

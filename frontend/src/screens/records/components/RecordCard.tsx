@@ -6,7 +6,7 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    Platform,
+    Platform, useColorScheme,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import MapView, { Polyline, PROVIDER_GOOGLE } from "react-native-maps";
@@ -24,6 +24,13 @@ import { fetchRunRecordDetail } from "@/services/record/recordsService";
 import { decodePolyline, LatLng } from "@/utils/polyline";
 
 export default function RecordCard({ item }: { item: RecordDto }) {
+
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     const navigation = useNavigation<any>();
 
     const [detail, setDetail] = useState<RunRecordDetailDto | null>(null);
@@ -110,14 +117,14 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                 navigation.navigate("RunRecordDetail", { recordId: item.id })
             }
         >
-            <View style={s.card}>
-                <View style={s.header}>
-                    <Text style={s.date}>{formatDate(item.startedAt)}</Text>
+            <View style={styles.card}>
+                <View style={styles.header}>
+                    <Text style={styles.date}>{formatDate(item.startedAt)}</Text>
                     <Text
                         style={[
-                            s.badge,
-                            item.mode === "GHOST" && s.badgeGhost,
-                            item.mode === "TIER" && s.badgeTier,
+                            styles.badge,
+                            item.mode === "GHOST" && styles.badgeGhost,
+                            item.mode === "TIER" && styles.badgeTier,
                         ]}
                     >
                         {item.mode === "GHOST"
@@ -128,34 +135,34 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                     </Text>
                 </View>
 
-                <Text style={s.sub}>
+                <Text style={styles.sub}>
                     {formatTimeRange(item.startedAt, item.endedAt)}
                 </Text>
 
                 {/** 가로 2분할 */}
-                <View style={s.bodyRow}>
+                <View style={styles.bodyRow}>
                     {/** 왼쪽*/}
-                    <View style={s.leftCol}>
-                        <View style={[s.rowBox, s.rowBoxFirst]}>
-                            <Text style={s.label}>런닝 거리</Text>
-                            <Text style={s.value}>{formatKm(item.distanceM)}</Text>
+                    <View style={styles.leftCol}>
+                        <View style={[styles.rowBox, styles.rowBoxFirst]}>
+                            <Text style={styles.label}>런닝 거리</Text>
+                            <Text style={styles.value}>{formatKm(item.distanceM)}</Text>
                         </View>
 
-                        <View style={s.rowBox}>
-                            <Text style={s.label}>평균 페이스</Text>
-                            <Text style={s.value}>{formatPace(item.avgPace)}</Text>
+                        <View style={styles.rowBox}>
+                            <Text style={styles.label}>평균 페이스</Text>
+                            <Text style={styles.value}>{formatPace(item.avgPace)}</Text>
                         </View>
 
-                        <View style={s.rowBox}>
-                            <Text style={s.label}>런닝 시간</Text>
-                            <Text style={s.value}>
+                        <View style={styles.rowBox}>
+                            <Text style={styles.label}>런닝 시간</Text>
+                            <Text style={styles.value}>
                                 {formatDurationFromRange(item.startedAt, item.endedAt)}
                             </Text>
                         </View>
                     </View>
 
                     {/** 오른쪽: 지도 미리보기 */}
-                    <View style={s.mapCol} pointerEvents="none">
+                    <View style={styles.mapCol} pointerEvents="none">
                         {coords.length > 0 && midCoord ? (
                             <MapView
                                 // ✅ [추가] TS 에러 없는 ref 연결
@@ -197,15 +204,15 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                                 />
                             </MapView>
                         ) : (
-                            <View style={s.mapPlaceholder}>
-                                <Text style={s.mapPlaceholderText}>
+                            <View style={styles.mapPlaceholder}>
+                                <Text style={styles.mapPlaceholderText}>
                                     {routeError ? "경로 없음" : "경로 불러오는 중…"}
                                 </Text>
                             </View>
                         )}
 
-                        <View style={s.mapOverlay}>
-                            <Text style={s.mapOverlayText}>경로</Text>
+                        <View style={styles.mapOverlay}>
+                            <Text style={styles.mapOverlayText}>경로</Text>
                         </View>
                     </View>
                 </View>
@@ -214,7 +221,8 @@ export default function RecordCard({ item }: { item: RecordDto }) {
     );
 }
 
-const s = StyleSheet.create({
+export const getStyles = (scheme: "light" | "dark")=>
+    StyleSheet.create({
     card: {
         backgroundColor: "#F5F7FB",
         borderRadius: 18,
