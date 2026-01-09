@@ -15,3 +15,19 @@ export async function fetchGhostProfile(
     const res = await api.get(`/api/ghost-profiles/${ghostProfileId}`);
     return res as GhostProfileDto;
 }
+
+export async function fetchTargetUserBestGhost(targetUserId: number): Promise<GhostProfileDto | null> {
+    try {
+        const res = await api.get(`/api/ghost-profiles/users/${targetUserId}/best`);
+
+        if (!res) return null;
+
+        return {
+            ...(res as any),
+            type: "TARGET_USER_BEST"
+        } as GhostProfileDto;
+    } catch (error) {
+        console.error("상대방 고스트 조회 실패", error);
+        return null;
+    }
+}

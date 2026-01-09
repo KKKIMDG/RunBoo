@@ -94,7 +94,6 @@ const refreshAccessToken = async (): Promise<string | null> => {
  */
 const request = async (input: RequestInfo, init: RequestInit, retry = true) => {
   try {
-    // 요청 전 토큰 로드 보장
     await ensureAccessTokenLoaded();
 
     // 최신 토큰 헤더 주입
