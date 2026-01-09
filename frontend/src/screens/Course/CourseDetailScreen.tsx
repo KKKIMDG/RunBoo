@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
     View,
     Text,
@@ -6,7 +6,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
-    Platform,
+    Platform, useColorScheme,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -26,6 +26,13 @@ interface CourseDetailType {
 }
 
 export default function CourseDetailScreen({ route, navigation }: any) {
+
+    const colorScheme = useColorScheme() ?? "light";
+
+    const styles = useMemo(() => {
+        return getStyles(colorScheme);
+    }, [colorScheme]);
+
     const { course }: { course: CourseDetailType } = route.params || {};
     const [loading, setLoading] = useState(true);
     const [isSaved, setIsSaved] = useState(false);
@@ -145,7 +152,8 @@ export default function CourseDetailScreen({ route, navigation }: any) {
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (scheme: "light" | "dark") =>
+    StyleSheet.create({
     overlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.6)',
