@@ -40,6 +40,9 @@ export const Colors = {
     borders: "#E9ECEF",
     muted: "#ADB5BD",
     subText: "#687076",
+    warningBox: "#EEF2FF",
+    warningTitle: "#3A4A98",
+    warningText: "#4B5563",
   },
   dark: {
     text: "#ECEDEE",
@@ -69,6 +72,9 @@ export const Colors = {
     borders: "#38383A",
     muted: "#48484A",
     subText: "#222629ff",
+    warningBox: "#1F2A44",
+    warningTitle: "#A5B4FC",
+    warningText: "#CBD5E1",
   },
 } as const;
 

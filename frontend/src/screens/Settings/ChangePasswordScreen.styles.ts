@@ -1,136 +1,141 @@
 import { StyleSheet } from "react-native";
+import { Colors } from "@/constants/theme";
 
-export const styles = StyleSheet.create({
+export const getStyles = (scheme: "light" | "dark") =>
+  StyleSheet.create({
     safeArea: {
-        flex: 1,
-        backgroundColor: "#F8FAFC",
-        paddingHorizontal: 20,
+      flex: 1,
+      backgroundColor: Colors[scheme].background,
+      paddingHorizontal: 20,
     },
 
     header: {
-        height: 56,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
+      height: 56,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
     },
 
     headerTitle: {
-        fontSize: 17,
-        fontWeight: "bold",
-        color: "#111827",
+      fontSize: 17,
+      fontWeight: "bold",
+      color: Colors[scheme].text,
     },
 
     noticeBox: {
-        flexDirection: "row",
-        backgroundColor: "#EEF2FF",
-        borderRadius: 14,
-        padding: 14,
-        marginBottom: 20,
+      flexDirection: "row",
+      backgroundColor: Colors[scheme].warningBox,
+      borderRadius: 14,
+      padding: 14,
+      marginBottom: 20,
     },
 
     noticeTextWrapper: {
-        marginLeft: 10,
-        flex: 1,
+      marginLeft: 10,
+      flex: 1,
     },
 
     noticeTitle: {
-        fontSize: 13,
-        fontWeight: "600",
-        color: "#3A4A98",
-        marginBottom: 4,
+      fontSize: 13,
+      fontWeight: "600",
+      color: Colors[scheme].warningTitle,
+      marginBottom: 4,
     },
 
     noticeDesc: {
-        fontSize: 12,
-        color: "#4B5563",
-        lineHeight: 18,
+      fontSize: 12,
+      color: Colors[scheme].warningText,
+      lineHeight: 18,
     },
 
     form: {
-        flex: 1,
+      flex: 1,
     },
 
     label: {
-        fontSize: 13,
-        fontWeight: "600",
-        color: "#111827",
-        marginBottom: 6,
-        marginTop: 12,
+      fontSize: 13,
+      fontWeight: "600",
+      color: Colors[scheme].text,
+      marginBottom: 6,
+      marginTop: 12,
     },
 
     inputWrapper: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#FFF",
-        borderRadius: 14,
-        paddingHorizontal: 14,
-        height: 48,
-        borderWidth: 1,
-        borderColor: "#E5E7EB",
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: Colors[scheme].background,
+      borderRadius: 14,
+      paddingHorizontal: 14,
+      height: 48,
+      borderWidth: 1,
+      borderColor: Colors[scheme].border,
     },
 
     input: {
-        flex: 1,
-        fontSize: 14,
-        color: "#111827",
+      flex: 1,
+      fontSize: 14,
+      color: Colors[scheme].text,
     },
     scrollContent: {
-        paddingBottom: 24,
+      paddingBottom: 24,
     },
 
     submitButton: {
-        height: 52,
-        borderRadius: 16,
-        backgroundColor: "#3A4A98",
-        alignItems: "center",
-        justifyContent: "center",
-        marginHorizontal: 20,
-        marginBottom: 16,
+      height: 52,
+      borderRadius: 16,
+      backgroundColor: Colors[scheme].primary,
+      alignItems: "center",
+      justifyContent: "center",
+      marginHorizontal: 20,
+      marginBottom: 16,
     },
 
     disabledButton: {
-        backgroundColor: "#CBD5E1",
+      backgroundColor: Colors[scheme].disabled,
     },
 
     submitText: {
-        color: "#FFF",
-        fontSize: 15,
-        fontWeight: "600",
+      color: Colors[scheme].text,
+      fontSize: 15,
+      fontWeight: "600",
     },
     emailRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 16,
     },
 
     emailText: {
-        marginLeft: 8,
-        fontSize: 16,        // 존재감 있음
-        fontWeight: "600",
-        color: "#111827",
+      marginLeft: 8,
+      fontSize: 16, // 존재감 있음
+      fontWeight: "600",
+      color: Colors[scheme].text,
     },
     confirmButton: {
-        flexDirection: "row",
-        height: 56,
-        borderRadius: 16,
-        backgroundColor: "#3A4A98", // 메인 액션 컬러
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: 24,
+      flexDirection: "row",
+      height: 56,
+      borderRadius: 16,
+      backgroundColor: Colors[scheme].primary, // 메인 액션 컬러
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 24,
     },
 
     confirmButtonDisabled: {
-        backgroundColor: "#E5E7EB",
+      backgroundColor: Colors[scheme].disabled,
     },
 
     confirmButtonText: {
-        fontSize: 16,
-        fontWeight: "600",
-        color: "#FFFFFF",
+      fontSize: 16,
+      fontWeight: "600",
+      color: Colors[scheme].text,
     },
     helperText: {
-        fontSize: 13,
-        marginTop: 6,
+      fontSize: 13,
+      marginTop: 6,
     },
-
-});
+    icon: {
+      color: Colors[scheme].icon,
+      fontSize: 22,
+    },
+  });
