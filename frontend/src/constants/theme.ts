@@ -46,6 +46,7 @@ export const Colors = {
     destructiveTitle: "#DC2626", // 또렷한 레드 타이틀
     destructiveText: "#7F1D1D",
     infoText: "#687076",
+    disabledText: "#4f4f4f",
   },
   dark: {
     text: "#ECEDEE",
@@ -81,6 +82,7 @@ export const Colors = {
     destructiveTitle: "#FCA5A5", // 밝은 레드 타이틀
     destructiveText: "#FECACA", // 연한 레드 설명 텍스트
     infoText: "#c6d5df",
+    disabledText: "#ffffffff",
   },
 } as const;
 
