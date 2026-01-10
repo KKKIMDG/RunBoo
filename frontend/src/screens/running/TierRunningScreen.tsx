@@ -26,6 +26,8 @@ import { useTierRunningScreen } from "./useTierRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
 import { StatBox } from "@/components/StatBox";
 
+import { useCadence } from "@/hooks/useCadence";
+
 const { width } = Dimensions.get("window");
 
 const TierRunningScreen = () => {
@@ -48,6 +50,12 @@ const TierRunningScreen = () => {
     lastLocation,
     initialLocation, // useTierRunningScreen에서 가져옴
   } = state;
+
+    // 케이던스 관련 훅
+    const cadence = useCadence({
+        enabled: !isReady && !isPaused,
+        windowSec: 5,
+    });
 
   const { pauseRun, resumeRun, stopTierRunManual } = actions;
   const { formatTime, formatPace } = utils;
@@ -257,6 +265,19 @@ const TierRunningScreen = () => {
               value={formatPace(currentPace)}
               unit="/km"
             />
+
+              <StatBox
+                  icon={
+                      <MaterialCommunityIcons
+                          name="shoe-print"
+                          size={24}
+                          color="#4A6EA9"
+                      />
+                  }
+                  label="케이던스"
+                  value={String(cadence)}
+                  unit="spm"
+              />
           </View>
 
           <View style={styles.chartCard}>

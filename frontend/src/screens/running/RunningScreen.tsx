@@ -29,6 +29,8 @@ import { useRunningScreen } from "./useRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
 import { StatBox } from "@/components/StatBox";
 import { useRunningVoiceFeedback } from "@/hooks/useRunningVoiceFeedback";
+import { useCadence } from "@/hooks/useCadence";
+
 import * as Speech from "expo-speech";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -57,6 +59,12 @@ const RunningScreen = () => {
     isVoiceEnabled,
     isMale,
   } = state;
+
+  // 케이던스 관련 훅
+  const cadence = useCadence({
+      enabled: !isReady && !isPaused,
+      windowSec: 5,
+  });
 
   const {
     pauseRun,
@@ -364,6 +372,19 @@ const RunningScreen = () => {
             unit="/km"
           />
         </View>
+
+        <StatBox
+              icon={
+                  <MaterialCommunityIcons
+                      name="shoe-print"
+                      size={24}
+                      color="#4A6EA9"
+                  />
+              }
+              label="케이던스"
+              value={String(cadence)}
+              unit="spm"
+        />
 
         <View style={styles.chartCard}>
           <View style={styles.chartTitleContainer}>

@@ -89,7 +89,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         txt: {
             fontSize: 14,
             fontWeight: "600",
-            color: Colors[scheme].subtext,
+            color: Colors[scheme].icon,
         },
 
         txtActive: {

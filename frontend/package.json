@@ -39,6 +39,7 @@
     "expo-location": "~19.0.8",
     "expo-notifications": "~0.32.16",
     "expo-router": "^6.0.18",
+    "expo-sensors": "~15.0.8",
     "expo-sharing": "~14.0.8",
     "expo-speech": "~14.0.8",
     "expo-symbols": "^1.0.8",
