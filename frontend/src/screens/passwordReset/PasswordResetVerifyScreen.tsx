@@ -1,130 +1,115 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
     View,
     Text,
     TextInput,
     TouchableOpacity,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
     Alert,
+    useColorScheme,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import {
     requestPasswordReset,
     verifyPasswordResetCode,
 } from "@/services/auth/passwordResetService";
+import { getStyles } from "./PasswordReset.style";
 
 export default function PasswordResetVerifyScreen({ navigation, route }: any) {
     const { email } = route.params;
+    const scheme = useColorScheme() ?? "light";
+    const styles = useMemo(() => getStyles(scheme), [scheme]);
 
     const [code, setCode] = useState("");
     const [loading, setLoading] = useState(false);
     const [resendLoading, setResendLoading] = useState(false);
 
-    /**
-     * 인증 코드 재전송
-     */
     const resendCode = async () => {
         setResendLoading(true);
         try {
             await requestPasswordReset(email);
             Alert.alert("안내", "인증 코드가 다시 전송되었습니다.");
         } catch (e: any) {
-            Alert.alert(
-                "오류",
-                e?.message ?? "인증 코드 재전송에 실패했습니다."
-            );
+            Alert.alert("오류", e?.message ?? "인증 코드 재전송에 실패했습니다.");
         } finally {
             setResendLoading(false);
         }
     };
 
-    /**
-     * 인증 코드 확인
-     */
     const submit = async () => {
-        const value = code.trim();
-
-        if (!value) {
-            Alert.alert("인증 코드를 입력하세요");
+        if (!code.trim()) {
+            Alert.alert("안내", "인증 코드를 입력하세요.");
             return;
         }
-
         setLoading(true);
         try {
-            const { resetToken } = await verifyPasswordResetCode(email, value);
-
-            // 3단계로 이동 (resetToken 전달)
-            navigation.navigate("PasswordResetChange", {
-                resetToken,
-            });
+            const { resetToken } = await verifyPasswordResetCode(email, code.trim());
+            navigation.navigate("PasswordResetChange", { resetToken });
         } catch (e: any) {
-            Alert.alert(
-                "인증 실패",
-                e?.message ?? "인증 코드가 올바르지 않습니다."
-            );
+            Alert.alert("인증 실패", e?.message ?? "인증 코드가 올바르지 않습니다.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <View style={{ flex: 1, padding: 20, justifyContent: "center" }}>
-            <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 12 }}>
-                인증 코드 입력
-            </Text>
-
-            <Text style={{ marginBottom: 8 }}>
-                {email}로 전송된 인증 코드를 입력하세요
-            </Text>
-
-            <TextInput
-                value={code}
-                onChangeText={setCode}
-                keyboardType="number-pad"
-                placeholder="6자리 인증 코드"
-                style={{
-                    borderWidth: 1,
-                    borderColor: "#ddd",
-                    borderRadius: 10,
-                    padding: 12,
-                    marginBottom: 12,
-                }}
-            />
-
-            {/* 인증 코드 확인 */}
-            <TouchableOpacity
-                onPress={submit}
-                disabled={loading}
-                style={{
-                    backgroundColor: "#111827",
-                    paddingVertical: 12,
-                    borderRadius: 10,
-                    alignItems: "center",
-                    opacity: loading ? 0.6 : 1,
-                    marginBottom: 12,
-                }}
+        <SafeAreaView style={styles.safeArea}>
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
-                <Text style={{ color: "#fff", fontWeight: "700" }}>
-                    {loading ? "확인 중..." : "확인"}
-                </Text>
-            </TouchableOpacity>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Ionicons name="chevron-back" style={styles.icon} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>인증 코드 확인</Text>
+                    <View style={{ width: 24 }} />
+                </View>
 
-            {/* 인증 코드 재전송 */}
-            <TouchableOpacity
-                onPress={resendCode}
-                disabled={resendLoading}
-                style={{
-                    alignItems: "center",
-                    paddingVertical: 8,
-                }}
-            >
-                <Text
-                    style={{
-                        color: resendLoading ? "#9ca3af" : "#2563eb",
-                        fontWeight: "600",
-                    }}
+                <ScrollView contentContainerStyle={styles.scrollContent}>
+                    <View style={styles.noticeBox}>
+                        <Ionicons name="chatbubble-ellipses-outline" style={styles.icon} />
+                        <View style={styles.noticeTextWrapper}>
+                            <Text style={styles.noticeTitle}>코드 확인</Text>
+                            <Text style={styles.noticeDesc}>
+                                {email}로 전송된 6자리 코드를 입력해 주세요.
+                            </Text>
+                        </View>
+                    </View>
+
+                    <Text style={styles.label}>인증 코드</Text>
+                    <TextInput
+                        value={code}
+                        onChangeText={setCode}
+                        keyboardType="number-pad"
+                        placeholder="인증 코드 6자리"
+                        placeholderTextColor={scheme === "dark" ? "#6B7280" : "#9CA3AF"}
+                        style={styles.input}
+                        maxLength={6}
+                    />
+
+                    <TouchableOpacity
+                        onPress={resendCode}
+                        disabled={resendLoading}
+                        style={styles.secondaryButton}
+                    >
+                        <Text style={styles.secondaryButtonText}>
+                            {resendLoading ? "재전송 중..." : "인증 코드를 못 받으셨나요?"}
+                        </Text>
+                    </TouchableOpacity>
+                </ScrollView>
+
+                <TouchableOpacity
+                    onPress={submit}
+                    disabled={loading}
+                    style={[styles.submitButton, loading && styles.disabledButton]}
                 >
-                    {resendLoading ? "재전송 중..." : "인증 코드 다시 받기"}
-                </Text>
-            </TouchableOpacity>
-        </View>
+                    <Text style={styles.submitText}>{loading ? "확인 중..." : "확인"}</Text>
+                </TouchableOpacity>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }

@@ -1,126 +1,106 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
     View,
     Text,
     TextInput,
     TouchableOpacity,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
     Alert,
+    useColorScheme,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { resetPassword } from "@/services/auth/passwordResetService";
+import { getStyles } from "./PasswordReset.style";
 
 export default function PasswordResetChangeScreen({ navigation, route }: any) {
     const { resetToken } = route.params;
+    const scheme = useColorScheme() ?? "light";
+    const styles = useMemo(() => getStyles(scheme), [scheme]);
 
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
 
-    /**
-     * 비밀번호 변경
-     */
+    const isPasswordRuleValid = password.length >= 6 && /[A-Za-z]/.test(password) && /\d/.test(password);
+    const isMatch = password === confirmPassword && confirmPassword.length > 0;
+    const isValid = isPasswordRuleValid && isMatch;
+
     const submit = async () => {
-        const pw = password.trim();
-        const confirm = confirmPassword.trim();
-
-        if (!pw || !confirm) {
-            Alert.alert("안내", "비밀번호를 모두 입력하세요.");
-            return;
-        }
-
-        if (pw !== confirm) {
-            Alert.alert("오류", "비밀번호가 서로 일치하지 않습니다.");
-            return;
-        }
-
-        if (pw.length < 6) {
-            Alert.alert("오류", "비밀번호는 6자 이상이어야 합니다.");
-            return;
-        }
-        if (pw.includes(" ")) {
-            Alert.alert("오류", "비밀번호에는 공백을 사용할 수 없습니다.");
-            return;
-        }
-
-
         setLoading(true);
         try {
-            await resetPassword(resetToken, pw);
-
-            Alert.alert("완료", "비밀번호가 변경되었습니다.", [
+            await resetPassword(resetToken, password.trim());
+            Alert.alert("변경 완료", "비밀번호가 성공적으로 재설정되었습니다.", [
                 {
                     text: "확인",
-                    onPress: () => {
-                        navigation.reset({
-                            index: 0,
-                            routes: [{ name: "Login" }],
-                        });
-                    },
+                    onPress: () => navigation.reset({ index: 0, routes: [{ name: "Login" }] }),
                 },
             ]);
         } catch (e: any) {
-            Alert.alert(
-                "실패",
-                e?.message ?? "비밀번호 변경에 실패했습니다."
-            );
+            Alert.alert("실패", e?.message ?? "비밀번호 변경에 실패했습니다.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <View style={{ flex: 1, padding: 20, justifyContent: "center" }}>
-    <Text style={{ fontSize: 20, fontWeight: "700", marginBottom: 12 }}>
-    새 비밀번호 설정
-    </Text>
+        <SafeAreaView style={styles.safeArea}>
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+            >
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Ionicons name="chevron-back" style={styles.icon} />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>새 비밀번호 설정</Text>
+                    <View style={{ width: 24 }} />
+                </View>
 
-    <Text style={{ marginBottom: 16 }}>
-    새로 사용할 비밀번호를 입력하세요
-    </Text>
+                <ScrollView contentContainerStyle={styles.scrollContent}>
+                    <View style={styles.noticeBox}>
+                        <Ionicons name="shield-checkmark-outline" style={styles.icon} />
+                        <View style={styles.noticeTextWrapper}>
+                            <Text style={styles.noticeTitle}>보안 강화</Text>
+                            <Text style={styles.noticeDesc}>
+                                다른 사이트에서 사용하지 않는 안전한 비밀번호를 설정하세요.
+                            </Text>
+                        </View>
+                    </View>
 
-    <TextInput
-    value={password}
-    onChangeText={setPassword}
-    placeholder="새 비밀번호"
-    secureTextEntry
-    style={{
-        borderWidth: 1,
-            borderColor: "#ddd",
-            borderRadius: 10,
-            padding: 12,
-            marginBottom: 12,
-    }}
-    />
+                    <Text style={styles.label}>새 비밀번호</Text>
+                    <TextInput
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                        placeholder="영문, 숫자 포함 6자 이상"
+                        placeholderTextColor={scheme === "dark" ? "#6B7280" : "#9CA3AF"}
+                        style={styles.input}
+                    />
 
-    <TextInput
-    value={confirmPassword}
-    onChangeText={setConfirmPassword}
-    placeholder="새 비밀번호 확인"
-    secureTextEntry
-    style={{
-        borderWidth: 1,
-            borderColor: "#ddd",
-            borderRadius: 10,
-            padding: 12,
-            marginBottom: 16,
-    }}
-    />
+                    <Text style={styles.label}>비밀번호 확인</Text>
+                    <TextInput
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        secureTextEntry
+                        placeholder="다시 한번 입력하세요"
+                        placeholderTextColor={scheme === "dark" ? "#6B7280" : "#9CA3AF"}
+                        style={styles.input}
+                    />
+                </ScrollView>
 
-    {/* 비밀번호 변경 버튼 */}
-    <TouchableOpacity
-        onPress={submit}
-    disabled={loading}
-    style={{
-        backgroundColor: "#111827",
-            paddingVertical: 12,
-            borderRadius: 10,
-            alignItems: "center",
-            opacity: loading ? 0.6 : 1,
-    }}
->
-    <Text style={{ color: "#fff", fontWeight: "700" }}>
-    {loading ? "변경 중..." : "비밀번호 변경"}
-    </Text>
-    </TouchableOpacity>
-    </View>
-);
+                <TouchableOpacity
+                    onPress={submit}
+                    disabled={!isValid || loading}
+                    style={[styles.submitButton, (!isValid || loading) && styles.disabledButton]}
+                >
+                    <Text style={styles.submitText}>
+                        {loading ? "변경 중..." : "비밀번호 변경 완료"}
+                    </Text>
+                </TouchableOpacity>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
+    );
 }
