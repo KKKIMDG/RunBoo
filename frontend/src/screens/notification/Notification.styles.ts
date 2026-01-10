@@ -20,7 +20,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         headerTitle: {
             fontSize: 18,
             fontWeight: "800",
-            color: "#000",
+            color: Colors[scheme].text,
         },
         backButton: {
             position: "absolute",
@@ -166,5 +166,8 @@ export const getStyles = (scheme: "light" | "dark") =>
             fontSize: 13,
             color: Colors[scheme].icon,
         },
-
+        icon:{
+            color: Colors[scheme].icon,
+            fontSize: 22,
+        }
     });
