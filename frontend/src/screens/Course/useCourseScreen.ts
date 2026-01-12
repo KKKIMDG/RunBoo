@@ -43,22 +43,14 @@ export const useCourseScreen = () => {
 
             // [CASE B] '5km 미만' / '5km 이상' 탭인 경우 (위치 기반 조회)
             else {
-                // (1) 위치 권한 확인
-                const { status } = await Location.requestForegroundPermissionsAsync();
-                if (status !== 'granted') {
-                    Alert.alert('권한 필요', '내 주변 코스를 찾기 위해 위치 권한이 필요합니다.');
-                    setLoading(false);
-                    return;
-                }
-
-                // (2) 현재 위치 가져오기
+                // (1) 현재 위치 가져오기
                 const location = await Location.getCurrentPositionAsync({});
                 const { latitude, longitude } = location.coords;
 
-                // (3) 백엔드 파라미터로 변환 ('UNDER_5K' -> 'SHORT', 'OVER_5K' -> 'LONG')
+                // (2) 백엔드 파라미터로 변환 ('UNDER_5K' -> 'SHORT', 'OVER_5K' -> 'LONG')
                 const typeParam = activeFilter === 'UNDER_5K' ? 'SHORT' : 'LONG';
 
-                // (4) 위치 기반 API 호출 (토큰 없이 호출됨)
+                // (3) 위치 기반 API 호출 (토큰 없이 호출됨)
                 const locationResponse = await CourseService.getCoursesByLocation(
                     latitude,
                     longitude,

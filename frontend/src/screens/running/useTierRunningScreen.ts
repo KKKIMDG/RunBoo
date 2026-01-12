@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Alert, Linking } from "react-native";
+import { Alert } from "react-native";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Location from "expo-location";
@@ -75,21 +75,10 @@ export const useTierRunningScreen = () => {
     },
   };
 
-  // 1. 초기화 및 권한 요청
+  // 1. 초기화
   useEffect(() => {
     (async () => {
       resetStore(); // 스토어 초기화
-
-      const { status: foreStatus } =
-        await Location.requestForegroundPermissionsAsync();
-      if (foreStatus !== "granted") {
-        Alert.alert("권한 필요", "위치 권한이 필요합니다.", [
-          { text: "설정", onPress: () => Linking.openSettings() },
-        ]);
-        return;
-      }
-
-      await Location.requestBackgroundPermissionsAsync(); // 백그라운드 권한 요청
 
       const loc = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Highest,
@@ -152,9 +141,6 @@ export const useTierRunningScreen = () => {
 
   // ✅ 백그라운드 트래킹 시작
   const startLocationTracking = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") return;
-
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.BestForNavigation,
       timeInterval: 1000,
