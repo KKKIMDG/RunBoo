@@ -181,6 +181,7 @@ export default function MapFullScreen() {
             }}
             showsUserLocation={true}
             showsMyLocationButton={false}
+            showsCompass={false}
             onPress={handleMapPress}
             // ✅ [선택] 다크모드일 때 지도 스타일도 어둡게 하려면 여기에 customMapStyle 추가 필요
         >
