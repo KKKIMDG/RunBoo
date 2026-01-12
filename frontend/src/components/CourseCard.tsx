@@ -1,8 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import React, {useMemo} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, Platform, useColorScheme} from 'react-native';
 // ✅ WebView 제거, 구글 맵 추가
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Colors } from '@/constants/theme';
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 // ✅ [정품 설명서] 좌표(latitude, longitude)가 꼭 있어야 합니다!
 export interface CourseType {
@@ -24,11 +26,15 @@ interface CourseCardProps {
     scheme: 'light' | 'dark';
 }
 
-export default React.memo(function CourseCard({ course, onToggle, onPress, scheme }: CourseCardProps) {
+export default React.memo(function CourseCard({ course, onToggle, onPress }: CourseCardProps) {
     if (!course) return null;
 
-    const styles = getStyles(scheme);
-    const colors = Colors[scheme];
+    const { settings } = useSettings();
+    const colorScheme = useColorScheme() ?? "light";
+    const styles = useMemo(() => {
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
+
     const isSaved = course.isSaved || false;
 
     return (
@@ -80,7 +86,10 @@ export default React.memo(function CourseCard({ course, onToggle, onPress, schem
     );
 });
 
-const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
+const getStyles = (
+    scheme: 'light' | 'dark',
+    fontSize: FontSizeSetting
+) => StyleSheet.create({
     card: {
         backgroundColor: Colors[scheme].card,
         borderRadius: 16,
@@ -120,14 +129,14 @@ const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         marginBottom: 8
     },
     title: {
-        fontSize: 18,
+        fontSize: scaleFont(18, fontSize),
         fontWeight: 'bold',
         color: Colors[scheme].text,
         flex: 1,
         marginRight: 10
     },
     distance: {
-        fontSize: 16,
+        fontSize: scaleFont(16, fontSize),
         fontWeight: 'bold',
         color: Colors[scheme].primary // 거리 강조를 위해 primary 색상 추천 (기존 text 유지 가능)
     },
@@ -137,12 +146,12 @@ const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         alignItems: 'center'
     },
     address: {
-        fontSize: 14,
+        fontSize: scaleFont(14, fontSize),
         color: Colors[scheme].icon,
         flex: 1
     },
     heart: {
-        fontSize: 24,
+        fontSize: scaleFont(24, fontSize),
         color: '#FF6B6B',
         fontWeight: 'bold'
     }

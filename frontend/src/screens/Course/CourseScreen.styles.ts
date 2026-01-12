@@ -1,7 +1,11 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/constants/theme';
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
+export const getStyles = (
+    scheme: 'light' | 'dark',
+    fontSize: FontSizeSetting
+) => StyleSheet.create({
     // 1. 전체 컨테이너
     container: {
         flex: 1,
@@ -20,12 +24,12 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         flex: 1,            // 꽉 채우기
     },
     subHeader: {
-        fontSize: 14,
+        fontSize: scaleFont(14, fontSize),
         color: Colors[scheme].icon,
         marginTop: 4,
     },
     mainHeader: {
-        fontSize: 24,
+        fontSize: scaleFont(24, fontSize),
         fontWeight: '700',
         color: Colors[scheme].text,
         lineHeight: 32,
@@ -59,7 +63,7 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
         marginTop: 100, // 리스트 내부에서 중앙 쯤 오도록
     },
     emptyListText: {
-        fontSize: 16,
+        fontSize: scaleFont(16, fontSize),
         color: Colors[scheme].icon,
         textAlign: 'center',
         lineHeight: 24,

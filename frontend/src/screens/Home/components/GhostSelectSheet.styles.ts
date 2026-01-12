@@ -1,7 +1,11 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     backdrop: {
       flex: 1,
@@ -27,7 +31,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
     headerTitle: {
       color: "#fff",
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "800",
     },
     tabRow: {
@@ -46,7 +50,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       backgroundColor: Colors[scheme].primary,
     },
     tabText: {
-      fontSize: 13,
+      fontSize: scaleFont(13, fontSize),
       marginLeft: 5,
       fontWeight: "700",
       color: Colors[scheme].text,
@@ -82,7 +86,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       alignItems: "flex-end",
     },
     itemTitle: {
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       fontWeight: "800",
       color: Colors[scheme].text,
     },
