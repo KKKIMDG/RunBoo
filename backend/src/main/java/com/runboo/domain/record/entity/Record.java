@@ -32,6 +32,9 @@ public class Record {
 
     private Integer calories;
 
+    @Column(name= "cadence")
+    private Integer cadence;
+
     @Column(name = "started_at")
     private LocalDateTime startedAt;
 

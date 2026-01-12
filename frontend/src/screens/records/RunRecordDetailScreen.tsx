@@ -131,11 +131,7 @@ export default function RunRecordDetailScreen() {
                         onPress={handleClose}
                         activeOpacity={0.8}
                     >
-                        <Ionicons
-                            name="close"
-                            size={20}
-                            color={colors.primaryButtonText}
-                        />
+                        <Ionicons name="close" size={20} color={colors.primaryButtonText} />
                     </TouchableOpacity>
                 </View>
 
@@ -146,9 +142,7 @@ export default function RunRecordDetailScreen() {
                             <MapView
                                 ref={mapRef}
                                 style={StyleSheet.absoluteFill}
-                                provider={
-                                    Platform.OS === "android" ? PROVIDER_GOOGLE : undefined
-                                }
+                                provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
                                 onMapReady={handleFocusRoute}
                                 customMapStyle={blurredMapStyle}
                                 initialRegion={{
@@ -206,15 +200,8 @@ export default function RunRecordDetailScreen() {
                                 )}
                             </MapView>
 
-                            <TouchableOpacity
-                                style={styles.focusButton}
-                                onPress={handleFocusRoute}
-                            >
-                                <MaterialCommunityIcons
-                                    name="altimeter"
-                                    size={22}
-                                    color={colors.primary}
-                                />
+                            <TouchableOpacity style={styles.focusButton} onPress={handleFocusRoute}>
+                                <MaterialCommunityIcons name="altimeter" size={22} color={colors.primary} />
                             </TouchableOpacity>
                         </View>
                     ) : (
@@ -263,6 +250,22 @@ export default function RunRecordDetailScreen() {
                             <Text style={styles.cardValue}>
                                 {data?.calories ?? "-"}
                                 <Text style={styles.cardUnit}> kcal</Text>
+                            </Text>
+                        </View>
+
+                        {/* ✅ [추가] 케이던스 카드 */}
+                        <View style={styles.card}>
+                            <MaterialCommunityIcons
+                                name="shoe-print"
+                                size={22}
+                                color={colors.text}
+                            />
+                            <Text style={styles.cardLabel}>케이던스</Text>
+                            <Text style={styles.cardValue}>
+                                {Number.isFinite(Number(data?.cadence))
+                                    ? Math.round(Number(data?.cadence))
+                                    : 0}
+                                <Text style={styles.cardUnit}> spm</Text>
                             </Text>
                         </View>
                     </View>
