@@ -22,7 +22,7 @@ public class KakaoOAuthService {
     private String redirectUri;
 
     /**
-     * [신규 추가] 1. 인가 코드(code)를 이용해 카카오 AccessToken을 발급받는다.
+     * [신규 추가] 1. 인가 코드(code)를 이용해 카카오 AccessToken을 발급
      */
     public String getKakaoAccessToken(String code) {
         String tokenUrl = "https://kauth.kakao.com/oauth/token";
@@ -51,7 +51,7 @@ public class KakaoOAuthService {
     }
 
     /**
-     * 2. 카카오 AccessToken을 이용해 사용자 정보를 조회한다. (기존 유지)
+     * 2. 카카오 AccessToken을 이용해 사용자 정보를 조회
      */
     public KakaoUserInfo getUserInfo(String accessToken) {
         HttpHeaders headers = new HttpHeaders();

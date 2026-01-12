@@ -1,23 +1,26 @@
 import {Borders, Colors, Shadows} from "@/constants/theme";
-import { StyleSheet, Platform } from "react-native";
+import { StyleSheet } from "react-native";
+import { scaleFont, FontSizeSetting } from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
-  StyleSheet.create({
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>  StyleSheet.create({
     safeArea: {
       flex: 1,
       backgroundColor: Colors[scheme].background,
     },
     header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      height: 60,
-      paddingHorizontal: 20,
-      borderBottomWidth: 1,
-      borderBottomColor: "#F1F3F5",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        height: 60,
+        paddingHorizontal: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors[scheme].border,
     },
     headerTitle: {
-      fontSize: 18,
+      fontSize: scaleFont(18, fontSize),
       fontWeight: "800",
       color: Colors[scheme].text,
     },
@@ -43,7 +46,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       paddingLeft: 4,
     },
     sectionTitle: {
-      fontSize: 13,
+      fontSize: scaleFont(13, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
       marginLeft: 6,
@@ -72,17 +75,17 @@ export const getStyles = (scheme: "light" | "dark") =>
       marginTop: 100,
     },
     logoutText: {
-      fontSize: 15,
+      fontSize: scaleFont(15, fontSize),
       fontWeight: "700",
       color: "#FF6467",
       marginLeft: 8,
     },
     helperText: {
-      fontSize: 13,
+      fontSize: scaleFont(13, fontSize),
       marginTop: 6,
     },
     textButton: {
-      fontSize: 13,
+      fontSize: scaleFont(13, fontSize),
       color: "#9CA3AF",
       textDecorationLine: "underline",
     },
@@ -92,7 +95,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
     icon:{
         color: Colors[scheme].icon,
-        fontSize: 22,
+        fontSize: scaleFont(22, fontSize),
     },
       dropdownContainer: {
           position: "absolute",
@@ -111,7 +114,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       },
 
       dropdownItemText: {
-          fontSize: 15,
+          fontSize: scaleFont(15, fontSize),
           color: Colors[scheme].text,
       },
 

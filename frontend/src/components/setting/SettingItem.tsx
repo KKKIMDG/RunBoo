@@ -10,6 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "react-native";
 import { getStyles } from "./SettingItem.styles";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 /**
  * Select 옵션 타입
@@ -62,7 +63,11 @@ interface SettingItemProps {
 const CustomSmallSwitch = ({ active }: { active: boolean }) => {
   const moveAnim = useRef(new Animated.Value(active ? 1 : 0)).current;
   const colorScheme = useColorScheme() ?? "light";
-  const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
+  const { settings } = useSettings();
+
+  const styles = useMemo(() => {
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   useEffect(() => {
     Animated.timing(moveAnim, {
@@ -113,7 +118,11 @@ export default function SettingItem({
   const itemRef = useRef<View>(null);
 
   const colorScheme = useColorScheme() ?? "light";
-  const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
+  const { settings } = useSettings();
+
+  const styles = useMemo(() => {
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   useEffect(() => {
     Animated.timing(rotateAnim, {

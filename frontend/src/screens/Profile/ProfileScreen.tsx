@@ -16,27 +16,24 @@ import BackButton from "@/components/ui/BackButton";
 import { getStyles } from "./ProfileScreen.styles";
 import { useProfile } from "./useProfile";
 import { TIER_ID_MAP } from "@/constants/TierImages";
-import { Colors } from "@/constants/theme";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 export default function ProfileScreen({ navigation }: any) {
   const profile = useProfile(12);
-  const colorScheme = useColorScheme() ?? "light";
 
+  /** 일반 설정 */
+  const { settings } = useSettings();
+  const colorScheme = useColorScheme() ?? "light";
   const styles = useMemo(() => {
-    return getStyles(colorScheme);
-  }, [colorScheme]);
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* ===== 헤더 ===== */}
       <View style={styles.headerContainer}>
         <BackButton />
-
-
-
         <Text style={styles.headerTitle}>프로필</Text>
-
-
         <TouchableOpacity
           style={styles.headerRightIcon}
           onPress={() => navigation.navigate("Settings")}

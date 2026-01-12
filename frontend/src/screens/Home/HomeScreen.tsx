@@ -1,4 +1,4 @@
-import React, { FC, useRef, useState, useEffect } from "react"; // ✅ useEffect 추가
+import React, {FC, useRef, useState, useEffect, useMemo} from "react"; // ✅ useEffect 추가
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ import type { GhostProfileDto } from "@/types/ghost";
 
 // ✅ records 조회
 import { fetchMyRecords } from "@/services/record/recordsService";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 type HomeScreenProps = {
   navigation: { navigate: (screen: string, params?: any) => void };
@@ -43,7 +44,13 @@ const ModeTab: FC<{
   icon: keyof typeof Ionicons.glyphMap;
   scheme: "light" | "dark";
 }> = ({ mode, activeMode, onPress, icon, scheme }) => {
-  const styles = getStyles(scheme);
+
+  const { settings } = useSettings();
+  const colorScheme = useColorScheme() ?? "light";
+  const styles = useMemo(() => {
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
+
   const colors = Colors[scheme];
   return (
     <TouchableOpacity
@@ -230,7 +237,11 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
-  const styles = getStyles(colorScheme);
+  const { settings } = useSettings();
+  const styles = useMemo(() => {
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
+
   const colors = Colors[colorScheme];
   const borderColor = colorScheme === "dark" ? "#333333" : "#E0E0E0";
 

@@ -3,7 +3,7 @@ export type UserSetting = {
   voiceEnabled: boolean;
   voiceType: "MALE" | "FEMALE";
   themeMode: "LIGHT" | "DARK" | "SYSTEM";
-  fontSize: "SMALL" | "NORMAL" | "LARGE";
+  fontSize: "SMALL" | "MEDIUM" | "LARGE";
 };
 
 export type UserVoiceSetting = {

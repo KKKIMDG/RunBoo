@@ -21,16 +21,14 @@ import { useUserMe } from "@/contexts/UserMeContext";
 import { useNotificationPreference } from "./useNotificationPreference";
 
 export default function SettingsScreen({ navigation, onLogout }: any) {
-  const colorScheme = useColorScheme() ?? "light";
-
-  const styles = useMemo(() => {
-    return getStyles(colorScheme);
-  }, [colorScheme]);
-
   const { userMe } = useUserMe();
-
+  
   /** 일반 설정 */
   const { settings, update } = useSettings();
+  const colorScheme = useColorScheme() ?? "light";
+  const styles = useMemo(() => {
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   /** 알림 타입별 설정 */
   const { preferences, updatePreference, loading } =
@@ -289,7 +287,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
               }
               options={[
                 { label: "작게", value: "SMALL" },
-                { label: "보통", value: "NORMAL" },
+                { label: "보통", value: "MEDIUM" },
                 { label: "크게", value: "LARGE" },
               ]}
               onSelect={(v) => update("fontSize", v)}

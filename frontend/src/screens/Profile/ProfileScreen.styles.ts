@@ -1,8 +1,12 @@
 // ProfileScreen.styles.ts
 import { StyleSheet, Platform } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -17,7 +21,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       marginTop: Platform.OS === "android" ? 10 : 0, // 안드로이드 데드존 대응
     },
     headerTitle: {
-      fontSize: 20,
+      fontSize: scaleFont(20, fontSize),
       fontWeight: "800",
       color: Colors[scheme].text,
       textAlign: "center",
@@ -75,7 +79,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       borderRadius: 14,
     },
     userName: {
-      fontSize: 22,
+      fontSize: scaleFont(22, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
     },
@@ -107,17 +111,17 @@ export const getStyles = (scheme: "light" | "dark") =>
       marginBottom: 8,
     },
     metricLabel: {
-      fontSize: 10,
+      fontSize: scaleFont(10, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
     },
     metricValue: {
-      fontSize: 24,
+      fontSize: scaleFont(24, fontSize),
       fontWeight: "800",
       color: Colors[scheme].text,
     },
     metricSubLabel: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       color: "#868E96",
       marginTop: 4,
     },
@@ -127,7 +131,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       marginBottom: 12,
     },
     badgeSectionTitle: {
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
       marginRight: 6,
@@ -171,12 +175,12 @@ export const getStyles = (scheme: "light" | "dark") =>
       marginRight: 10,
     },
     miniStatLabel: {
-      fontSize: 11,
+      fontSize: scaleFont(11, fontSize),
       color: "#868E96",
       fontWeight: "600",
     },
     miniStatValue: {
-      fontSize: 18,
+      fontSize: scaleFont(18, fontSize),
       fontWeight: "800",
       color: Colors[scheme].text,
     },
@@ -197,7 +201,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       borderRadius: 2,
     },
     legendText: {
-      fontSize: 10,
+      fontSize: scaleFont(10, fontSize),
       color: "#ADB5BD",
     },
 
@@ -236,7 +240,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       marginTop: 10,
     },
     grassFooterText: {
-      fontSize: 11,
+      fontSize: scaleFont(11, fontSize),
       color: "#3A4A98",
       fontWeight: "600",
     },
@@ -263,7 +267,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
     tierButtonText: {
       color: "#FFF",
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       fontWeight: "bold",
       marginLeft: 6,
     },
@@ -274,7 +278,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
 
     grassTitle: {
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "800",
       color: Colors[scheme].text,
     },
@@ -298,12 +302,12 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
 
     grassLegendText: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       color: "#8E8E93", // iOS 보조 텍스트 느낌
       fontWeight: "600",
     },
     icon: {
-      fontSize: 24,
+      fontSize: scaleFont(24, fontSize),
       color: Colors[scheme].icon,
     },
   });
