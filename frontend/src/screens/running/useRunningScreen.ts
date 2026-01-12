@@ -141,7 +141,7 @@ export const useRunningScreen = () => {
     });
   };
 
-  const stopRun = async () => {
+  const stopRun = async (finalCadenceSpm: number) => {
     // 1. 백그라운드 작업 즉시 중단
     const hasStarted = await Location.hasStartedLocationUpdatesAsync(
       LOCATION_TASK_NAME
@@ -152,14 +152,14 @@ export const useRunningScreen = () => {
     if (timerRef.current) clearInterval(timerRef.current);
 
     // ✅ [추가] 100미터 미만일 경우 기록하지 않음
-    if (distance < 100) {
+    /*if (distance < 100) {
       Alert.alert(
         "기록 저장 불가",
         "100m 미만의 활동은 기록으로 저장되지 않습니다.",
         [{ text: "확인", onPress: () => navigation.goBack() }]
       );
       return; // 함수 종료 (createRecord 호출 안 함)
-    }
+    }*/
 
     const avgPaceSec = distance > 0 ? displayTime / (distance / 1000) : 0;
     const requestData = {
@@ -188,6 +188,7 @@ export const useRunningScreen = () => {
       avgPaceSec,
       calories: Math.floor(distance * 0.05),
       routeCoordinates,
+      cadenceSpm: Math.round(finalCadenceSpm ?? 0),
     });
   };
 
