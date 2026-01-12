@@ -53,7 +53,7 @@ public class AiAnalysisService {
         return aiStatusRepository.save(new UserAiStatus(user));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public UserAiStatus getStatus(Long userId) {
         return aiStatusRepository.findByUserId(userId)
                 .orElseGet(() -> createDefaultStatus(userId));
