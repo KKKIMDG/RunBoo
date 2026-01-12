@@ -12,9 +12,9 @@
       "distribution": "internal"
     },
     "production": {
+      "buildFromSource": true,
       "android": {
-        "buildType": "apk",
-        "buildFromSource": true
+        "buildType": "apk"
       }
     }
   },
