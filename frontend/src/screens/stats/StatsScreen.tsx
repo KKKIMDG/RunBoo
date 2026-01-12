@@ -87,19 +87,6 @@ export default function StatsScreen() {
                             </>
                         )
                     }
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={async () => {
-                                setRefreshing(true);
-                                try {
-                                    await load();
-                                } finally {
-                                    setRefreshing(false);
-                                }
-                            }}
-                        />
-                    }
                     contentContainerStyle={{
                         paddingBottom: tabBarHeight,
                     }}

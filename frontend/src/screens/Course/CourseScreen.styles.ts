@@ -6,12 +6,12 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors[scheme].background,
+        paddingTop: 20,
     },
 
     // 2. 상단 헤더 영역
     header: {
-        paddingHorizontal: 24,
-        marginTop: 10,      // SafeAreaView 고려하여 간격 조정
+        paddingHorizontal: 32,
         marginBottom: 20,
         flexDirection: 'row',
         alignItems: 'center',
@@ -21,15 +21,14 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
     },
     subHeader: {
         fontSize: 14,
-        color: Colors[scheme].primary, // 포인트 컬러 사용 (아이콘 색상보다 눈에 띄게)
-        fontWeight: '700',
-        marginBottom: 4,
-        letterSpacing: 0.5,
+        color: Colors[scheme].icon,
+        marginTop: 4,
     },
     mainHeader: {
-        fontSize: 28,
-        fontWeight: 'bold',
+        fontSize: 24,
+        fontWeight: '700',
         color: Colors[scheme].text,
+        lineHeight: 32,
     },
 
     // 3. 필터 버튼(칩) 영역
@@ -39,7 +38,7 @@ export const getStyles = (scheme: 'light' | 'dark') => StyleSheet.create({
 
     // 4. ✅ [핵심] 리스트 스타일 (FlatList용)
     listContent: {
-        paddingHorizontal: 24, // 양옆 여백
+        paddingHorizontal: 20, // 양옆 여백
         paddingBottom: 80,     // 맨 아래 여백 (탭바 등에 가려지지 않게 넉넉히)
         paddingTop: 8,         // 필터와의 간격
     },

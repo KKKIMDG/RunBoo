@@ -14,6 +14,7 @@ import { getStyles } from "@/components/layout/TopNavBar.styles";
 import { useMemo } from "react";
 
 import { useFonts, FugazOne_400Regular } from "@expo-google-fonts/fugaz-one";
+import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
 
 export interface TopNavBarProps {
   onLeftPress?: () => void;
@@ -24,6 +25,7 @@ export function TopNavBar({ onLeftPress, onRightPress }: TopNavBarProps) {
   const { userMe } = useUserMe();
   const [imageLoading, setImageLoading] = useState(false);
   const colorScheme = useColorScheme() ?? "light";
+  const { hasUnread } = useUnreadNotifications();
 
   const styles = useMemo(() => {
     return getStyles(colorScheme);
@@ -86,7 +88,7 @@ export function TopNavBar({ onLeftPress, onRightPress }: TopNavBarProps) {
       >
         <View style={styles.iconWrapper}>
           <Ionicons name="notifications-outline" style={styles.icon} />
-          <View style={styles.dot} />
+          {hasUnread && <View style={styles.dot} />}
         </View>
       </TouchableOpacity>
     </View>

@@ -10,7 +10,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 
 @Entity
 @Getter
@@ -41,6 +40,9 @@ public class RunRecord {
 
     private Integer calories;
 
+    @Column(name= "cadence")
+    private Integer cadence;
+
     @Column(name = "started_at", updatable = false)
     private LocalDateTime startedAt;
 
@@ -56,7 +58,7 @@ public class RunRecord {
 
     @lombok.Builder
     public RunRecord(User user, String mode, Double distanceM, Integer durationSec,
-                     Integer avgPace, Integer calories, String routePolyLine,
+                     Integer avgPace, Integer calories, Integer cadence, String routePolyLine,
                      LocalDateTime startedAt, LocalDateTime endedAt) {
         this.user = user;
         this.mode = mode;
@@ -64,6 +66,7 @@ public class RunRecord {
         this.durationSec = durationSec;
         this.avgPace = avgPace;
         this.calories = calories;
+        this.cadence = cadence;
         this.routePolyLine = routePolyLine;
         this.startedAt = startedAt;
         this.endedAt = endedAt;

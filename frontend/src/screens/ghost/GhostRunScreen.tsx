@@ -78,12 +78,9 @@ export default function GhostRunScreen() {
         windowSec: 5,
     });
 
-    // ✅ [추가] 종료 순간 최종 케이던스 고정 저장
-    const finalCadenceRef = useRef<number>(0);
+    // ✅ [추가] cadence 샘플을 훅에 전달 (평균 계산은 훅에서)
     useEffect(() => {
-        if (typeof cadence === "number" && isFinite(cadence)) {
-            finalCadenceRef.current = cadence;
-        }
+        actions.pushCadenceSample(cadence);
     }, [cadence]);
 
     const { pauseRun, resumeRun, stopRun } = actions;
@@ -170,8 +167,8 @@ export default function GhostRunScreen() {
 
     const buildEndMessage = () => {
         const km = distanceM > 0 ? (distanceM / 1000).toFixed(2) : "0";
-        const avgPaceSec = distanceM > 0 ? time / (distanceM / 1000) : 0;
-        const avgPaceText = formatPace(avgPaceSec);
+        const avgPaceSec2 = distanceM > 0 ? time / (distanceM / 1000) : 0;
+        const avgPaceText = formatPace(avgPaceSec2);
         return `런닝을 종료합니다. 총 거리 ${km}킬로미터, 평균 페이스 ${avgPaceText}입니다.`;
     };
 
@@ -205,10 +202,10 @@ export default function GhostRunScreen() {
         prevIsReady.current = isReady;
     }, [isReady, isSoundOn, time, ghostTotalDistanceM, ghostAvgPaceSec]);
 
-    // ✅ 변경: stopRun() -> stopRun(finalCadence)
+    // ✅ [수정] stopRun() 인자 제거 (평균 케이던스는 훅이 저장)
     const handleStopPress = () => {
         if (isSoundOn) speak(buildEndMessage());
-        stopRun(Math.round(finalCadenceRef.current ?? 0));
+        stopRun();
     };
 
     // ============================================================
@@ -311,9 +308,7 @@ export default function GhostRunScreen() {
         if (isPaused) return;
 
         const pace =
-            typeof currentPaceSec === "number"
-                ? currentPaceSec
-                : Number(currentPaceSec);
+            typeof currentPaceSec === "number" ? currentPaceSec : Number(currentPaceSec);
         if (!Number.isFinite(pace) || pace <= 0) return;
 
         if (lastAddedRef.current !== null && lastAddedRef.current === pace) return;
@@ -344,8 +339,7 @@ export default function GhostRunScreen() {
 
             if (cleaned.length >= 2) {
                 setRtPaceData(cleaned);
-                lastAddedRef.current =
-                    cleaned[cleaned.length - 1] ?? lastAddedRef.current;
+                lastAddedRef.current = cleaned[cleaned.length - 1] ?? lastAddedRef.current;
             } else if (cleaned.length === 1) {
                 setRtPaceData([cleaned[0], cleaned[0]]);
                 lastAddedRef.current = cleaned[0];
@@ -395,68 +389,38 @@ export default function GhostRunScreen() {
         if (!isPaused && distanceM >= ghostTotalDistanceM) {
             stoppedRef.current = true;
             if (isSoundOn) speak(buildEndMessage());
-            // ✅ 변경: stopRun(finalCadence)
-            stopRun(Math.round(finalCadenceRef.current ?? 0));
+            // ✅ [수정] 인자 제거
+            stopRun();
         }
     }, [distanceM, ghostTotalDistanceM, isPaused, stopRun, isSoundOn]);
 
-    const isFinished =
-        ghostTotalDistanceM > 0 && distanceM >= ghostTotalDistanceM;
+    const isFinished = ghostTotalDistanceM > 0 && distanceM >= ghostTotalDistanceM;
 
     return (
         <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
             {isReady && (
-                <View
-                    pointerEvents="auto"
-                    style={[
-                        styles.countdownOverlay,
-                        { backgroundColor: colors.background },
-                    ]}
-                >
+                <View pointerEvents="auto" style={[styles.countdownOverlay, { backgroundColor: colors.background }]}>
                     <Text style={[styles.countdownText, { color: colors.primary }]}>
                         {countdown > 0 ? countdown : "GO!"}
                     </Text>
-                    <Text style={[styles.countdownLabel, { color: colors.text }]}>
-                        준비하세요!
-                    </Text>
+                    <Text style={[styles.countdownLabel, { color: colors.text }]}>준비하세요!</Text>
                 </View>
             )}
 
-            <View
-                style={[
-                    styles.header,
-                    { backgroundColor: colors.headerBg, borderColor: colors.border },
-                ]}
-            >
-                <View
-                    style={[
-                        styles.headerPill,
-                        { backgroundColor: colors.headerBg, borderColor: colors.border },
-                    ]}
-                >
-                    <View
-                        style={[styles.statusDot, { backgroundColor: colors.primary }]}
-                    />
-                    <Text style={[styles.headerPillText, { color: colors.text }]}>
-                        고스트 모드
-                    </Text>
+            <View style={[styles.header, { backgroundColor: colors.headerBg, borderColor: colors.border }]}>
+                <View style={[styles.headerPill, { backgroundColor: colors.headerBg, borderColor: colors.border }]}>
+                    <View style={[styles.statusDot, { backgroundColor: colors.primary }]} />
+                    <Text style={[styles.headerPillText, { color: colors.text }]}>고스트 모드</Text>
                 </View>
 
                 <TouchableOpacity
                     hitSlop={10}
                     activeOpacity={0.85}
-                    style={[
-                        styles.headerIconBtn,
-                        { backgroundColor: colors.headerBg, borderColor: colors.border },
-                    ]}
+                    style={[styles.headerIconBtn, { backgroundColor: colors.headerBg, borderColor: colors.border }]}
                     onPress={() => setIsSoundOn((v) => !v)}
                 >
                     <Ionicons
-                        name={
-                            (isSoundOn
-                                ? "volume-high-outline"
-                                : "volume-mute-outline") as IoniconName
-                        }
+                        name={(isSoundOn ? "volume-high-outline" : "volume-mute-outline") as IoniconName}
                         size={22}
                         color={colors.text}
                     />
@@ -470,30 +434,15 @@ export default function GhostRunScreen() {
                     backgroundColor: colors.background,
                 }}
             >
-                <View
-                    style={[
-                        styles.card,
-                        { backgroundColor: colors.card, borderColor: colors.border },
-                    ]}
-                >
+                <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <View style={styles.cardTopRow}>
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                            <Ionicons
-                                name={"medal-outline" as IoniconName}
-                                size={18}
-                                color={colors.text}
-                            />
-                            <Text
-                                style={[styles.cardTitle, { color: colors.text, marginLeft: 8 }]}
-                            >
-                                실시간 경쟁
-                            </Text>
+                            <Ionicons name={"medal-outline" as IoniconName} size={18} color={colors.text} />
+                            <Text style={[styles.cardTitle, { color: colors.text, marginLeft: 8 }]}>실시간 경쟁</Text>
                         </View>
 
                         <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-                            <Text
-                                style={[styles.badgeText, { color: colors.primaryButtonText }]}
-                            >
+                            <Text style={[styles.badgeText, { color: colors.primaryButtonText }]}>
                                 {isFinished ? "완주!" : formatDiffBadge(ghostDistanceM - distanceM)}
                             </Text>
                         </View>
@@ -501,45 +450,29 @@ export default function GhostRunScreen() {
 
                     <View style={{ marginTop: 14 }}>
                         <View style={styles.rankRow}>
-                            <Text style={[styles.rankLabel, { color: colors.mutedText }]}>
-                                👻 고스트
-                            </Text>
-                            <Text style={[styles.rankValue, { color: colors.mutedText }]}>
-                                {ghostKmText} km
-                            </Text>
+                            <Text style={[styles.rankLabel, { color: colors.mutedText }]}>👻 고스트</Text>
+                            <Text style={[styles.rankValue, { color: colors.mutedText }]}>{ghostKmText} km</Text>
                         </View>
 
                         <View style={[styles.gaugeTrack, { backgroundColor: "rgba(0,0,0,0.06)" }]}>
                             <View
                                 style={[
                                     styles.gaugeFill,
-                                    {
-                                        width: `${ghostRatio * 100}%`,
-                                        backgroundColor: colors.primary,
-                                        opacity: 0.55,
-                                    },
+                                    { width: `${ghostRatio * 100}%`, backgroundColor: colors.primary, opacity: 0.55 },
                                 ]}
                             />
                         </View>
 
                         <View style={[styles.rankRow, { marginTop: 14 }]}>
-                            <Text style={[styles.rankLabel, { color: colors.mutedText }]}>
-                                👣 YOU
-                            </Text>
-                            <Text style={[styles.rankValue, { color: colors.mutedText }]}>
-                                {youKmText} km
-                            </Text>
+                            <Text style={[styles.rankLabel, { color: colors.mutedText }]}>👣 YOU</Text>
+                            <Text style={[styles.rankValue, { color: colors.mutedText }]}>{youKmText} km</Text>
                         </View>
 
                         <View style={[styles.gaugeTrack, { backgroundColor: "rgba(0,0,0,0.06)" }]}>
                             <View
                                 style={[
                                     styles.gaugeFill,
-                                    {
-                                        width: `${youRatio * 100}%`,
-                                        backgroundColor: colors.primary,
-                                        opacity: 1,
-                                    },
+                                    { width: `${youRatio * 100}%`, backgroundColor: colors.primary, opacity: 1 },
                                 ]}
                             />
                         </View>
@@ -553,80 +486,28 @@ export default function GhostRunScreen() {
                 </View>
 
                 <View style={styles.metricsRow}>
-                    <View
-                        style={[
-                            styles.metric,
-                            { backgroundColor: colors.card, borderColor: colors.border },
-                        ]}
-                    >
-                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>
-                            시간
-                        </Text>
-                        <Text style={[styles.metricValue, { color: colors.text2 }]}>
-                            {formatTime(time)}
-                        </Text>
+                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>시간</Text>
+                        <Text style={[styles.metricValue, { color: colors.text2 }]}>{formatTime(time)}</Text>
                     </View>
 
-                    <View
-                        style={[
-                            styles.metric,
-                            {
-                                backgroundColor: colors.card,
-                                borderColor: colors.border,
-                                marginLeft: 10,
-                            },
-                        ]}
-                    >
-                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>
-                            거리
-                        </Text>
-                        <Text style={[styles.metricValue, { color: colors.text2 }]}>
-                            {youKmText}
-                        </Text>
-                        <Text style={[styles.metricUnit, { color: colors.mutedText }]}>
-                            km
-                        </Text>
+                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 }]}>
+                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>거리</Text>
+                        <Text style={[styles.metricValue, { color: colors.text2 }]}>{youKmText}</Text>
+                        <Text style={[styles.metricUnit, { color: colors.mutedText }]}>km</Text>
                     </View>
 
-                    <View
-                        style={[
-                            styles.metric,
-                            {
-                                backgroundColor: colors.card,
-                                borderColor: colors.border,
-                                marginLeft: 10,
-                            },
-                        ]}
-                    >
-                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>
-                            페이스
-                        </Text>
-                        <Text style={[styles.metricValue, { color: colors.text2 }]}>
-                            {formatPace(currentPaceSec)}
-                        </Text>
-                        <Text style={[styles.metricUnit, { color: colors.mutedText }]}>
-                            /km
-                        </Text>
+                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 }]}>
+                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>페이스</Text>
+                        <Text style={[styles.metricValue, { color: colors.text2 }]}>{formatPace(currentPaceSec)}</Text>
+                        <Text style={[styles.metricUnit, { color: colors.mutedText }]}>/km</Text>
                     </View>
                 </View>
 
-                <View
-                    style={[
-                        styles.card,
-                        { backgroundColor: colors.card, borderColor: colors.border },
-                    ]}
-                >
+                <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons
-                            name={"analytics-outline" as IoniconName}
-                            size={18}
-                            color={colors.text}
-                        />
-                        <Text
-                            style={[styles.cardTitle, { color: colors.text, marginLeft: 8 }]}
-                        >
-                            페이스 변화
-                        </Text>
+                        <Ionicons name={"analytics-outline" as IoniconName} size={18} color={colors.text} />
+                        <Text style={[styles.cardTitle, { color: colors.text, marginLeft: 8 }]}>페이스 변화</Text>
                     </View>
 
                     <LineChart
@@ -647,13 +528,7 @@ export default function GhostRunScreen() {
                         segments={4}
                     />
 
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            marginTop: 8,
-                        }}
-                    >
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 8 }}>
                         <Text style={[styles.small, { color: colors.mutedText }]}>시작</Text>
                         <Text style={[styles.small, { color: colors.mutedText }]}>
                             현재 페이스: {formatPace(currentPaceSec)}/km
@@ -661,9 +536,7 @@ export default function GhostRunScreen() {
                     </View>
 
                     <StatBox
-                        icon={
-                            <MaterialCommunityIcons name="shoe-print" size={24} color="#4A6EA9" />
-                        }
+                        icon={<MaterialCommunityIcons name="shoe-print" size={24} color="#4A6EA9" />}
                         label="케이던스"
                         value={String(cadence)}
                         unit="spm"
@@ -671,14 +544,7 @@ export default function GhostRunScreen() {
                 </View>
             </ScrollView>
 
-            {/* ✅ 컨트롤: 왼쪽=일시정지/재개, 오른쪽=측정 종료(롱프레스) */}
-            <View
-                style={[
-                    styles.controls,
-                    { backgroundColor: colors.card, borderColor: colors.border },
-                ]}
-            >
-                {/* 왼쪽: Pause/Play */}
+            <View style={[styles.controls, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <Pressable
                     disabled={isFinished}
                     onPress={isPaused ? resumeRun : pauseRun}
@@ -692,22 +558,13 @@ export default function GhostRunScreen() {
                         },
                     ]}
                 >
-                    <Ionicons
-                        name={(isPaused ? "play" : "pause") as IoniconName}
-                        size={26}
-                        color={colors.text}
-                    />
+                    <Ionicons name={(isPaused ? "play" : "pause") as IoniconName} size={26} color={colors.text} />
                 </Pressable>
 
-                {/* 오른쪽: Stop (롱프레스 3초) */}
                 <TouchableOpacity
                     style={[
                         styles.stopBtn,
-                        {
-                            backgroundColor: colors.danger,
-                            marginLeft: 14,
-                            opacity: isFinished ? 0.6 : 1,
-                        },
+                        { backgroundColor: colors.danger, marginLeft: 14, opacity: isFinished ? 0.6 : 1 },
                     ]}
                     onPress={() => {
                         speak("종료하려면 3초 이상 길게 누르세요.");
@@ -717,11 +574,7 @@ export default function GhostRunScreen() {
                     activeOpacity={0.85}
                     disabled={isFinished}
                 >
-                    <Ionicons
-                        name={"stop" as IoniconName}
-                        size={22}
-                        color={colors.primaryButtonText}
-                    />
+                    <Ionicons name={"stop" as IoniconName} size={22} color={colors.primaryButtonText} />
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -772,12 +625,7 @@ export const getStyles = (scheme: "light" | "dark") => {
             borderWidth: 1,
             ...shadow,
         },
-        headerPillText: {
-            fontWeight: "800",
-            fontSize: 13,
-            marginLeft: 6,
-            marginRight: 6,
-        },
+        headerPillText: { fontWeight: "800", fontSize: 13, marginLeft: 6, marginRight: 6 },
 
         headerIconBtn: {
             width: 44,
@@ -796,18 +644,8 @@ export const getStyles = (scheme: "light" | "dark") => {
             marginRight: 8,
         },
 
-        card: {
-            borderWidth: 1,
-            borderRadius: 16,
-            padding: 14,
-            marginBottom: 12,
-            ...shadow2,
-        },
-        cardTopRow: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-        },
+        card: { borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 12, ...shadow2 },
+        cardTopRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
         cardTitle: { fontWeight: "900", fontSize: 14 },
 
         badge: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999 },
@@ -825,11 +663,7 @@ export const getStyles = (scheme: "light" | "dark") => {
         },
         gaugeFill: { height: "100%", borderRadius: 999 },
 
-        progressMarks: {
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: 10,
-        },
+        progressMarks: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
         mark: { fontSize: 11, fontWeight: "700" },
 
         metricsRow: { flexDirection: "row", marginBottom: 12 },
@@ -843,12 +677,7 @@ export const getStyles = (scheme: "light" | "dark") => {
         },
 
         metricLabel: { fontSize: 12, fontWeight: "700", textAlign: "center" },
-        metricValue: {
-            fontSize: 20,
-            fontWeight: "900",
-            marginTop: 6,
-            textAlign: "center",
-        },
+        metricValue: { fontSize: 20, fontWeight: "900", marginTop: 6, textAlign: "center" },
         metricUnit: { fontSize: 12, marginTop: 2, fontWeight: "600", textAlign: "center" },
 
         small: { fontSize: 11, fontWeight: "700" },
