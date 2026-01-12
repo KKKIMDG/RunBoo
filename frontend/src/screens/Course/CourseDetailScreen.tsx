@@ -15,7 +15,9 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { api } from '@/services/api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
-import { useMe } from '@/hooks/useMe'; // ✅ 내 정보(userId) 가져오기 위해 추가
+import { useMe } from '@/hooks/useMe';
+import {useSettings} from "@/screens/Settings/useSettings";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale"; // ✅ 내 정보(userId) 가져오기 위해 추가
 
 interface CourseDetailType {
     id: number;
@@ -39,10 +41,10 @@ export default function CourseDetailScreen({ route, navigation }: any) {
 
     const colorScheme = useColorScheme() ?? "light";
     const colors = Colors[colorScheme];
-
+    const { settings } = useSettings();
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
     useEffect(() => {
         if (!course) {
@@ -185,7 +187,10 @@ export default function CourseDetailScreen({ route, navigation }: any) {
     );
 }
 
-export const getStyles = (scheme: "light" | "dark") => {
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+    ) => {
     const colors = Colors[scheme];
 
     return StyleSheet.create({
@@ -211,14 +216,14 @@ export const getStyles = (scheme: "light" | "dark") => {
             alignItems: 'flex-start',
         },
         title: {
-            fontSize: 20,
+            fontSize: scaleFont(20, fontSize),
             fontWeight: 'bold',
             color: '#fff',
             marginBottom: 4,
         },
         address: {
             color: '#E5E7EB',
-            fontSize: 13,
+            fontSize: scaleFont(13, fontSize),
         },
         headerButtons: {
             flexDirection: 'row',
@@ -238,12 +243,12 @@ export const getStyles = (scheme: "light" | "dark") => {
         },
         closeIconText: {
             color: '#fff',
-            fontSize: 18,
+            fontSize: scaleFont(18, fontSize),
             fontWeight: 'bold',
         },
         heartIcon: {
             color: '#FF6B6B',
-            fontSize: 20,
+            fontSize: scaleFont(20, fontSize),
             fontWeight: 'bold',
         },
         mapArea: {
@@ -262,7 +267,7 @@ export const getStyles = (scheme: "light" | "dark") => {
             alignSelf: 'flex-start',
         },
         distanceText: {
-            fontSize: 15,
+            fontSize: scaleFont(15, fontSize),
             color: colors.text,
             fontWeight: '700',
         },
@@ -276,7 +281,7 @@ export const getStyles = (scheme: "light" | "dark") => {
         },
         copyButtonText: {
             color: '#fff',
-            fontSize: 16,
+            fontSize: scaleFont(16, fontSize),
             fontWeight: 'bold',
         },
     });
