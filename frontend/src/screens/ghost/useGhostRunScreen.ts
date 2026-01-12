@@ -5,15 +5,23 @@ import * as Location from "expo-location";
 import { useKeepAwake } from "expo-keep-awake";
 import { encodePath } from "@/utils/runUtils";
 import type { GhostProfileDto } from "@/types/ghost";
-import { createRecord } from "@/services/record/recordsService";
+import { createRecord, fetchMyRecords } from "@/services/record/recordsService";
 import { useRecordStore } from "@/stores/recordStore";
 import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
-
 import { useRunningVoiceFeedback } from "@/hooks/useRunningVoiceFeedback";
 
 // ✅ 저장할 때만 +9시간 보정해서 ISO(UTC)로 보내기
 const toIsoPlus9 = (d: Date) =>
     new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString();
+
+// ✅ 케이던스 샘플 필터
+function normalizeCadence(spm: number): number | null {
+    const v = Number(spm);
+    if (!Number.isFinite(v)) return null;
+    const r = Math.round(v);
+    if (r < 40 || r > 260) return null;
+    return r;
+}
 
 export function useGhostRunScreen() {
     useKeepAwake();
@@ -32,7 +40,7 @@ export function useGhostRunScreen() {
     const ghostTotalDistanceM = (ghost?.targetDistanceKm ?? 5.2) * 1000;
     const ghostAvgPaceSec = ghost?.avgPace ?? 280; // sec/km
 
-    // ✅ [추가] 고스트 러닝용 음성 훅 (기존 기능 건드리지 않음)
+    // ✅ 고스트 러닝용 음성 훅 (기존 기능 건드리지 않음)
     const voice = useRunningVoiceFeedback({
         isMale,
         targetDistance: ghostTotalDistanceM,
@@ -66,6 +74,28 @@ export function useGhostRunScreen() {
     const [paceHistoryMin, setPaceHistoryMin] = useState<number[]>([]);
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // ✅ [추가] 케이던스 평균 누적 (GhostRunScreen에서 pushCadenceSample로 주입)
+    const cadenceSumRef = useRef(0);
+    const cadenceCountRef = useRef(0);
+
+    const pushCadenceSample = (spm: number) => {
+        const v = normalizeCadence(spm);
+        if (v == null) return;
+        cadenceSumRef.current += v;
+        cadenceCountRef.current += 1;
+    };
+
+    const resetCadenceAgg = () => {
+        cadenceSumRef.current = 0;
+        cadenceCountRef.current = 0;
+    };
+
+    const avgCadence = () => {
+        const n = cadenceCountRef.current;
+        if (n <= 0) return 0;
+        return Math.round(cadenceSumRef.current / n);
+    };
 
     // 고스트 진행거리(시간 기반)
     const ghostDistanceM = isRunning
@@ -113,10 +143,12 @@ export function useGhostRunScreen() {
         return sec > 0 ? `고스트보다 ${abs}초 느림` : `고스트보다 ${abs}초 빠름`;
     };
 
-    // 1. 초기화
+    // 1) 초기화
     useEffect(() => {
         (async () => {
             resetStore();
+            resetCadenceAgg();
+
             const loc = await Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.Highest,
             });
@@ -128,7 +160,7 @@ export function useGhostRunScreen() {
         };
     }, []);
 
-    // 2. 카운트다운
+    // 2) 카운트다운
     useEffect(() => {
         if (isReady && countdown > 0) {
             const t = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -137,12 +169,13 @@ export function useGhostRunScreen() {
             // ✅ 시작 안내 음성
             voice.speakStart();
 
+            resetCadenceAgg();
             startStoreRun();
             startLocationTracking();
         }
     }, [isReady, countdown]);
 
-    // 3. 타이머 및 그래프
+    // 3) 타이머 및 그래프
     useEffect(() => {
         if (isRunning && !isPaused && startTime) {
             timerRef.current = setInterval(() => {
@@ -186,17 +219,12 @@ export function useGhostRunScreen() {
         });
     };
 
-    // ✅ 저장
-    // ✅ 변경: stopRun(finalCadenceSpm) 인자 받음
-    const stopRun = async (finalCadenceSpm: number = 0) => {
-        // ✅ 핵심: stopStoreRun() 전에 스냅샷 떠두기 (distance가 0으로 리셋되는 문제 방지)
+    // ✅ 저장 (인자 제거: cadence는 평균으로 저장)
+    const stopRun = async () => {
         const finalDistance = distance;
         const finalRouteCoordinates = routeCoordinates;
         const finalStartTime = startTime;
         const finalDisplayTime = displayTime;
-
-        // ✅ 추가: 최종 케이던스 스냅샷
-        const cadenceSpm = Math.round(finalCadenceSpm ?? 0);
 
         // 백그라운드 중단
         const hasStarted = await Location.hasStartedLocationUpdatesAsync(
@@ -209,10 +237,9 @@ export function useGhostRunScreen() {
         // 타이머 중단
         if (timerRef.current) clearInterval(timerRef.current);
 
-        // ✅ 100m 미만: 경고 + 뒤로가기 (스냅샷 기준)
+        // ✅ 100m 미만: 경고 + 뒤로가기
         if (finalDistance < 100) {
             voice.speakMinDistanceWarning?.();
-
             stopStoreRun();
 
             Alert.alert(
@@ -235,14 +262,15 @@ export function useGhostRunScreen() {
                 "오류",
                 "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)"
             );
+
+            // ✅ recordId 없이도 결과 화면은 보여주되 cadence는 DB조회이므로 표시가 -로 나올 수 있음
             navigation.navigate("RunResult", {
                 distanceM: finalDistance,
                 durationSec: finalDisplayTime,
                 avgPaceSec,
                 calories,
                 routeCoordinates: finalRouteCoordinates,
-                // ✅ 추가
-                cadenceSpm,
+                recordId: undefined,
             });
             return;
         }
@@ -254,6 +282,10 @@ export function useGhostRunScreen() {
             durationSec: finalDisplayTime,
             avgPace: Math.floor(avgPaceSec),
             calories,
+
+            // ✅ [추가] 평균 케이던스 저장
+            cadence: avgCadence(),
+
             routePolyline: encodePath(finalRouteCoordinates),
             startedAt: finalStartTime
                 ? toIsoPlus9(new Date(finalStartTime))
@@ -261,21 +293,22 @@ export function useGhostRunScreen() {
             endedAt: toIsoPlus9(new Date()),
         };
 
-        console.log("=========================================");
-        console.log("🚀 [DEBUG] 고스트 기록 저장 요청 전송 데이터:");
-        console.log(JSON.stringify(requestData, null, 2));
-        console.log("=========================================");
-
         try {
-            const response = await createRecord(requestData);
-            console.log("✅ [DEBUG] 고스트 저장 서버 응답:", response);
+            await createRecord(requestData);
         } catch (error: any) {
-            console.error("❌ [DEBUG] 고스트 저장 실패 에러:", error);
+            console.error("Ghost save error:", error);
             Alert.alert(
                 "저장 실패",
                 `기록을 저장하지 못했습니다. (${error?.message || "네트워크 에러"})`
             );
         }
+
+        // ✅ recordId 확보 (NORMAL/TIER와 동일 방식)
+        let recordId: number | undefined = undefined;
+        try {
+            const records = await fetchMyRecords();
+            recordId = Math.max(...records.map((r: any) => Number(r.id)));
+        } catch {}
 
         // ✅ 이제서야 스토어 정리
         stopStoreRun();
@@ -286,8 +319,7 @@ export function useGhostRunScreen() {
             avgPaceSec,
             calories,
             routeCoordinates: finalRouteCoordinates,
-            // ✅ 추가
-            cadenceSpm,
+            recordId,
         });
     };
 
@@ -314,6 +346,9 @@ export function useGhostRunScreen() {
             pauseRun: pauseStoreRun,
             resumeRun: resumeStoreRun,
             stopRun,
+
+            // ✅ [추가] GhostRunScreen에서 cadence 샘플 주입
+            pushCadenceSample,
         },
         utils: { formatTime, formatPace, formatDiffBadge, formatPaceDiff },
     };

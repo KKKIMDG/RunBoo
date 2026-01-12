@@ -19,7 +19,7 @@ public class RunRecordDetailResponse {
     private Integer durationSec;
     private Integer avgPace;
     private Integer calories;
-
+    private Integer cadence;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private LocalDateTime createdAt;
@@ -34,18 +34,15 @@ public class RunRecordDetailResponse {
     public RunRecordDetailResponse(RunRecord record) {
         this.recordId = record.getId();
         this.mode = record.getMode();
-
         this.distanceM = record.getDistanceM();
         this.durationSec = record.getDurationSec();
         this.avgPace = record.getAvgPace();
         this.calories = record.getCalories();
-
+        this.cadence = record.getCadence();
         this.startedAt = record.getStartedAt();
         this.endedAt = record.getEndedAt();
         this.createdAt = record.getCreatedAt();
-
         this.routePolyLine = record.getRoutePolyLine();
-
         long sec = calcDurationSec(record);
         this.timeText = formatSecondsToTime(sec);
         this.paceText = formatPaceText(record.getAvgPace());
