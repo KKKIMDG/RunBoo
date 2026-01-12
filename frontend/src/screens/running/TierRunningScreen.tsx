@@ -57,6 +57,15 @@ const TierRunningScreen = () => {
     windowSec: 5,
   });
 
+  // ✅ 종료 순간 케이던스 고정 저장용
+  const finalCadenceRef = useRef<number>(0);
+
+  useEffect(() => {
+      if (typeof cadence === "number" && isFinite(cadence)) {
+          finalCadenceRef.current = cadence;
+      }
+  }, [cadence]);
+
   const { pauseRun, resumeRun, stopTierRunManual } = actions;
   const { formatTime, formatPace } = utils;
 
@@ -327,7 +336,9 @@ const TierRunningScreen = () => {
           <TouchableOpacity
             style={styles.stopButton}
             onPress={handleStopPress}
-            onLongPress={stopTierRunManual}
+            onLongPress={() =>
+                stopTierRunManual(Math.round(finalCadenceRef.current ?? 0))
+            }
             delayLongPress={1000}
           >
             <View style={customStyles.stopSquare} />

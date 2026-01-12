@@ -12,7 +12,8 @@ import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
 import { useRunningVoiceFeedback } from "@/hooks/useRunningVoiceFeedback";
 
 // ✅ 저장할 때만 +9시간 보정해서 ISO(UTC)로 보내기
-const toIsoPlus9 = (d: Date) => new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString();
+const toIsoPlus9 = (d: Date) =>
+    new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString();
 
 export function useGhostRunScreen() {
     useKeepAwake();
@@ -76,7 +77,9 @@ export function useGhostRunScreen() {
 
     // progress (0~1)
     const progress =
-        ghostTotalDistanceM > 0 ? Math.max(0, Math.min(1, distance / ghostTotalDistanceM)) : 0;
+        ghostTotalDistanceM > 0
+            ? Math.max(0, Math.min(1, distance / ghostTotalDistanceM))
+            : 0;
 
     // 페이스 비교(+)면 내가 느림, (-)면 내가 빠름
     const paceDiffSec = (currentPace || 0) - ghostAvgPaceSec;
@@ -86,7 +89,9 @@ export function useGhostRunScreen() {
         const h = Math.floor(totalSeconds / 3600);
         const m = Math.floor((totalSeconds % 3600) / 60);
         const s = totalSeconds % 60;
-        return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${s < 10 ? "0" + s : s}`;
+        return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${
+            s < 10 ? "0" + s : s
+        }`;
     };
 
     const formatPace = (paceSec: number) => {
@@ -182,15 +187,21 @@ export function useGhostRunScreen() {
     };
 
     // ✅ 저장
-    const stopRun = async () => {
+    // ✅ 변경: stopRun(finalCadenceSpm) 인자 받음
+    const stopRun = async (finalCadenceSpm: number = 0) => {
         // ✅ 핵심: stopStoreRun() 전에 스냅샷 떠두기 (distance가 0으로 리셋되는 문제 방지)
         const finalDistance = distance;
         const finalRouteCoordinates = routeCoordinates;
         const finalStartTime = startTime;
         const finalDisplayTime = displayTime;
 
+        // ✅ 추가: 최종 케이던스 스냅샷
+        const cadenceSpm = Math.round(finalCadenceSpm ?? 0);
+
         // 백그라운드 중단
-        const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+        const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+            LOCATION_TASK_NAME
+        );
         if (hasStarted) {
             await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
         }
@@ -212,20 +223,26 @@ export function useGhostRunScreen() {
             return;
         }
 
-        const avgPaceSec = finalDistance > 0 ? finalDisplayTime / (finalDistance / 1000) : 0;
+        const avgPaceSec =
+            finalDistance > 0 ? finalDisplayTime / (finalDistance / 1000) : 0;
         const calories = Math.floor(finalDistance * 0.05);
 
         const finalUserId = userId ? Number(userId) : 0;
         if (!finalUserId) {
             stopStoreRun();
 
-            Alert.alert("오류", "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)");
+            Alert.alert(
+                "오류",
+                "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)"
+            );
             navigation.navigate("RunResult", {
                 distanceM: finalDistance,
                 durationSec: finalDisplayTime,
                 avgPaceSec,
                 calories,
                 routeCoordinates: finalRouteCoordinates,
+                // ✅ 추가
+                cadenceSpm,
             });
             return;
         }
@@ -238,7 +255,9 @@ export function useGhostRunScreen() {
             avgPace: Math.floor(avgPaceSec),
             calories,
             routePolyline: encodePath(finalRouteCoordinates),
-            startedAt: finalStartTime ? toIsoPlus9(new Date(finalStartTime)) : new Date().toISOString(),
+            startedAt: finalStartTime
+                ? toIsoPlus9(new Date(finalStartTime))
+                : new Date().toISOString(),
             endedAt: toIsoPlus9(new Date()),
         };
 
@@ -252,7 +271,10 @@ export function useGhostRunScreen() {
             console.log("✅ [DEBUG] 고스트 저장 서버 응답:", response);
         } catch (error: any) {
             console.error("❌ [DEBUG] 고스트 저장 실패 에러:", error);
-            Alert.alert("저장 실패", `기록을 저장하지 못했습니다. (${error?.message || "네트워크 에러"})`);
+            Alert.alert(
+                "저장 실패",
+                `기록을 저장하지 못했습니다. (${error?.message || "네트워크 에러"})`
+            );
         }
 
         // ✅ 이제서야 스토어 정리
@@ -264,6 +286,8 @@ export function useGhostRunScreen() {
             avgPaceSec,
             calories,
             routeCoordinates: finalRouteCoordinates,
+            // ✅ 추가
+            cadenceSpm,
         });
     };
 

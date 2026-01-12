@@ -11,13 +11,13 @@ import {
     useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
 import * as Speech from "expo-speech";
 
 import { Colors } from "@/constants/theme";
 import { useGhostRunScreen } from "./useGhostRunScreen";
-import {StatBox} from "@/components/StatBox";
+import { StatBox } from "@/components/StatBox";
 import { useCadence } from "@/hooks/useCadence";
 
 const { width: W } = Dimensions.get("window");
@@ -77,6 +77,14 @@ export default function GhostRunScreen() {
         enabled: !isReady && !isPaused,
         windowSec: 5,
     });
+
+    // ✅ [추가] 종료 순간 최종 케이던스 고정 저장
+    const finalCadenceRef = useRef<number>(0);
+    useEffect(() => {
+        if (typeof cadence === "number" && isFinite(cadence)) {
+            finalCadenceRef.current = cadence;
+        }
+    }, [cadence]);
 
     const { pauseRun, resumeRun, stopRun } = actions;
     const { formatTime, formatPace, formatDiffBadge } = utils;
@@ -174,7 +182,11 @@ export default function GhostRunScreen() {
             return;
         }
 
-        if (prevIsReady.current === true && isReady === false && !startSpokenRef.current) {
+        if (
+            prevIsReady.current === true &&
+            isReady === false &&
+            !startSpokenRef.current
+        ) {
             startSpokenRef.current = true;
 
             compareBlockUntilRef.current = Number.MAX_SAFE_INTEGER;
@@ -193,9 +205,10 @@ export default function GhostRunScreen() {
         prevIsReady.current = isReady;
     }, [isReady, isSoundOn, time, ghostTotalDistanceM, ghostAvgPaceSec]);
 
+    // ✅ 변경: stopRun() -> stopRun(finalCadence)
     const handleStopPress = () => {
         if (isSoundOn) speak(buildEndMessage());
-        stopRun(); // ✅ 오른쪽 버튼(롱프레스)이 측정 종료/결과화면 이동 담당
+        stopRun(Math.round(finalCadenceRef.current ?? 0));
     };
 
     // ============================================================
@@ -239,9 +252,11 @@ export default function GhostRunScreen() {
 
         const paceDiff = Number(paceDiffSec);
         const isPaceSimilar =
-            Number.isFinite(paceDiff) && Math.abs(paceDiff) <= PACE_SIMILAR_THRESHOLD_SEC;
+            Number.isFinite(paceDiff) &&
+            Math.abs(paceDiff) <= PACE_SIMILAR_THRESHOLD_SEC;
 
-        const bucketChanged = lastBucketRef.current === null || bucket !== lastBucketRef.current;
+        const bucketChanged =
+            lastBucketRef.current === null || bucket !== lastBucketRef.current;
         const signChanged = sign !== lastSignRef.current;
         const paceSimilarChanged = isPaceSimilar !== lastPaceSimilarRef.current;
 
@@ -258,7 +273,10 @@ export default function GhostRunScreen() {
                 : "고스트와 거의 나란히 달리고 있어요.";
         } else {
             const m = bucket * UNIT_M;
-            msg = sign > 0 ? `고스트보다 ${m}미터 뒤처지고 있어요.` : `좋아요. 고스트보다 ${m}미터 앞서고 있어요.`;
+            msg =
+                sign > 0
+                    ? `고스트보다 ${m}미터 뒤처지고 있어요.`
+                    : `좋아요. 고스트보다 ${m}미터 앞서고 있어요.`;
             if (isPaceSimilar) msg += " 페이스는 거의 비슷해요.";
         }
 
@@ -292,7 +310,10 @@ export default function GhostRunScreen() {
 
         if (isPaused) return;
 
-        const pace = typeof currentPaceSec === "number" ? currentPaceSec : Number(currentPaceSec);
+        const pace =
+            typeof currentPaceSec === "number"
+                ? currentPaceSec
+                : Number(currentPaceSec);
         if (!Number.isFinite(pace) || pace <= 0) return;
 
         if (lastAddedRef.current !== null && lastAddedRef.current === pace) return;
@@ -323,7 +344,8 @@ export default function GhostRunScreen() {
 
             if (cleaned.length >= 2) {
                 setRtPaceData(cleaned);
-                lastAddedRef.current = cleaned[cleaned.length - 1] ?? lastAddedRef.current;
+                lastAddedRef.current =
+                    cleaned[cleaned.length - 1] ?? lastAddedRef.current;
             } else if (cleaned.length === 1) {
                 setRtPaceData([cleaned[0], cleaned[0]]);
                 lastAddedRef.current = cleaned[0];
@@ -343,7 +365,9 @@ export default function GhostRunScreen() {
         decimalPlaces: 1,
         color: (opacity = 1) => `rgba(44, 63, 110, ${opacity})`,
         labelColor: (opacity = 1) =>
-            colorScheme === "dark" ? `rgba(255,255,255,${opacity})` : `rgba(0,0,0,${opacity})`,
+            colorScheme === "dark"
+                ? `rgba(255,255,255,${opacity})`
+                : `rgba(0,0,0,${opacity})`,
         style: { borderRadius: 16 },
         propsForDots: { r: "0" },
         propsForBackgroundLines: { stroke: "rgba(0,0,0,0.08)" },
@@ -371,37 +395,68 @@ export default function GhostRunScreen() {
         if (!isPaused && distanceM >= ghostTotalDistanceM) {
             stoppedRef.current = true;
             if (isSoundOn) speak(buildEndMessage());
-            stopRun();
+            // ✅ 변경: stopRun(finalCadence)
+            stopRun(Math.round(finalCadenceRef.current ?? 0));
         }
     }, [distanceM, ghostTotalDistanceM, isPaused, stopRun, isSoundOn]);
 
-    const isFinished = ghostTotalDistanceM > 0 && distanceM >= ghostTotalDistanceM;
+    const isFinished =
+        ghostTotalDistanceM > 0 && distanceM >= ghostTotalDistanceM;
 
     return (
         <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
             {isReady && (
-                <View pointerEvents="auto" style={[styles.countdownOverlay, { backgroundColor: colors.background }]}>
+                <View
+                    pointerEvents="auto"
+                    style={[
+                        styles.countdownOverlay,
+                        { backgroundColor: colors.background },
+                    ]}
+                >
                     <Text style={[styles.countdownText, { color: colors.primary }]}>
                         {countdown > 0 ? countdown : "GO!"}
                     </Text>
-                    <Text style={[styles.countdownLabel, { color: colors.text }]}>준비하세요!</Text>
+                    <Text style={[styles.countdownLabel, { color: colors.text }]}>
+                        준비하세요!
+                    </Text>
                 </View>
             )}
 
-            <View style={[styles.header, { backgroundColor: colors.headerBg, borderColor: colors.border }]}>
-                <View style={[styles.headerPill, { backgroundColor: colors.headerBg, borderColor: colors.border }]}>
-                    <View style={[styles.statusDot, { backgroundColor: colors.primary }]} />
-                    <Text style={[styles.headerPillText, { color: colors.text }]}>고스트 모드</Text>
+            <View
+                style={[
+                    styles.header,
+                    { backgroundColor: colors.headerBg, borderColor: colors.border },
+                ]}
+            >
+                <View
+                    style={[
+                        styles.headerPill,
+                        { backgroundColor: colors.headerBg, borderColor: colors.border },
+                    ]}
+                >
+                    <View
+                        style={[styles.statusDot, { backgroundColor: colors.primary }]}
+                    />
+                    <Text style={[styles.headerPillText, { color: colors.text }]}>
+                        고스트 모드
+                    </Text>
                 </View>
 
                 <TouchableOpacity
                     hitSlop={10}
                     activeOpacity={0.85}
-                    style={[styles.headerIconBtn, { backgroundColor: colors.headerBg, borderColor: colors.border }]}
+                    style={[
+                        styles.headerIconBtn,
+                        { backgroundColor: colors.headerBg, borderColor: colors.border },
+                    ]}
                     onPress={() => setIsSoundOn((v) => !v)}
                 >
                     <Ionicons
-                        name={(isSoundOn ? "volume-high-outline" : "volume-mute-outline") as IoniconName}
+                        name={
+                            (isSoundOn
+                                ? "volume-high-outline"
+                                : "volume-mute-outline") as IoniconName
+                        }
                         size={22}
                         color={colors.text}
                     />
@@ -415,15 +470,30 @@ export default function GhostRunScreen() {
                     backgroundColor: colors.background,
                 }}
             >
-                <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View
+                    style={[
+                        styles.card,
+                        { backgroundColor: colors.card, borderColor: colors.border },
+                    ]}
+                >
                     <View style={styles.cardTopRow}>
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                            <Ionicons name={"medal-outline" as IoniconName} size={18} color={colors.text} />
-                            <Text style={[styles.cardTitle, { color: colors.text, marginLeft: 8 }]}>실시간 경쟁</Text>
+                            <Ionicons
+                                name={"medal-outline" as IoniconName}
+                                size={18}
+                                color={colors.text}
+                            />
+                            <Text
+                                style={[styles.cardTitle, { color: colors.text, marginLeft: 8 }]}
+                            >
+                                실시간 경쟁
+                            </Text>
                         </View>
 
                         <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-                            <Text style={[styles.badgeText, { color: colors.primaryButtonText }]}>
+                            <Text
+                                style={[styles.badgeText, { color: colors.primaryButtonText }]}
+                            >
                                 {isFinished ? "완주!" : formatDiffBadge(ghostDistanceM - distanceM)}
                             </Text>
                         </View>
@@ -431,8 +501,12 @@ export default function GhostRunScreen() {
 
                     <View style={{ marginTop: 14 }}>
                         <View style={styles.rankRow}>
-                            <Text style={[styles.rankLabel, { color: colors.mutedText }]}>👻 고스트</Text>
-                            <Text style={[styles.rankValue, { color: colors.mutedText }]}>{ghostKmText} km</Text>
+                            <Text style={[styles.rankLabel, { color: colors.mutedText }]}>
+                                👻 고스트
+                            </Text>
+                            <Text style={[styles.rankValue, { color: colors.mutedText }]}>
+                                {ghostKmText} km
+                            </Text>
                         </View>
 
                         <View style={[styles.gaugeTrack, { backgroundColor: "rgba(0,0,0,0.06)" }]}>
@@ -449,8 +523,12 @@ export default function GhostRunScreen() {
                         </View>
 
                         <View style={[styles.rankRow, { marginTop: 14 }]}>
-                            <Text style={[styles.rankLabel, { color: colors.mutedText }]}>👣 YOU</Text>
-                            <Text style={[styles.rankValue, { color: colors.mutedText }]}>{youKmText} km</Text>
+                            <Text style={[styles.rankLabel, { color: colors.mutedText }]}>
+                                👣 YOU
+                            </Text>
+                            <Text style={[styles.rankValue, { color: colors.mutedText }]}>
+                                {youKmText} km
+                            </Text>
                         </View>
 
                         <View style={[styles.gaugeTrack, { backgroundColor: "rgba(0,0,0,0.06)" }]}>
@@ -475,28 +553,80 @@ export default function GhostRunScreen() {
                 </View>
 
                 <View style={styles.metricsRow}>
-                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>시간</Text>
-                        <Text style={[styles.metricValue, { color: colors.text2 }]}>{formatTime(time)}</Text>
+                    <View
+                        style={[
+                            styles.metric,
+                            { backgroundColor: colors.card, borderColor: colors.border },
+                        ]}
+                    >
+                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>
+                            시간
+                        </Text>
+                        <Text style={[styles.metricValue, { color: colors.text2 }]}>
+                            {formatTime(time)}
+                        </Text>
                     </View>
 
-                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 }]}>
-                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>거리</Text>
-                        <Text style={[styles.metricValue, { color: colors.text2 }]}>{youKmText}</Text>
-                        <Text style={[styles.metricUnit, { color: colors.mutedText }]}>km</Text>
+                    <View
+                        style={[
+                            styles.metric,
+                            {
+                                backgroundColor: colors.card,
+                                borderColor: colors.border,
+                                marginLeft: 10,
+                            },
+                        ]}
+                    >
+                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>
+                            거리
+                        </Text>
+                        <Text style={[styles.metricValue, { color: colors.text2 }]}>
+                            {youKmText}
+                        </Text>
+                        <Text style={[styles.metricUnit, { color: colors.mutedText }]}>
+                            km
+                        </Text>
                     </View>
 
-                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 }]}>
-                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>페이스</Text>
-                        <Text style={[styles.metricValue, { color: colors.text2 }]}>{formatPace(currentPaceSec)}</Text>
-                        <Text style={[styles.metricUnit, { color: colors.mutedText }]}>/km</Text>
+                    <View
+                        style={[
+                            styles.metric,
+                            {
+                                backgroundColor: colors.card,
+                                borderColor: colors.border,
+                                marginLeft: 10,
+                            },
+                        ]}
+                    >
+                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>
+                            페이스
+                        </Text>
+                        <Text style={[styles.metricValue, { color: colors.text2 }]}>
+                            {formatPace(currentPaceSec)}
+                        </Text>
+                        <Text style={[styles.metricUnit, { color: colors.mutedText }]}>
+                            /km
+                        </Text>
                     </View>
                 </View>
 
-                <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <View
+                    style={[
+                        styles.card,
+                        { backgroundColor: colors.card, borderColor: colors.border },
+                    ]}
+                >
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        <Ionicons name={"analytics-outline" as IoniconName} size={18} color={colors.text} />
-                        <Text style={[styles.cardTitle, { color: colors.text, marginLeft: 8 }]}>페이스 변화</Text>
+                        <Ionicons
+                            name={"analytics-outline" as IoniconName}
+                            size={18}
+                            color={colors.text}
+                        />
+                        <Text
+                            style={[styles.cardTitle, { color: colors.text, marginLeft: 8 }]}
+                        >
+                            페이스 변화
+                        </Text>
                     </View>
 
                     <LineChart
@@ -517,7 +647,13 @@ export default function GhostRunScreen() {
                         segments={4}
                     />
 
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 8 }}>
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            marginTop: 8,
+                        }}
+                    >
                         <Text style={[styles.small, { color: colors.mutedText }]}>시작</Text>
                         <Text style={[styles.small, { color: colors.mutedText }]}>
                             현재 페이스: {formatPace(currentPaceSec)}/km
@@ -526,11 +662,7 @@ export default function GhostRunScreen() {
 
                     <StatBox
                         icon={
-                            <MaterialCommunityIcons
-                                name="shoe-print"
-                                size={24}
-                                color="#4A6EA9"
-                            />
+                            <MaterialCommunityIcons name="shoe-print" size={24} color="#4A6EA9" />
                         }
                         label="케이던스"
                         value={String(cadence)}
@@ -540,7 +672,12 @@ export default function GhostRunScreen() {
             </ScrollView>
 
             {/* ✅ 컨트롤: 왼쪽=일시정지/재개, 오른쪽=측정 종료(롱프레스) */}
-            <View style={[styles.controls, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View
+                style={[
+                    styles.controls,
+                    { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+            >
                 {/* 왼쪽: Pause/Play */}
                 <Pressable
                     disabled={isFinished}
@@ -555,14 +692,22 @@ export default function GhostRunScreen() {
                         },
                     ]}
                 >
-                    <Ionicons name={(isPaused ? "play" : "pause") as IoniconName} size={26} color={colors.text} />
+                    <Ionicons
+                        name={(isPaused ? "play" : "pause") as IoniconName}
+                        size={26}
+                        color={colors.text}
+                    />
                 </Pressable>
 
                 {/* 오른쪽: Stop (롱프레스 3초) */}
                 <TouchableOpacity
                     style={[
                         styles.stopBtn,
-                        { backgroundColor: colors.danger, marginLeft: 14, opacity: isFinished ? 0.6 : 1 },
+                        {
+                            backgroundColor: colors.danger,
+                            marginLeft: 14,
+                            opacity: isFinished ? 0.6 : 1,
+                        },
                     ]}
                     onPress={() => {
                         speak("종료하려면 3초 이상 길게 누르세요.");
@@ -572,7 +717,11 @@ export default function GhostRunScreen() {
                     activeOpacity={0.85}
                     disabled={isFinished}
                 >
-                    <Ionicons name={"stop" as IoniconName} size={22} color={colors.primaryButtonText} />
+                    <Ionicons
+                        name={"stop" as IoniconName}
+                        size={22}
+                        color={colors.primaryButtonText}
+                    />
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -623,7 +772,12 @@ export const getStyles = (scheme: "light" | "dark") => {
             borderWidth: 1,
             ...shadow,
         },
-        headerPillText: { fontWeight: "800", fontSize: 13, marginLeft: 6, marginRight: 6 },
+        headerPillText: {
+            fontWeight: "800",
+            fontSize: 13,
+            marginLeft: 6,
+            marginRight: 6,
+        },
 
         headerIconBtn: {
             width: 44,
@@ -642,8 +796,18 @@ export const getStyles = (scheme: "light" | "dark") => {
             marginRight: 8,
         },
 
-        card: { borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 12, ...shadow2 },
-        cardTopRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+        card: {
+            borderWidth: 1,
+            borderRadius: 16,
+            padding: 14,
+            marginBottom: 12,
+            ...shadow2,
+        },
+        cardTopRow: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+        },
         cardTitle: { fontWeight: "900", fontSize: 14 },
 
         badge: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999 },
@@ -661,7 +825,11 @@ export const getStyles = (scheme: "light" | "dark") => {
         },
         gaugeFill: { height: "100%", borderRadius: 999 },
 
-        progressMarks: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
+        progressMarks: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: 10,
+        },
         mark: { fontSize: 11, fontWeight: "700" },
 
         metricsRow: { flexDirection: "row", marginBottom: 12 },
@@ -675,7 +843,12 @@ export const getStyles = (scheme: "light" | "dark") => {
         },
 
         metricLabel: { fontSize: 12, fontWeight: "700", textAlign: "center" },
-        metricValue: { fontSize: 20, fontWeight: "900", marginTop: 6, textAlign: "center" },
+        metricValue: {
+            fontSize: 20,
+            fontWeight: "900",
+            marginTop: 6,
+            textAlign: "center",
+        },
         metricUnit: { fontSize: 12, marginTop: 2, fontWeight: "600", textAlign: "center" },
 
         small: { fontSize: 11, fontWeight: "700" },

@@ -47,6 +47,7 @@ export type RootStackParamList = {
     avgPaceSec: number;
     calories: number;
     routeCoordinates: Coordinate[];
+    cadenceSpm: number;
   };
 
   TierResult: {
@@ -67,6 +68,7 @@ export type RootStackParamList = {
     avgPaceSec: number;
     calories: number;
     routeCoordinates: Coordinate[];
+    cadenceSpm: number;
   };
 
   MapFull: { location: Location.LocationObject | null };

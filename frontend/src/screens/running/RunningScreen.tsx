@@ -72,6 +72,15 @@ const RunningScreen = () => {
     windowSec: 5,
   });
 
+  // 최종 케이던스 고정 저장용
+  const finalCadenceRef = useRef<number>(0);
+
+  useEffect(() => {
+      if (typeof cadence === "number" && isFinite(cadence)) {
+          finalCadenceRef.current = cadence;
+      }
+  }, [cadence]);
+
   const {
     pauseRun,
     resumeRun,
@@ -280,11 +289,13 @@ const RunningScreen = () => {
   };
 
   const handleStopLongPress = () => {
+    const finalCadenceSpm = finalCadenceRef.current; //종료 시점 케이던스 값
+
     if (isVoiceEnabled) {
       speakStop(distance);
-      stopRun();
+      stopRun(finalCadenceSpm);
     } else {
-      stopRun();
+      stopRun(finalCadenceSpm);
     }
   };
 
