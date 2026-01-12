@@ -35,6 +35,7 @@ type RunResultRouteParams = {
   avgPaceSec: number;
   calories: number;
   routeCoordinates: Coordinate[];
+  cadenceSpm: number;
 };
 
 type RunResultRouteProp = RouteProp<{ params: RunResultRouteParams }, "params">;
@@ -42,8 +43,13 @@ type RunResultRouteProp = RouteProp<{ params: RunResultRouteParams }, "params">;
 const RunResultScreen = () => {
   const navigation = useNavigation();
   const route = useRoute<RunResultRouteProp>();
-  const { distanceM, durationSec, avgPaceSec, calories, routeCoordinates } =
-    route.params;
+  const {
+      distanceM,
+      durationSec,
+      avgPaceSec,
+      calories,
+      routeCoordinates,
+      cadenceSpm, } = route.params;
   const colorScheme = useColorScheme() ?? "light";
   const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
 
@@ -279,6 +285,12 @@ const RunResultScreen = () => {
               <Text style={styles.bottomInfoValue}>
                 {avgSpeedKmh.toFixed(1)} km/h
               </Text>
+            </View>
+            <View style={styles.bottomInfoCard}>
+                <Text style={styles.bottomInfoLabel}>케이던스</Text>
+                <Text style={styles.bottomInfoValue}>
+                    {Math.round((cadenceSpm ?? 0) as number)} spm
+                </Text>
             </View>
           </View>
         </ViewShot>
