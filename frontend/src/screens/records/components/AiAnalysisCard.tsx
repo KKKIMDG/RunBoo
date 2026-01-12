@@ -154,15 +154,6 @@ export default function AiAnalysisCard() {
           </View>
         </TouchableOpacity>
 
-        {/* 🔴 추가된 테스트용 결제 버튼 */}
-        <TouchableOpacity
-          style={styles.testButton}
-          onPress={() => setPremiumVisible(true)}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.testButtonText}>프리미엄 결제 테스트</Text>
-        </TouchableOpacity>
-
         {/* 버튼 외부 하단 안내 문구 블록 */}
         {!loading && !isStatusLoading && (
           <View style={styles.subTextContainer}>

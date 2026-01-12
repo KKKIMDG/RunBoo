@@ -39,15 +39,11 @@ export default function CourseScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar
-                barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
-                backgroundColor={colors.background}
-            />
-
             {/* 1. 상단 헤더 영역 */}
             <View style={styles.header}>
                 <View style={styles.headerText}>
                     <Text style={styles.mainHeader}>코스 추천</Text>
+                    <Text style={styles.subHeader}>나에게 맞는 러닝 코스</Text>
                 </View>
             </View>
 
@@ -95,9 +91,6 @@ export default function CourseScreen() {
                             </Text>
                         </View>
                     }
-
-                    refreshing={loading}
-                    onRefresh={() => handlers.handleFilterChange(activeFilter)}
                 />
             )}
         </SafeAreaView>
