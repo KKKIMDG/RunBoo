@@ -144,6 +144,18 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 회원가입
+     * POST /api/auth/signup
+     */
+    @PostMapping("/signup")
+    public ResponseEntity<Void> signupLocal(
+            @Valid @RequestBody LocalSignupRequestDto request
+    ) {
+        authService.signupLocal(request);
+        return ResponseEntity.ok().build();
+    }
+    
     /* =====================
        토큰 재발급
        ===================== */

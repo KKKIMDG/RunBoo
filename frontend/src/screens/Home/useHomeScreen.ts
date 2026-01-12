@@ -36,11 +36,6 @@ export const useHomeScreen = () => {
   // 초기 위치 가져오기
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("위치 권한이 거부되었습니다.");
-        return;
-      }
       let currentLocation = await Location.getCurrentPositionAsync({});
       setLocation(currentLocation);
     })();

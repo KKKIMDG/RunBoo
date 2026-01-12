@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Linking } from "react-native";
+import { Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useKeepAwake } from "expo-keep-awake";
@@ -108,21 +108,10 @@ export function useGhostRunScreen() {
         return sec > 0 ? `고스트보다 ${abs}초 느림` : `고스트보다 ${abs}초 빠름`;
     };
 
-    // 1. 초기화 및 권한 요청
+    // 1. 초기화
     useEffect(() => {
         (async () => {
             resetStore();
-
-            const { status: foreStatus } = await Location.requestForegroundPermissionsAsync();
-            if (foreStatus !== "granted") {
-                Alert.alert("권한 필요", "위치 권한이 필요합니다.", [
-                    { text: "설정", onPress: () => Linking.openSettings() },
-                ]);
-                return;
-            }
-
-            await Location.requestBackgroundPermissionsAsync();
-
             const loc = await Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.Highest,
             });
@@ -177,9 +166,6 @@ export function useGhostRunScreen() {
 
     // ✅ 백그라운드 위치 추적
     const startLocationTracking = async () => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") return;
-
         await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
             accuracy: Location.Accuracy.BestForNavigation,
             timeInterval: 1000,
