@@ -21,17 +21,14 @@ export default (): ExpoConfig => ({
     supportsTablet: true,
     bundleIdentifier: "com.runboo.frontend",
 
-    // ❌ Firebase 제거 → googleServicesFile 삭제
-    // googleServicesFile: "./frontSecrets/GoogleService-Info.plist",
-
     infoPlist: {
       UIBackgroundModes: ["location", "fetch"],
       NSLocationAlwaysAndWhenInUseUsageDescription:
-        "러닝 기록을 정확하게 측정하기 위해 앱이 백그라운드에서도 위치 정보를 사용합니다.",
+          "러닝 기록을 정확하게 측정하기 위해 앱이 백그라운드에서도 위치 정보를 사용합니다.",
       NSLocationWhenInUseUsageDescription:
-        "러닝 경로를 기록하기 위해 위치 정보가 필요합니다.",
+          "러닝 경로를 기록하기 위해 위치 정보가 필요합니다.",
       NSMotionUsageDescription:
-        "러닝 중 걸음 수와 케이던스를 측정하기 위해 모션 데이터를 사용합니다.",
+          "러닝 중 걸음 수와 케이던스를 측정하기 위해 모션 데이터를 사용합니다.",
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: true,
       },
@@ -44,10 +41,6 @@ export default (): ExpoConfig => ({
 
   android: {
     package: "com.runboo.frontend",
-
-    // ❌ Firebase 제거 → google-services.json 삭제
-    googleServicesFile: "./frontSecrets/google-services.json",
-
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     adaptiveIcon: {
@@ -78,7 +71,7 @@ export default (): ExpoConfig => ({
       "expo-location",
       {
         locationWhenInUsePermission:
-          "내 주변 러닝 코스를 찾기 위해 위치 정보 권한이 필요합니다.",
+            "내 주변 러닝 코스를 찾기 위해 위치 정보 권한이 필요합니다.",
         isAndroidBackgroundLocationEnabled: true,
         isAndroidForegroundServiceEnabled: true,
       },
@@ -87,21 +80,12 @@ export default (): ExpoConfig => ({
       "expo-sensors",
       {
         motionPermission:
-          "러닝 중 케이던스 측정을 위해 만보기 데이터 접근 권한이 필요합니다.",
+            "러닝 중 케이던스 측정을 위해 만보기 데이터 접근 권한이 필요합니다.",
       },
     ],
 
-    // ❌ Firebase 플러그인 완전 제거
-    // "@react-native-firebase/app",
-
-    [
-      "expo-build-properties",
-      {
-        ios: {
-          useFrameworks: "static",
-        },
-      },
-    ],
+    // ❌ expo-build-properties에서 frameworks 제거
+    // ❌ Firebase 관련 플러그인 없음
   ],
 
   extra: {
