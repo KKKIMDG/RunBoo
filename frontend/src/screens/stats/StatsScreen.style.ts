@@ -11,17 +11,21 @@ export const getStyles = (scheme: "light" | "dark") =>
         },
         container: {
             flex: 1,
-            paddingHorizontal: 16,
+            paddingHorizontal: 20,
+            paddingTop: 20,
         },
         title: {
-            fontSize: 22,
-            fontWeight: "900",
+            fontSize: 24,
+            fontWeight: "700",
             color: Colors[scheme].text,
+            lineHeight: 32,
+            marginLeft: 12,
         },
         subTitle: {
+            fontSize: 14,
+            color: Colors[scheme].icon,
             marginTop: 4,
-            color: Colors[scheme].subtext,
-            fontWeight: "600",
+            marginLeft: 12,
         },
         errorText: {
             paddingVertical: 10,

@@ -200,19 +200,6 @@ export default function RecordsScreen() {
                             data={filteredRecords}
                             keyExtractor={(it) => String(it.id)}
                             renderItem={({ item }) => <RecordCard item={item} />}
-                            refreshControl={
-                                <RefreshControl
-                                    refreshing={recordsRefreshing}
-                                    onRefresh={async () => {
-                                        setRecordsRefreshing(true);
-                                        try {
-                                            await loadRecords();
-                                        } finally {
-                                            setRecordsRefreshing(false);
-                                        }
-                                    }}
-                                />
-                            }
                             ListEmptyComponent={
                                 <View style={{ paddingTop: 40 }}>
                                     <Text style={styles.emptyText}>
@@ -247,19 +234,6 @@ export default function RecordsScreen() {
                                         </View>
                                     </>
                                 )
-                            }
-                            refreshControl={
-                                <RefreshControl
-                                    refreshing={statsRefreshing}
-                                    onRefresh={async () => {
-                                        setStatsRefreshing(true);
-                                        try {
-                                            await loadStats();
-                                        } finally {
-                                            setStatsRefreshing(false);
-                                        }
-                                    }}
-                                />
                             }
                             contentContainerStyle={{
                                 paddingBottom: tabBarHeight,
