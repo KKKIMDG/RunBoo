@@ -24,21 +24,44 @@ export function useSettings() {
         key: K,
         value: UserSetting[K]
     ) => {
+        console.log("[useSettings] update called", {
+            key,
+            value,
+            prev: settings[key],
+        });
+
         prevRef.current = settings;
 
-        setSettings(prev =>
-            prev ? { ...prev, [key]: value } : prev
-        );
+        setSettings(prev => {
+            if (!prev) return prev;
+
+            console.log("[useSettings] context updated", {
+                key,
+                prev: prev[key],
+                next: value,
+            });
+
+            return { ...prev, [key]: value };
+        });
 
         if (timerRef.current) clearTimeout(timerRef.current);
 
         timerRef.current = setTimeout(async () => {
             try {
+                console.log("[useSettings] API start", { key, value });
+
                 await userSettingService.updateMySettings({
                     [key]: value,
                 });
-            } catch {
-                if (prevRef.current) setSettings(prevRef.current);
+
+                console.log("[useSettings] API success", { key, value });
+            } catch (e) {
+                console.error("[useSettings] API failed → rollback", e);
+
+                if (prevRef.current) {
+                    setSettings(prevRef.current);
+                    console.log("[useSettings] context rolled back", prevRef.current);
+                }
             }
         }, DEBOUNCE_MS);
     };

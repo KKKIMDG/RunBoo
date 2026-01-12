@@ -1,7 +1,11 @@
 import { StyleSheet } from "react-native";
-import {Borders, Colors, Shadows} from "@/constants/theme";
+import { Colors } from "@/constants/theme";
+import { scaleFont, FontSizeSetting } from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     container: {
       flexDirection: "row",
@@ -35,7 +39,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
 
     label: {
-      fontSize: 15,
+      fontSize: scaleFont(15, fontSize),
       fontWeight: "500",
       color: Colors[scheme].text,
     },
@@ -50,7 +54,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
 
     valueText: {
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       marginRight: 4,
       color: Colors[scheme].infoText,
     },
