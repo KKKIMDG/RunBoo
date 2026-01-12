@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { fetchMonthlyAnalysis } from "@/services/record/recordsService";
+import { fetchAiStatus, analyzeRunRecords } from "@/services/ai/aiService";
 import Markdown from "react-native-markdown-display";
 import { Colors } from "@/constants/theme";
 import PremiumModal from "@/screens/records/components/PremiumModal";
@@ -22,7 +22,8 @@ export default function AiAnalysisCard() {
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
 
   // 무료 분석 횟수 상태
-  const [freeAnalysisCount, setFreeAnalysisCount] = useState(1);
+  const [freeAnalysisCount, setFreeAnalysisCount] = useState<number | null>(null);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
   const markdownStyles = useMemo(
@@ -30,24 +31,50 @@ export default function AiAnalysisCard() {
     [colorScheme]
   );
 
+  useEffect(() => {
+    loadStatus();
+  }, []);
+
+  const loadStatus = async () => {
+    try {
+      const status = await fetchAiStatus();
+      setFreeAnalysisCount(status.remainingCount);
+      setIsSubscribed(status.isSubscribed);
+    } catch (error) {
+      console.error("AI Status Load Failed:", error);
+      // 에러 시 0으로 설정하여 무한 로딩 방지 및 잠금 처리
+      setFreeAnalysisCount(0);
+    }
+  };
+
   const handleAnalyze = async () => {
-    if (freeAnalysisCount <= 0) {
+    // 로딩 전, 무료 횟수가 없고 구독도 안 했으면 결제 유도
+    if (freeAnalysisCount !== null && freeAnalysisCount <= 0 && !isSubscribed) {
       setPremiumVisible(true);
       return;
     }
 
     try {
       setLoading(true);
-      const result = await fetchMonthlyAnalysis();
-      setAnalysisResult(result);
-      setFreeAnalysisCount(0);
-    } catch (error) {
+      const response = await analyzeRunRecords();
+      
+      if (response.markdownContent) {
+        setAnalysisResult(response.markdownContent);
+      }
+      setFreeAnalysisCount(response.remainingCount);
+      setIsSubscribed(response.isSubscribed);
+      
+    } catch (error: any) {
       console.error(error);
-      Alert.alert("분석 실패", "잠시 후 다시 시도해주세요.");
+      Alert.alert("분석 실패", error?.message || "잠시 후 다시 시도해주세요.");
     } finally {
       setLoading(false);
     }
   };
+
+  const isStatusLoading = freeAnalysisCount === null;
+  const canAnalyze = (freeAnalysisCount ?? 0) > 0 || isSubscribed;
+  const isLocked = !canAnalyze && !isStatusLoading;
 
   return (
     <View style={styles.container}>
@@ -86,35 +113,41 @@ export default function AiAnalysisCard() {
         <TouchableOpacity
           style={[
             styles.button,
-            loading && styles.buttonDisabled,
-            freeAnalysisCount <= 0 &&
-              !loading && { backgroundColor: Colors[colorScheme].disabled },
+            (loading || isStatusLoading) && styles.buttonDisabled,
+            isLocked && !loading && { backgroundColor: Colors[colorScheme].disabled },
           ]}
           onPress={handleAnalyze}
-          disabled={loading}
+          disabled={loading || isStatusLoading}
           activeOpacity={0.85}
         >
           <View style={styles.buttonContent}>
-            {freeAnalysisCount <= 0 && !loading && (
-              <Ionicons
-                name="lock-closed"
-                size={18}
-                style={{
-                  marginRight: 6,
-                  color: Colors[colorScheme].disabledText,
-                }}
-              />
+            {isStatusLoading ? (
+               <ActivityIndicator size="small" color={Colors[colorScheme].subtext} style={{ marginRight: 6 }} />
+            ) : (
+              isLocked && (
+                <Ionicons
+                  name="lock-closed"
+                  size={18}
+                  style={{
+                    marginRight: 6,
+                    color: Colors[colorScheme].disabledText,
+                  }}
+                />
+              )
             )}
+            
             <Text
               style={[
                 styles.buttonText,
-                freeAnalysisCount <= 0 &&
-                  !loading && { color: Colors[colorScheme].disabledText },
+                isLocked && { color: Colors[colorScheme].disabledText },
+                (loading || isStatusLoading) && { color: Colors[colorScheme].subtext },
               ]}
             >
               {loading
                 ? "분석중..."
-                : freeAnalysisCount > 0
+                : isStatusLoading
+                ? "확인 중..."
+                : canAnalyze
                 ? "AI 분석 시작"
                 : "프리미엄 분석"}
             </Text>
@@ -131,21 +164,24 @@ export default function AiAnalysisCard() {
         </TouchableOpacity>
 
         {/* 버튼 외부 하단 안내 문구 블록 */}
-        {!loading && (
+        {!loading && !isStatusLoading && (
           <View style={styles.subTextContainer}>
             <Text
               style={[
                 styles.subText,
-                freeAnalysisCount <= 0 && { color: "#AEAEB2" },
+                !canAnalyze && { color: "#AEAEB2" },
               ]}
             >
-              {freeAnalysisCount > 0
+              {isSubscribed
+                ? "프리미엄 구독 중입니다"
+                : (freeAnalysisCount ?? 0) > 0
                 ? `이번 달 무료 분석 ${freeAnalysisCount}회 남음`
                 : "이번 달 무료 분석 횟수를 모두 소진했어요"}
             </Text>
           </View>
         )}
       </View>
+
 
       <PremiumModal
         visible={premiumVisible}
