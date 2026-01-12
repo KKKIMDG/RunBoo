@@ -1,7 +1,11 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -17,7 +21,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
 
     headerTitle: {
-      fontSize: 17,
+      fontSize: scaleFont(17, fontSize),
       fontWeight: "bold",
       color: Colors[scheme].text,
     },
@@ -36,14 +40,14 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
 
     noticeTitle: {
-      fontSize: 13,
+      fontSize: scaleFont(13, fontSize),
       fontWeight: "600",
       color: Colors[scheme].warningTitle,
       marginBottom: 4,
     },
 
     noticeDesc: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       color: Colors[scheme].warningText,
       lineHeight: 18,
     },
@@ -53,7 +57,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
 
     label: {
-      fontSize: 13,
+      fontSize: scaleFont(13, fontSize),
       fontWeight: "600",
       color: Colors[scheme].text,
       marginBottom: 6,
@@ -73,7 +77,7 @@ export const getStyles = (scheme: "light" | "dark") =>
 
     input: {
       flex: 1,
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       color: Colors[scheme].text,
     },
     scrollContent: {
@@ -96,7 +100,7 @@ export const getStyles = (scheme: "light" | "dark") =>
 
     submitText: {
       color: Colors[scheme].text,
-      fontSize: 15,
+      fontSize: scaleFont(15, fontSize),
       fontWeight: "600",
     },
     emailRow: {
@@ -107,7 +111,7 @@ export const getStyles = (scheme: "light" | "dark") =>
 
     emailText: {
       marginLeft: 8,
-      fontSize: 16, // 존재감 있음
+      fontSize: scaleFont(16, fontSize), // 존재감 있음
       fontWeight: "600",
       color: Colors[scheme].text,
     },
@@ -126,16 +130,16 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
 
     confirmButtonText: {
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "600",
       color: Colors[scheme].text,
     },
     helperText: {
-      fontSize: 13,
+      fontSize: scaleFont(13, fontSize),
       marginTop: 6,
     },
     icon: {
       color: Colors[scheme].icon,
-      fontSize: 22,
+      fontSize: scaleFont(22, fontSize),
     },
   });

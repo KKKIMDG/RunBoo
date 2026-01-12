@@ -22,10 +22,10 @@ import { useNotificationPreference } from "./useNotificationPreference";
 
 export default function SettingsScreen({ navigation, onLogout }: any) {
   const { userMe } = useUserMe();
+  
   /** 일반 설정 */
   const { settings, update } = useSettings();
   const colorScheme = useColorScheme() ?? "light";
-
   const styles = useMemo(() => {
     return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
   }, [colorScheme, settings?.fontSize]);
