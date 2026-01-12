@@ -12,19 +12,20 @@ export const getStyles = (scheme: "light" | "dark") =>
         container: {
             flex: 1,
             paddingHorizontal: 20,
+            paddingTop: 20,
         },
         title: {
-            fontSize: 28,
+            fontSize: 24,
             fontWeight: "700",
             color: Colors[scheme].text,
-            marginTop: 20,
-            marginLeft: 9,
+            lineHeight: 32,
+            marginLeft: 12,
         },
         subTitle: {
+            fontSize: 14,
             color: Colors[scheme].icon,
-            fontWeight: "600",
-            marginTop: 7,
-            marginLeft: 9,
+            marginTop: 4,
+            marginLeft: 12,
         },
         errorText: {
             paddingVertical: 10,
