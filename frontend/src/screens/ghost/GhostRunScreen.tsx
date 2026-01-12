@@ -11,12 +11,14 @@ import {
     useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import {Ionicons, MaterialCommunityIcons} from "@expo/vector-icons";
 import { LineChart } from "react-native-chart-kit";
 import * as Speech from "expo-speech";
 
 import { Colors } from "@/constants/theme";
 import { useGhostRunScreen } from "./useGhostRunScreen";
+import {StatBox} from "@/components/StatBox";
+import { useCadence } from "@/hooks/useCadence";
 
 const { width: W } = Dimensions.get("window");
 
@@ -69,6 +71,12 @@ export default function GhostRunScreen() {
         diffM,
         paceDiffSec,
     } = state;
+
+    // 케이던스 관련 훅
+    const cadence = useCadence({
+        enabled: !isReady && !isPaused,
+        windowSec: 5,
+    });
 
     const { pauseRun, resumeRun, stopRun } = actions;
     const { formatTime, formatPace, formatDiffBadge } = utils;
@@ -515,6 +523,19 @@ export default function GhostRunScreen() {
                             현재 페이스: {formatPace(currentPaceSec)}/km
                         </Text>
                     </View>
+
+                    <StatBox
+                        icon={
+                            <MaterialCommunityIcons
+                                name="shoe-print"
+                                size={24}
+                                color="#4A6EA9"
+                            />
+                        }
+                        label="케이던스"
+                        value={String(cadence)}
+                        unit="spm"
+                    />
                 </View>
             </ScrollView>
 
