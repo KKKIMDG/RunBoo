@@ -38,8 +38,14 @@ const { width } = Dimensions.get("window");
 
 const RunningScreen = () => {
   const isDarkMode = useColorScheme() === "dark";
-  const styles = getStyles(isDarkMode);
+
   const mapRef = useRef<MapView>(null);
+
+  const colorScheme = useColorScheme() ?? "light";
+
+  const styles = useMemo(() => {
+    return getStyles(colorScheme);
+  }, [colorScheme]);
 
   // ✅ 훅에서 모든 상태와 액션을 가져옵니다.
   const { state, actions, utils } = useRunningScreen();
@@ -62,8 +68,8 @@ const RunningScreen = () => {
 
   // 케이던스 관련 훅
   const cadence = useCadence({
-      enabled: !isReady && !isPaused,
-      windowSec: 5,
+    enabled: !isReady && !isPaused,
+    windowSec: 5,
   });
 
   const {
@@ -215,6 +221,7 @@ const RunningScreen = () => {
           showsUserLocation={true}
           loadingEnabled={true}
           customMapStyle={blurredMapStyle}
+          showsMyLocationButton={false}
           onPanDrag={() => {
             if (isFollowing) setIsFollowing(false);
           }}
@@ -371,20 +378,19 @@ const RunningScreen = () => {
             value={formatPace(currentPace)}
             unit="/km"
           />
+          <StatBox
+            icon={
+              <MaterialCommunityIcons
+                name="shoe-print"
+                size={24}
+                color="#4A6EA9"
+              />
+            }
+            label="케이던스"
+            value={String(cadence)}
+            unit="spm"
+          />
         </View>
-
-        <StatBox
-              icon={
-                  <MaterialCommunityIcons
-                      name="shoe-print"
-                      size={24}
-                      color="#4A6EA9"
-                  />
-              }
-              label="케이던스"
-              value={String(cadence)}
-              unit="spm"
-        />
 
         <View style={styles.chartCard}>
           <View style={styles.chartTitleContainer}>
