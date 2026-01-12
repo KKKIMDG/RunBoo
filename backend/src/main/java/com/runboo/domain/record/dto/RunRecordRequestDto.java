@@ -14,6 +14,7 @@ public class RunRecordRequestDto {
     private Integer durationSec;
     private Integer avgPace;
     private Integer calories;
+    private Integer cadence;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private String routePolyline;
