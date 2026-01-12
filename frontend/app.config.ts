@@ -20,7 +20,9 @@ export default (): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.runboo.frontend",
-    googleServicesFile: "./frontSecrets/GoogleService-Info.plist",
+
+    // ❌ Firebase 제거 → googleServicesFile 삭제
+    // googleServicesFile: "./frontSecrets/GoogleService-Info.plist",
 
     infoPlist: {
       UIBackgroundModes: ["location", "fetch"],
@@ -28,7 +30,6 @@ export default (): ExpoConfig => ({
         "러닝 기록을 정확하게 측정하기 위해 앱이 백그라운드에서도 위치 정보를 사용합니다.",
       NSLocationWhenInUseUsageDescription:
         "러닝 경로를 기록하기 위해 위치 정보가 필요합니다.",
-      // 🏃‍♂️ iOS용 모션 권한 문구
       NSMotionUsageDescription:
         "러닝 중 걸음 수와 케이던스를 측정하기 위해 모션 데이터를 사용합니다.",
       NSAppTransportSecurity: {
@@ -43,7 +44,10 @@ export default (): ExpoConfig => ({
 
   android: {
     package: "com.runboo.frontend",
+
+    // ❌ Firebase 제거 → google-services.json 삭제
     googleServicesFile: "./frontSecrets/google-services.json",
+
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     adaptiveIcon: {
@@ -55,7 +59,7 @@ export default (): ExpoConfig => ({
       "ACCESS_FINE_LOCATION",
       "ACCESS_BACKGROUND_LOCATION",
       "FOREGROUND_SERVICE",
-      "ACTIVITY_RECOGNITION", // ✅ 안드로이드 물리적 센서 권한
+      "ACTIVITY_RECOGNITION",
     ],
     config: {
       googleMaps: {
@@ -79,8 +83,6 @@ export default (): ExpoConfig => ({
         isAndroidForegroundServiceEnabled: true,
       },
     ],
-
-    // 🏃‍♂️ ✅ 이 부분을 아래와 같이 수정해야 합니다.
     [
       "expo-sensors",
       {
@@ -89,7 +91,9 @@ export default (): ExpoConfig => ({
       },
     ],
 
-    "@react-native-firebase/app",
+    // ❌ Firebase 플러그인 완전 제거
+    // "@react-native-firebase/app",
+
     [
       "expo-build-properties",
       {
