@@ -131,7 +131,10 @@ export const useRunningScreen = () => {
           setIsMale(userVoice.voiceType === "MALE");
         }
       } catch (e) {
-        console.warn("[useRunningScreen] Failed to fetch user voice setting", e);
+        console.warn(
+          "[useRunningScreen] Failed to fetch user voice setting",
+          e
+        );
       }
     })();
   }, []);

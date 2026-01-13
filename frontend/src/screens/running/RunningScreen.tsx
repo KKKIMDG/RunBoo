@@ -34,32 +34,20 @@ import { useMapFocusing } from "./useRunCore";
 
 import * as Speech from "expo-speech";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
-import {useSettings} from "@/screens/Settings/useSettings";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
+import { useSettings } from "@/screens/Settings/useSettings";
 
 const { width } = Dimensions.get("window");
 
 const RunningScreen = () => {
-  const isDarkMode = useColorScheme() === "dark";
-
-    const mapRef = useRef<MapView>(null);
-    const { settings } = useSettings();
-    const colorScheme = useResolvedTheme(settings?.themeMode);
-
-    const styles = useMemo(() => {
-        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-    }, [colorScheme, settings?.fontSize]);
-
-
-
-  // ✅ 훅에서 모든 상태와 액션을 가져옵니다.
-  const { state, actions, utils } = useRunningScreen();
-
-  const colorScheme = useColorScheme() ?? "light";
+  const mapRef = useRef<MapView>(null);
+  const { settings } = useSettings();
+  const colorScheme = useResolvedTheme(settings?.themeMode);
+  const isDarkMode = colorScheme === "dark";
 
   const styles = useMemo(() => {
-    return getStyles(colorScheme);
-  }, [colorScheme]);
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   // ✅ 훅에서 모든 상태와 액션을 가져옵니다.
   const { state, actions, utils } = useRunningScreen();
@@ -95,9 +83,11 @@ const RunningScreen = () => {
 
   // ✅ [추가] cadence 샘플을 훅에 전달해서 평균 계산/DB 저장에 사용
   // (cadence는 route param으로 절대 안 넘김)
-  useEffect(() => {    if (cadence > 0) {
+  useEffect(() => {
+    if (cadence > 0) {
       console.log("[RunningScreen] Pushing cadence sample:", cadence);
-    }    actions.pushCadenceSample(cadence);
+    }
+    actions.pushCadenceSample(cadence);
   }, [cadence]);
 
   const { pauseRun, resumeRun, stopRun, setIsVoiceEnabled, setIsMale } =
@@ -134,7 +124,10 @@ const RunningScreen = () => {
 
   useEffect(() => {
     if (isVoiceEnabled && !isPaused && !isReady && distance > 0) {
-      console.log("[RunningScreen] Checking for voice announcement at distance:", distance);
+      console.log(
+        "[RunningScreen] Checking for voice announcement at distance:",
+        distance
+      );
       checkAndSpeak(distance);
     }
   }, [distance, isPaused, isReady, isVoiceEnabled, isMale]);
@@ -245,14 +238,20 @@ const RunningScreen = () => {
     [paceHistory]
   );
 
-  const chartConfig = {
-    backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
-    backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
-    decimalPlaces: 1,
-    color: (opacity = 1) => `rgba(74,110,169,${opacity})`,
-    labelColor: () => (isDarkMode ? "#FFF" : "#333"),
-    propsForDots: { r: "0" },
-  };
+  const chartConfig = useMemo(
+    () => ({
+      backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
+      backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
+      decimalPlaces: 1,
+      color: (opacity = 1) => `rgba(74,110,169,${opacity})`,
+      labelColor: () => (isDarkMode ? "#FFF" : "#333"),
+      propsForDots: { r: "0" },
+      propsForBackgroundLines: {
+        strokeWidth: 0,
+      },
+    }),
+    [isDarkMode]
+  );
 
   // ✅ 변경: stopRun()은 인자 없이 호출 (cadence는 훅에서 평균 계산 후 DB 저장)
   const handleStopLongPress = () => {
@@ -297,7 +296,10 @@ const RunningScreen = () => {
           <View style={{ flexDirection: "row", gap: 8 }}>
             <TouchableOpacity
               onPress={() => {
-                console.log("[RunningScreen] Gender toggle pressed:", !isMale ? "MALE" : "FEMALE");
+                console.log(
+                  "[RunningScreen] Gender toggle pressed:",
+                  !isMale ? "MALE" : "FEMALE"
+                );
                 setIsMale(!isMale);
               }}
               style={customStyles.genderToggle}
