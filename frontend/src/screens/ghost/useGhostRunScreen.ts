@@ -1,3 +1,5 @@
+// frontend/src/screens/ghost/useGhostRunScreen.ts
+
 import { useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -8,7 +10,6 @@ import type { GhostProfileDto } from "@/types/ghost";
 import { createRecord, fetchMyRecords } from "@/services/record/recordsService";
 import { useRecordStore } from "@/stores/recordStore";
 import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
-import { useRunningVoiceFeedback } from "@/hooks/useRunningVoiceFeedback";
 
 // ✅ 저장할 때만 +9시간 보정해서 ISO(UTC)로 보내기
 const toIsoPlus9 = (d: Date) =>
@@ -33,20 +34,9 @@ export function useGhostRunScreen() {
     const userId = route?.params?.userId;
     const ghost: GhostProfileDto | undefined = route?.params?.ghost;
 
-    // ✅ [추가] 음성 성별 파라미터(없으면 남성 톤)
-    const isMale = Boolean(route?.params?.isMale ?? true);
-
     // 고스트 기준값 (fallback 포함)
     const ghostTotalDistanceM = (ghost?.targetDistanceKm ?? 5.2) * 1000;
     const ghostAvgPaceSec = ghost?.avgPace ?? 280; // sec/km
-
-    // ✅ 고스트 러닝용 음성 훅 (기존 기능 건드리지 않음)
-    const voice = useRunningVoiceFeedback({
-        isMale,
-        targetDistance: ghostTotalDistanceM,
-        recommendedPaceSec: ghostAvgPaceSec,
-        minRecordDistanceM: 100,
-    });
 
     // Store 구독 (일반 러닝/티어 러닝과 공유)
     const {
@@ -75,7 +65,7 @@ export function useGhostRunScreen() {
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // ✅ [추가] 케이던스 평균 누적 (GhostRunScreen에서 pushCadenceSample로 주입)
+    // ✅ 케이던스 평균 누적 (GhostRunScreen에서 pushCadenceSample로 주입)
     const cadenceSumRef = useRef(0);
     const cadenceCountRef = useRef(0);
 
@@ -119,9 +109,7 @@ export function useGhostRunScreen() {
         const h = Math.floor(totalSeconds / 3600);
         const m = Math.floor((totalSeconds % 3600) / 60);
         const s = totalSeconds % 60;
-        return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${
-            s < 10 ? "0" + s : s
-        }`;
+        return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${s < 10 ? "0" + s : s}`;
     };
 
     const formatPace = (paceSec: number) => {
@@ -148,6 +136,8 @@ export function useGhostRunScreen() {
         (async () => {
             resetStore();
             resetCadenceAgg();
+            setDisplayTime(0);
+            setPaceHistoryMin([]);
 
             const loc = await Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.Highest,
@@ -158,21 +148,21 @@ export function useGhostRunScreen() {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // 2) 카운트다운
+    // 2) 카운트다운 (✅ 음성은 여기서 절대 호출하지 않음)
     useEffect(() => {
         if (isReady && countdown > 0) {
             const t = setTimeout(() => setCountdown(countdown - 1), 1000);
             return () => clearTimeout(t);
         } else if (isReady && countdown === 0) {
-            // ✅ 시작 안내 음성
-            voice.speakStart();
-
+            // ✅ 시작 음성은 GhostRunScreen.tsx에서만 처리
             resetCadenceAgg();
             startStoreRun();
             startLocationTracking();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isReady, countdown]);
 
     // 3) 타이머 및 그래프
@@ -185,6 +175,7 @@ export function useGhostRunScreen() {
 
                 setDisplayTime(currentSec);
 
+                // 5초마다(로컬 차트)
                 if (currentSec % 5 === 0 && currentPace > 0) {
                     setPaceHistoryMin((arr) => [...arr, currentPace / 60]);
                 }
@@ -195,12 +186,6 @@ export function useGhostRunScreen() {
             if (timerRef.current) clearInterval(timerRef.current);
         };
     }, [isRunning, isPaused, startTime, pausedTime, currentPace]);
-
-    // ✅ 1km 단위 안내
-    useEffect(() => {
-        if (!isRunning || isPaused) return;
-        voice.checkAndSpeak(distance);
-    }, [distance, isRunning, isPaused]);
 
     // ✅ 백그라운드 위치 추적
     const startLocationTracking = async () => {
@@ -219,7 +204,7 @@ export function useGhostRunScreen() {
         });
     };
 
-    // ✅ 저장 (인자 제거: cadence는 평균으로 저장)
+    // ✅ 저장 (✅ 100m 미만 안내는 "음성"이 아니라 Alert만)
     const stopRun = async () => {
         const finalDistance = distance;
         const finalRouteCoordinates = routeCoordinates;
@@ -237,9 +222,8 @@ export function useGhostRunScreen() {
         // 타이머 중단
         if (timerRef.current) clearInterval(timerRef.current);
 
-        // ✅ 100m 미만: 경고 + 뒤로가기
+        // ✅ 100m 미만: 저장 안 함 + Alert + 뒤로가기
         if (finalDistance < 100) {
-            voice.speakMinDistanceWarning?.();
             stopStoreRun();
 
             Alert.alert(
@@ -263,7 +247,6 @@ export function useGhostRunScreen() {
                 "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)"
             );
 
-            // ✅ recordId 없이도 결과 화면은 보여주되 cadence는 DB조회이므로 표시가 -로 나올 수 있음
             navigation.navigate("RunResult", {
                 distanceM: finalDistance,
                 durationSec: finalDisplayTime,
@@ -283,7 +266,7 @@ export function useGhostRunScreen() {
             avgPace: Math.floor(avgPaceSec),
             calories,
 
-            // ✅ [추가] 평균 케이던스 저장
+            // ✅ 평균 케이던스 저장
             cadence: avgCadence(),
 
             routePolyline: encodePath(finalRouteCoordinates),
@@ -310,7 +293,7 @@ export function useGhostRunScreen() {
             recordId = Math.max(...records.map((r: any) => Number(r.id)));
         } catch {}
 
-        // ✅ 이제서야 스토어 정리
+        // ✅ 스토어 정리
         stopStoreRun();
 
         navigation.navigate("RunResult", {
@@ -347,7 +330,7 @@ export function useGhostRunScreen() {
             resumeRun: resumeStoreRun,
             stopRun,
 
-            // ✅ [추가] GhostRunScreen에서 cadence 샘플 주입
+            // ✅ GhostRunScreen에서 cadence 샘플 주입
             pushCadenceSample,
         },
         utils: { formatTime, formatPace, formatDiffBadge, formatPaceDiff },
