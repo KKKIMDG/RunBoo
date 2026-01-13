@@ -12,6 +12,7 @@ import {
 } from "../../records/components/format";
 import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 function Row({
                  title,
@@ -47,7 +48,7 @@ function Row({
 
 export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);
