@@ -5,7 +5,6 @@ import {
     View,
     Text,
     ActivityIndicator,
-    RefreshControl,
     FlatList, useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,19 +18,19 @@ import WeeklyChart from "./components/WeeklyChart";
 import PersonalBestList from "./components/PersonalBestList";
 
 import { getStyles } from "./StatsScreen.style";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 export default function StatsScreen() {
 
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
-
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
     const tabBarHeight = useBottomTabBarHeight();
 
     const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
     const [stats, setStats] = useState<DashboardStatsDto | null>(null);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 

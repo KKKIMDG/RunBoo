@@ -1,9 +1,13 @@
 import { StyleSheet, Dimensions } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-export const getStyles = (scheme: "light" | "dark") => {
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) => {
   // 테마별 색상 가독성을 위해 상수로 추출 (선택 사항)
   const theme = Colors[scheme];
 
@@ -36,13 +40,13 @@ export const getStyles = (scheme: "light" | "dark") => {
       marginBottom: 16,
     },
     title: {
-      fontSize: 22,
+      fontSize: scaleFont(22, fontSize),
       fontWeight: "800",
       color: theme.text, // ✅ 테마 텍스트 색상
       marginBottom: 8,
     },
     subtitle: {
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       color: theme.subtext || "#8E8E93", // ✅ 테마 보조 텍스트 색상
       textAlign: "center",
     },
@@ -62,12 +66,12 @@ export const getStyles = (scheme: "light" | "dark") => {
       marginLeft: 12,
     },
     featureTitle: {
-      fontSize: 15,
+      fontSize: scaleFont(15, fontSize),
       fontWeight: "700",
       color: theme.text, // ✅ 테마 텍스트 색상
     },
     featureDesc: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       color: theme.subtext || "#8E8E93", // ✅ 테마 보조 텍스트 색상
     },
     pricingContainer: {
@@ -79,17 +83,17 @@ export const getStyles = (scheme: "light" | "dark") => {
       paddingTop: 20,
     },
     priceLabel: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       color: theme.subtext || "#8E8E93",
       marginBottom: 4,
     },
     priceValue: {
-      fontSize: 28,
+      fontSize: scaleFont(28, fontSize),
       fontWeight: "800",
       color: theme.text, // ✅ 테마 텍스트 색상
     },
     trialText: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       color: theme.subtext || "#8E8E93",
       marginTop: 4,
     },
@@ -106,7 +110,7 @@ export const getStyles = (scheme: "light" | "dark") => {
     },
     primaryButtonText: {
       color: theme.primaryButtonText || "white", // ✅ 버튼용 텍스트 색상
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "700",
     },
     secondaryButton: {
@@ -118,7 +122,7 @@ export const getStyles = (scheme: "light" | "dark") => {
     },
     secondaryButtonText: {
       color: theme.subtext || "#8E8E93", // ✅ 테마 보조 텍스트 색상
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "600",
     },
   });

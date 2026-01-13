@@ -24,13 +24,15 @@ import {
 import { fetchRunRecordDetail } from "@/services/record/recordsService";
 import { decodePolyline, LatLng } from "@/utils/polyline";
 import { Colors } from "@/constants/theme";
+import {useSettings} from "@/screens/Settings/useSettings";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
 export default function RecordCard({ item }: { item: RecordDto }) {
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
-
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
     const navigation = useNavigation<any>();
 
@@ -244,7 +246,10 @@ export default function RecordCard({ item }: { item: RecordDto }) {
     );
 }
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
     StyleSheet.create({
         card: {
             backgroundColor: Colors[scheme].background,
@@ -260,12 +265,12 @@ export const getStyles = (scheme: "light" | "dark") =>
             alignItems: "center",
         },
         date: {
-            fontSize: 16,
+            fontSize: scaleFont(16, fontSize),
             fontWeight: "800",
             color: Colors[scheme].text,
         },
         badge: {
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
             fontWeight: "900",
             color: Colors[scheme].icon,
             marginRight: 6,
@@ -306,7 +311,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         },
         value: {
             color: Colors[scheme].text,
-            fontSize: 18,
+            fontSize: scaleFont(18, fontSize),
             fontWeight: "800",
         },
         mapCol: {
@@ -327,7 +332,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         mapPlaceholderText: {
             color: Colors[scheme].subtext,
             fontWeight: "800",
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
             textAlign: "center",
         },
         mapOverlay: {
@@ -345,6 +350,6 @@ export const getStyles = (scheme: "light" | "dark") =>
         mapOverlayText: {
             color: Colors[scheme].white,
             fontWeight: "900",
-            fontSize: 11,
+            fontSize: scaleFont(11, fontSize),
         },
     });

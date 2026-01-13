@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useMemo} from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { useChallenge, Challenge } from "./useChallenge";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 const getLevelStyle = (level: string) => {
   switch (level) {
@@ -28,8 +29,11 @@ const getLevelStyle = (level: string) => {
 
 const ChallengeScreen = () => {
   const navigation = useNavigation<any>();
-  const colorScheme = useColorScheme() ?? "light";
-  const styles = getStyles(colorScheme);
+    const { settings } = useSettings();
+    const colorScheme = useColorScheme() ?? "light";
+    const styles = useMemo(() => {
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
   const { challenges, loading, status, toggleStatus } =
     useChallenge(navigation);
