@@ -23,18 +23,18 @@ export function useCadence() {
   const pushCadenceSample = (spm: number) => {
     const v = normalizeCadence(spm);
     if (v == null) {
-      console.log("[useCadence] Invalid cadence sample:", spm);
+      console.log("[케이던스] 유효하지 않은 샘플:", spm);
       return;
     }
     cadenceSumRef.current += v;
     cadenceCountRef.current += 1;
     console.log(
-      `[useCadence] Sample added: ${v} SPM, Total count: ${cadenceCountRef.current}`
+      `[케이던스] 샘플 추가됨: ${v} SPM (총 ${cadenceCountRef.current}개)`
     );
   };
 
   const resetCadenceAgg = () => {
-    console.log("[useCadence] Resetting cadence aggregation");
+    console.log("[케이던스] 집계 초기화");
     cadenceSumRef.current = 0;
     cadenceCountRef.current = 0;
   };
@@ -42,11 +42,11 @@ export function useCadence() {
   const avgCadence = () => {
     const n = cadenceCountRef.current;
     if (n <= 0) {
-      console.log("[useCadence] No cadence samples, returning 0");
+      console.log("[케이던스] 샘플 없음 → 평균 0 반환");
       return 0;
     }
     const avg = Math.round(cadenceSumRef.current / n);
-    console.log(`[useCadence] Average cadence: ${avg} SPM (${n} samples)`);
+    console.log(`[케이던스] 평균 케이던스: ${avg} SPM (${n}개 기준)`);
     return avg;
   };
 
@@ -66,7 +66,7 @@ export function useRunTimer(
 
   useEffect(() => {
     if (isRunning && !isPaused && startTime) {
-      console.log("[useRunTimer] Starting timer");
+      console.log("[타이머] 러닝 타이머 시작");
       timerRef.current = setInterval(() => {
         const now = Date.now();
         const durationSec = Math.floor((now - startTime - pausedTime) / 1000);
@@ -75,9 +75,9 @@ export function useRunTimer(
 
         if (currentSec > 0 && currentSec % 5 === 0 && currentPace > 0) {
           console.log(
-            `[useRunTimer] Adding pace to history: ${
+            `[타이머] 페이스 기록 추가: ${
               currentPace / 60
-            } min/km at ${currentSec}s`
+            } 분/km (${currentSec}초)`
           );
           setPaceHistory((prev) => [...prev, currentPace / 60]);
         }
@@ -86,7 +86,7 @@ export function useRunTimer(
 
     return () => {
       if (timerRef.current) {
-        console.log("[useRunTimer] Clearing timer");
+        console.log("[타이머] 타이머 정지");
         clearInterval(timerRef.current);
       }
     };
@@ -100,7 +100,7 @@ export function makeStartLocationTracking(
   notificationBody: string
 ) {
   return async function startLocationTracking() {
-    console.log("[LocationTracking] Starting location updates");
+    console.log("[위치추적] 백그라운드 위치 추적 시작");
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.BestForNavigation,
       timeInterval: 3000,
@@ -114,25 +114,25 @@ export function makeStartLocationTracking(
       pausesUpdatesAutomatically: false,
       activityType: Location.ActivityType.Fitness,
     });
-    console.log("[LocationTracking] Location updates started successfully");
+    console.log("[위치추적] 위치 업데이트 시작됨");
   };
 }
 
 export async function stopBackgroundLocation() {
   try {
-    console.log("[LocationTracking] Checking if location updates are active");
+    console.log("[위치추적] 위치 추적 상태 확인 중");
     const hasStarted = await Location.hasStartedLocationUpdatesAsync(
       LOCATION_TASK_NAME
     );
     if (hasStarted) {
-      console.log("[LocationTracking] Stopping location updates");
+      console.log("[위치추적] 위치 업데이트 중지");
       await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
-      console.log("[LocationTracking] Location updates stopped successfully");
+      console.log("[위치추적] 위치 업데이트 중지 완료");
     } else {
-      console.log("[LocationTracking] Location updates were not active");
+      console.log("[위치추적] 현재 실행 중인 위치 추적 없음");
     }
   } catch (e) {
-    console.warn("[LocationTracking] stopBackgroundLocation failed", e);
+    console.warn("[위치추적] 위치 추적 중지 실패", e);
   }
 }
 
@@ -148,13 +148,13 @@ export async function saveRecord(params: {
   startedAtIso?: string;
   endedAtIso?: string;
 }) {
-  console.log("[saveRecord] Preparing record data:", {
-    mode: params.mode,
-    distanceM: params.distanceM,
-    durationSec: params.durationSec,
-    avgPaceSec: params.avgPaceSec,
-    cadence: params.cadence,
-    routePoints: params.routeCoordinates.length,
+  console.log("[기록저장] 러닝 기록 준비 중:", {
+    모드: params.mode,
+    거리: params.distanceM,
+    시간: params.durationSec,
+    평균페이스: params.avgPaceSec,
+    케이던스: params.cadence,
+    경로포인트수: params.routeCoordinates.length,
   });
 
   const requestData = {
@@ -171,27 +171,25 @@ export async function saveRecord(params: {
   };
 
   try {
-    console.log("[saveRecord] Sending record to server...");
+    console.log("[기록저장] 서버로 기록 전송");
     const response = await createRecord(requestData as any);
     let recordId: number | undefined = response?.id;
-    console.log("[saveRecord] Server response:", { recordId, response });
+
+    console.log("[기록저장] 서버 응답:", { recordId, response });
 
     if (!recordId) {
-      console.log("[saveRecord] No recordId in response, fetching records...");
+      console.log("[기록저장] recordId 없음 → 기록 목록 재조회");
       const records = await fetchMyRecords();
       if (records?.length) {
         recordId = Math.max(...records.map((r: any) => Number(r.id)));
-        console.log(
-          "[saveRecord] Determined recordId from fetched records:",
-          recordId
-        );
+        console.log("[기록저장] 재조회로 recordId 결정:", recordId);
       }
     }
 
-    console.log("[saveRecord] Record saved successfully:", recordId);
+    console.log("[기록저장] 기록 저장 완료:", recordId);
     return { recordId, response };
   } catch (e) {
-    console.error("[saveRecord] Failed to save record:", e);
+    console.error("[기록저장] 기록 저장 실패", e);
     throw e;
   }
 }
@@ -223,14 +221,13 @@ export function useMapFocusing(params: {
     ((coords: { latitude: number; longitude: number }) => void) | null
   >(null);
 
-  // 실시간 위치 추적
   useEffect(() => {
     console.log(
-      `[useMapFocusing] Setting up location update handler, isFollowing: ${isFollowing}`
+      `[지도포커스] 위치 추적 핸들러 설정 (자동추적: ${isFollowing})`
     );
     onLocationUpdate.current = (coords) => {
       if (isFollowing && mapRef.current) {
-        console.log(`[useMapFocusing] Animating to location:`, coords);
+        console.log("[지도포커스] 현재 위치로 지도 이동:", coords);
         mapRef.current.animateToRegion(
           { ...coords, latitudeDelta: 0.002, longitudeDelta: 0.002 },
           1000
@@ -239,13 +236,9 @@ export function useMapFocusing(params: {
     };
   }, [isFollowing]);
 
-  // 초기 위치 설정
   useEffect(() => {
     if (initialLocation && mapRef.current) {
-      console.log(
-        "[useMapFocusing] Setting initial map location:",
-        initialLocation
-      );
+      console.log("[지도포커스] 초기 위치 설정:", initialLocation);
       mapRef.current.animateToRegion(
         { ...initialLocation, latitudeDelta: 0.002, longitudeDelta: 0.002 },
         500
@@ -253,17 +246,14 @@ export function useMapFocusing(params: {
     }
   }, [initialLocation]);
 
-  // 포커스 버튼 핸들러
   const handleFocusPress = async () => {
     if (!isFollowing) {
-      console.log("[useMapFocusing] Focus button pressed: enabling following");
+      console.log("[지도포커스] 자동 추적 활성화");
       setIsFollowing(true);
       try {
-        console.log("[useMapFocusing] Getting current position...");
         const loc = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
-        console.log("[useMapFocusing] Got current position:", loc.coords);
         mapRef.current?.animateToRegion(
           {
             latitude: loc.coords.latitude,
@@ -274,13 +264,9 @@ export function useMapFocusing(params: {
           500
         );
       } catch (e) {
-        console.warn(
-          "[useMapFocusing] Failed to get current position, using last route coordinate",
-          e
-        );
+        console.warn("[지도포커스] 현재 위치 조회 실패 → 마지막 경로 사용", e);
         if (routeCoordinates.length > 0) {
           const last = routeCoordinates[routeCoordinates.length - 1];
-          console.log("[useMapFocusing] Using last route coordinate:", last);
           mapRef.current?.animateToRegion(
             { ...last, latitudeDelta: 0.002, longitudeDelta: 0.002 },
             500
@@ -288,7 +274,7 @@ export function useMapFocusing(params: {
         }
       }
     } else {
-      console.log("[useMapFocusing] Focus button pressed: disabling following");
+      console.log("[지도포커스] 자동 추적 비활성화");
       setIsFollowing(false);
     }
   };
