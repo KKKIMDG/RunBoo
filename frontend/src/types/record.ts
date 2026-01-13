@@ -4,6 +4,7 @@ export type RecordDto = {
     durationSec: number;
     avgPace: number;
     calories: number;
+    cadence: number;
     startedAt: string;
     endedAt: string;
     mode: string; // "NORMAL" | "GHOST" | "TIER"
@@ -61,6 +62,7 @@ export interface CreateRecordRequest {
     durationSec: number;
     avgPace: number;
     calories: number;
+    cadence: number;
     routePolyline: string;
     startedAt: string;
     endedAt: string;
@@ -75,6 +77,7 @@ export type RunRecordDetailDto = {
     durationSec: number;
     avgPace: number;
     calories: number;
+    cadence?: number;
 
     startedAt: string;
     endedAt: string;

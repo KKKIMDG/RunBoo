@@ -240,6 +240,7 @@ public class RecordService {
                 .durationSec(dto.getDurationSec())
                 .avgPace(dto.getAvgPace())
                 .calories(dto.getCalories())
+                .cadence(dto.getCadence() == null ? 0 : dto.getCadence())
                 .routePolyLine(dto.getRoutePolyline())
                 .startedAt(dto.getStartedAt())
                 .endedAt(dto.getEndedAt())

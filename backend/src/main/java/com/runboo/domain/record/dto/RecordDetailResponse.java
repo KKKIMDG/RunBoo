@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -16,6 +15,7 @@ public class RecordDetailResponse {
     private String time;
     private String pace; // ✅ int에서 String으로 변경하여 "05:30" 형태로 반환
     private LocalDateTime createdAt;
+    private Integer cadence;
 
     public RecordDetailResponse(RunRecord record) {
         this.recordId = record.getId();
@@ -40,7 +40,7 @@ public class RecordDetailResponse {
         } else {
             this.pace = "-:--";
         }
-
+        this.cadence = record.getCadence();
         this.createdAt = record.getCreatedAt();
     }
 

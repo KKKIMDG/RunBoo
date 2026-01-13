@@ -24,27 +24,27 @@ public class ReminderNotificationScheduler {
     private final UserRepository userRepository;
 
     /**
-     * 매일 19:00 (한국 시간) 리마인더 발송
+     * 리마인더 발송
      */
     @Scheduled(cron = "0 50 17 * * *", zone = "Asia/Seoul")
     public void sendDailyReminder() {
 
-        // ✅ 스케줄러에서는 반드시 "조회"로 userId를 가져온다
+        // 스케줄러에서는 반드시 "조회"로 userId를 가져온다
         List<Long> userIds = userRepository.findAllActiveUserIds();
 //        log.info("[REMINDER] userIds size={}", userIds.size());
         for (Long userId : userIds) {
 
-            // 1️⃣ 리마인더 설정 확인
+            // ⃣ 리마인더 설정 확인
             if (!preferenceService.isEnabled(userId, NotificationType.REMINDER)) {
                 continue;
             }
 
-            // 2️⃣ 활성 디바이스 조회
+            // ⃣ 활성 디바이스 조회
             List<UserPushDevice> devices =
                     pushDeviceService.getEnabledDevices(userId);
 
 //            log.info("[REMINDER] userId={} devices size={}", userId, devices.size());
-            // 3️⃣ FCM 발송
+            // FCM 발송
             for (UserPushDevice device : devices) {
                 fcmSendService.sendReminder(device.getToken());
 //                log.info("[FCM] send reminder token={}", device.getToken());

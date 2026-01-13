@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import { View, Text, FlatList, StatusBar, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // 컴포넌트 및 훅 import
@@ -9,6 +9,7 @@ import { useCourseScreen, FilterType } from './useCourseScreen';
 import { getStyles } from './CourseScreen.styles';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
+import {useSettings} from "@/screens/Settings/useSettings";
 
 // 상단 필터 버튼 데이터
 const FILTERS: { label: string; type: FilterType }[] = [
@@ -20,11 +21,11 @@ const FILTERS: { label: string; type: FilterType }[] = [
 export default function CourseScreen() {
     const { activeFilter, courses, loading, handlers } = useCourseScreen();
 
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
-
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
     const colors = Colors[colorScheme];
 

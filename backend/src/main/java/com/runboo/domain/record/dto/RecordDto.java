@@ -16,6 +16,7 @@ public class RecordDto {
     private Integer durationSec;
     private Integer avgPace;
     private Integer calories;
+    private Integer cadence;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
     private String mode;
@@ -23,11 +24,10 @@ public class RecordDto {
     public RecordDto(Record record) {
         this.id = record.getId();
         this.distanceM = record.getDistanceM();
-
         this.durationSec = calcDurationSec(record);
-
         this.avgPace = record.getAvgPace();
         this.calories = record.getCalories();
+        this.cadence = record.getCadence();
         this.startedAt = record.getStartedAt();
         this.endedAt = record.getEndedAt();
         this.mode = record.getMode();
