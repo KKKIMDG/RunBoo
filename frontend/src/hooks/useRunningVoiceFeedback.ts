@@ -20,6 +20,8 @@ export const useRunningVoiceFeedback = ({
   const startTime = useRef(Date.now());
   const milestones = useRef({ p50: false, p80: false, p90: false });
   const speakingLock = useRef(false);
+  const [androidMaleVoice, setAndroidMaleVoice] = useState<string | undefined>();
+  const [androidFemaleVoice, setAndroidFemaleVoice] = useState<string | undefined>();
 
   // iOS 무료 음성 선택
   const [selectedVoice, setSelectedVoice] = useState<string | undefined>(
@@ -33,30 +35,78 @@ export const useRunningVoiceFeedback = ({
    * - Enhanced 제외 → 무료 음성
    * ----------------------------- */
   useEffect(() => {
-    if (Platform.OS === "ios") {
-      (async () => {
-        try {
-          const voices = await Speech.getAvailableVoicesAsync();
+    (async () => {
+      try {
+        const voices = await Speech.getAvailableVoicesAsync();
 
-          const freeVoices = voices.filter(
-            (v) => v.quality?.toLowerCase() !== "enhanced"
+        const koVoices = voices.filter(
+            (v) => v.language?.toLowerCase().startsWith("ko")
+        );
+
+        // -----------------
+        // iOS
+        // -----------------
+        if (Platform.OS === "ios") {
+          const freeVoices = koVoices.filter(
+              (v) => v.quality?.toLowerCase() !== "enhanced"
           );
 
           const targetName = isMale ? "minsu" : "suhyun";
-          const foundVoice = freeVoices.find((v) =>
-            v.name?.toLowerCase().includes(targetName)
+          const found = freeVoices.find((v) =>
+              v.name?.toLowerCase().includes(targetName)
           );
 
-          setSelectedVoice(foundVoice?.identifier ?? freeVoices[0]?.identifier);
-          console.log(
-            "🎙 선택된 iOS 무료 음성:",
-            foundVoice?.name ?? freeVoices[0]?.name
-          );
-        } catch (e) {
-          console.warn("iOS voices fetch failed", e);
+          setSelectedVoice(found?.identifier ?? freeVoices[0]?.identifier);
+          return;
         }
-      })();
-    }
+
+        // -----------------
+        // Android (이름 기반)
+        // -----------------
+        if (Platform.OS === "android") {
+          // 1. 한국어만
+          const koSpecificVoices = koVoices.filter(
+              v => v.language === "ko-KR"
+          );
+
+          // 2. 정확한 남/여 분리
+          const maleVoices = koSpecificVoices.filter(v =>
+              v.name.includes("kod")
+          );
+
+          const femaleVoices = koSpecificVoices.filter(v =>
+              v.name.includes("koc") || v.name.includes("kob")
+          );
+
+          // 3. local 우선 → 없으면 network
+          const pickBestVoice = (candidates: typeof koSpecificVoices) => {
+            if (candidates.length === 0) return undefined;
+            return (
+                candidates.find(v => v.name.includes("local")) ??
+                candidates.find(v => v.name.includes("network")) ??
+                candidates[0]
+            );
+          };
+
+          const finalMale = pickBestVoice(maleVoices);
+          const finalFemale = pickBestVoice(femaleVoices);
+
+          // 4. fallback (절대 ism 쓰지 말 것)
+          const fallback = koSpecificVoices.find(
+              v => !v.name.includes("ism")
+          )?.identifier;
+
+          setAndroidMaleVoice(finalMale?.identifier ?? fallback);
+          setAndroidFemaleVoice(finalFemale?.identifier ?? fallback);
+
+          console.log("남성(Android):", finalMale?.name);
+          console.log("여성(Android):", finalFemale?.name);
+        }
+
+      } catch (e) {
+        console.warn("Voice fetch failed", e);
+      }
+    })();
   }, [isMale]);
 
   /** -----------------------------
@@ -70,6 +120,29 @@ export const useRunningVoiceFeedback = ({
   const aiTargetPaceSec = recommendedPaceSec ?? getAiRecommendedPace();
 
   /** -----------------------------
+   * 발화 옵션 (iOS / Android 분기)
+   * ----------------------------- */
+  const getSpeechOptions = () => {
+    if (Platform.OS === "ios") {
+      return {
+        language: "ko-KR",
+        voice: selectedVoice,
+        pitch: isMale ? 1.0 : 1.0,
+        rate: 1.0,
+      };
+    }
+
+    // Android
+    return {
+      language: "ko-KR",
+      voice: isMale ? androidMaleVoice : androidFemaleVoice,
+      pitch: isMale ? 1.0 : 1.0,
+      rate: 1,
+    };
+  };
+
+
+  /** -----------------------------
    * 발화 함수 (iOS/Android 공용)
    * ----------------------------- */
   const speak = async (text: string, onDone?: () => void) => {
@@ -81,11 +154,10 @@ export const useRunningVoiceFeedback = ({
     try {
       await Speech.stop();
 
+      const options = getSpeechOptions();
+
       await Speech.speak(text, {
-        language: "ko-KR",
-        voice: Platform.OS === "ios" ? selectedVoice : undefined,
-        pitch: isMale ? 1.0 : 1.0,
-        rate: Platform.OS === "ios" ? 1.0 : 1.0,
+        ...options,
         onDone: () => {
           speakingLock.current = false;
           onDone?.();
@@ -101,6 +173,7 @@ export const useRunningVoiceFeedback = ({
       speakingLock.current = false;
     }
   };
+
 
   /** -----------------------------
    * 시작 / 종료 / 일시정지 / 재개
