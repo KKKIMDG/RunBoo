@@ -10,13 +10,15 @@ import { createRecord, fetchMyRecords } from "@/services/record/recordsService";
 import { useRecordStore } from "@/stores/recordStore";
 import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
 import { useKeepAwake } from "expo-keep-awake";
+import { useUserMe } from "@/contexts/UserMeContext";
 
 type TierRunningRouteProp = RouteProp<RootStackParamList, "TierRunning">;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const toIsoPlus9 = (d: Date) =>
-    new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString();
+  new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString();
 
+/** ✅ 케이던스 샘플 필터 (40~260 범위) */
 function normalizeCadence(spm: number): number | null {
     const v = Number(spm);
     if (!Number.isFinite(v)) return null;
@@ -29,8 +31,9 @@ export const useTierRunningScreen = () => {
     useKeepAwake();
     const navigation = useNavigation<NavigationProp>();
     const route = useRoute<TierRunningRouteProp>();
+    const { userMe } = useUserMe();
 
-    const userId = route?.params?.userId;
+    const userId = userMe?.id || route.params?.userId;
     const targetDistance = route.params?.targetDistance ?? 5000;
     const distanceTypeKey: "5k" | "10k" = targetDistance <= 5000 ? "5k" : "10k";
 
@@ -58,10 +61,9 @@ export const useTierRunningScreen = () => {
     const [paceHistory, setPaceHistory] = useState<number[]>([]);
     const [initialLocation, setInitialLocation] = useState<Coordinate | null>(null);
     const [displayTime, setDisplayTime] = useState(0);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-    // ✅ [추가] 케이던스 평균 누적
+    // ✅ 케이던스 평균 누적을 위한 Ref (dev 브랜치 방식)
     const cadenceSumRef = useRef(0);
     const cadenceCountRef = useRef(0);
 
@@ -88,9 +90,7 @@ export const useTierRunningScreen = () => {
             const h = Math.floor(s / 3600);
             const m = Math.floor((s % 3600) / 60);
             const sec = s % 60;
-            return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${
-                sec < 10 ? "0" + sec : sec
-            }`;
+            return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${sec < 10 ? "0" + sec : sec}`;
         },
         formatPace: (p: number) => {
             if (p === 0 || !isFinite(p) || p > 3600) return "-'--\"";
@@ -100,6 +100,7 @@ export const useTierRunningScreen = () => {
         },
     };
 
+    // 1. 초기화
     useEffect(() => {
         (async () => {
             resetStore();
@@ -121,6 +122,7 @@ export const useTierRunningScreen = () => {
         };
     }, []);
 
+    // 2. 백그라운드 트래킹 시작
     const startLocationTracking = async () => {
         await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
             accuracy: Location.Accuracy.BestForNavigation,
@@ -137,15 +139,17 @@ export const useTierRunningScreen = () => {
         });
     };
 
+    // 3. 거리 계산 및 자동 종료 체크
     useEffect(() => {
         const remain = targetDistance - distance;
         setRemainingDistance(remain > 0 ? remain : 0);
 
         if (isRunning && distance >= targetDistance) {
-            handleComplete(false);
+            handleComplete(false); // 목표 도달 시 자동 종료
         }
     }, [distance, isRunning, targetDistance]);
 
+    // 4. 카운트다운 및 시작
     useEffect(() => {
         if (isReady && countdown > 0) {
             const t = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -157,13 +161,13 @@ export const useTierRunningScreen = () => {
         }
     }, [isReady, countdown]);
 
+    // 5. 타이머 및 페이스 기록
     useEffect(() => {
         if (isRunning && !isPaused && startTime) {
             timerRef.current = setInterval(() => {
                 const now = Date.now();
                 const durationSec = Math.floor((now - startTime - pausedTime) / 1000);
                 const currentSec = durationSec >= 0 ? durationSec : 0;
-
                 setDisplayTime(currentSec);
 
                 if (currentSec % 5 === 0 && currentPace > 0) {
@@ -176,6 +180,7 @@ export const useTierRunningScreen = () => {
         };
     }, [isRunning, isPaused, startTime, pausedTime, currentPace]);
 
+    // ✅ 완료 처리 (정상 종료 / 중단 종료)
     const handleComplete = async (isStopped: boolean = false) => {
         const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
         if (hasStarted) await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
@@ -183,6 +188,7 @@ export const useTierRunningScreen = () => {
         stopStoreRun();
         if (timerRef.current) clearInterval(timerRef.current);
 
+        // 100m 미만 기록 방지
         if (distance < 100) {
             Alert.alert(
                 "기록 저장 불가",
@@ -194,6 +200,7 @@ export const useTierRunningScreen = () => {
 
         const finalDist = Math.min(distance, targetDistance);
         const avgPaceSec = finalDist > 0 ? displayTime / (finalDist / 1000) : 0;
+        const currentAvgCadence = avgCadence(); // 최종 평균 케이던스 산출
 
         const data = {
             userId: userId ? Number(userId) : 0,
@@ -202,22 +209,24 @@ export const useTierRunningScreen = () => {
             durationSec: displayTime,
             avgPace: Math.floor(avgPaceSec),
             calories: Math.floor(finalDist * 0.05),
-
-            // ✅ [추가] 평균 케이던스 저장
-            cadence: avgCadence(),
-
+            cadence: currentAvgCadence, // 서버 저장용
             routePolyline: encodePath(routeCoordinates),
             startedAt: startTime ? toIsoPlus9(new Date(startTime)) : new Date().toISOString(),
             endedAt: toIsoPlus9(new Date()),
         };
 
         try {
-            await createRecord(data);
-
-            const records = await fetchMyRecords();
-            const finalRecordId = Math.max(...records.map((r: any) => Number(r.id)));
+            const response = await createRecord(data);
+            
+            // recordId 확보 로직
+            let finalRecordId = response?.id;
+            if (!finalRecordId) {
+                const records = await fetchMyRecords();
+                finalRecordId = Math.max(...records.map((r: any) => Number(r.id)));
+            }
 
             if (isStopped) {
+                // 중도 포기 -> 일반 결과 화면
                 navigation.navigate("RunResult", {
                     distanceM: finalDist,
                     durationSec: displayTime,
@@ -225,37 +234,40 @@ export const useTierRunningScreen = () => {
                     calories: Math.floor(finalDist * 0.05),
                     routeCoordinates,
                     recordId: finalRecordId,
+                    cadenceSpm: currentAvgCadence, // 결과 화면 표시용
                 });
-                return;
+            } else {
+                // 목표 달성 -> 티어 평가 및 결과 화면
+                const tierData = await evaluateTier({
+                    recordId: finalRecordId,
+                    distanceType: distanceTypeKey,
+                });
+
+                navigation.navigate("TierResult", {
+                    userId,
+                    recordId: finalRecordId,
+                    distanceType: distanceTypeKey,
+                    stats: {
+                        distance: (finalDist / 1000).toFixed(2),
+                        time: utils.formatTime(displayTime),
+                        pace: utils.formatPace(avgPaceSec),
+                    },
+                    achievedTier: tierData.displayName,
+                    distanceM: finalDist,
+                    durationSec: displayTime,
+                    avgPaceSec,
+                    calories: Math.floor(finalDist * 0.05),
+                    routeCoordinates,
+                    cadenceSpm: currentAvgCadence, // 결과 화면 표시용
+                });
             }
-
-            const tierData = await evaluateTier({
-                recordId: finalRecordId,
-                distanceType: distanceTypeKey,
-            });
-
-            navigation.navigate("TierResult", {
-                userId,
-                recordId: finalRecordId,
-                distanceType: distanceTypeKey,
-                stats: {
-                    distance: (finalDist / 1000).toFixed(2),
-                    time: utils.formatTime(displayTime),
-                    pace: utils.formatPace(avgPaceSec),
-                },
-                achievedTier: tierData.displayName,
-                distanceM: finalDist,
-                durationSec: displayTime,
-                avgPaceSec,
-                calories: Math.floor(finalDist * 0.05),
-                routeCoordinates,
-            });
         } catch (e) {
             console.error("Tier Complete Error:", e);
             Alert.alert("저장 오류", "기록 저장 중 문제가 발생했습니다.");
         }
     };
 
+    // ✅ 중단 버튼 처리
     const handleStopPress = () => {
         pauseStoreRun();
         Alert.alert(
@@ -288,9 +300,7 @@ export const useTierRunningScreen = () => {
             pauseRun: pauseStoreRun,
             resumeRun: resumeStoreRun,
             stopTierRunManual: handleStopPress,
-
-            // ✅ Screen에서 cadence 샘플 주입
-            pushCadenceSample,
+            pushCadenceSample, // Screen에서 센서 데이터를 넣어주는 함수
         },
         utils,
     };

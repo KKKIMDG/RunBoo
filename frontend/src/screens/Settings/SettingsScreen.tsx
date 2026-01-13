@@ -85,31 +85,28 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
             }}
           />
           <View
-              style={[
-                styles.dropdownContainer,
-                {
-                  top: dropdown.y + dropdown.height,
-                  right: 20,
-                },
-              ]}
+            style={[
+              styles.dropdownContainer,
+              {
+                top: dropdown.y + dropdown.height,
+                right: 20,
+              },
+            ]}
           >
             {dropdown.options.map((opt) => (
-                <TouchableOpacity
-                    key={String(opt.value)}
-                    style={styles.dropdownItem}
-                    onPress={() => {
-                      dropdown.onSelect(opt.value);
-                      setDropdown(null);
-                      setOpenSelectKey(null);
-                    }}
-                >
-                  <Text style={styles.dropdownItemText}>
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
+              <TouchableOpacity
+                key={String(opt.value)}
+                style={styles.dropdownItem}
+                onPress={() => {
+                  dropdown.onSelect(opt.value);
+                  setDropdown(null);
+                  setOpenSelectKey(null);
+                }}
+              >
+                <Text style={styles.dropdownItemText}>{opt.label}</Text>
+              </TouchableOpacity>
             ))}
           </View>
-
         </Modal>
       )}
 
@@ -214,8 +211,8 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
               icon="volume-medium-outline"
               label="음성 안내"
               type="switch"
-              isEnabled={settings.voiceEnabled}
-              onToggle={(v) => update("voiceEnabled", v)}
+              isEnabled={settings.voiceGuideEnabled}
+              onToggle={(v) => update("voiceGuideEnabled", v)}
             />
 
             <SettingItem

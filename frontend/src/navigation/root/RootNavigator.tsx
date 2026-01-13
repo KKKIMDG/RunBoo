@@ -39,24 +39,22 @@ export type RootStackParamList = {
         distanceType?: "5km" | "10km";
     };
 
-    // ✅ [수정] GhostRun에서 실제로 쓰는 params를 타입에 반영
     GhostRun: {
         ghost: GhostProfileDto;
         userId?: number;
         isMale?: boolean;
     };
 
-    // ✅ cadence는 route param으로 안 받음 (recordId로 DB 조회)
     RunResult: {
         distanceM: number;
         durationSec: number;
         avgPaceSec: number;
         calories: number;
         routeCoordinates: Coordinate[];
-        recordId?: number;
+        cadenceSpm?: number; // dabin 브랜치 기능 유지
+        recordId?: number;   // dev 브랜치 기능 유지
     };
 
-    // ✅ [수정] cadenceSpm 제거 (이제 케이던스는 DB에서 조회)
     TierResult: {
         userId?: number;
         recordId: number;
@@ -85,10 +83,10 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function RootNavigator({
-                                          isLoggedIn,
-                                          onLoginSuccess,
-                                          onLogout,
-                                      }: any) {
+    isLoggedIn,
+    onLoginSuccess,
+    onLogout,
+}: any) {
     if (!isLoggedIn) {
         return <AuthStack onLoginSuccess={onLoginSuccess} />;
     }

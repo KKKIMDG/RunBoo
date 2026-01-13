@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useState, useEffect, useContext } from "react";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Location from "expo-location";
 import { RootStackParamList } from "@/navigation/root/RootNavigator"; // 경로 확인 필요
+import { UserVoiceSetting } from "@/types/userSetting";
+import { fetchUserVoiceSetting } from "@/services/user/userService";
 
 export type RunningMode = "측정" | "티어" | "고스트";
 
@@ -33,11 +35,27 @@ export const useHomeScreen = () => {
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // 5. 음성 안내 상태 (서버에서 가져올 것)
+  const [voiceGuideEnabled, setVoiceGuideEnabled] = useState<boolean>(false);
+  const [voiceType, setVoiceType] = useState<"MALE" | "FEMALE">("MALE");
+
   // 초기 위치 가져오기
   useEffect(() => {
     (async () => {
       let currentLocation = await Location.getCurrentPositionAsync({});
       setLocation(currentLocation);
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const userVoice: UserVoiceSetting = await fetchUserVoiceSetting();
+        setVoiceGuideEnabled(userVoice.voiceGuideEnabled);
+        setVoiceType(userVoice.voiceType);
+      } catch (e) {
+        console.warn("Failed to fetch voice settings", e);
+      }
     })();
   }, []);
 
@@ -65,6 +83,8 @@ export const useHomeScreen = () => {
     navigation.navigate("Running", {
       targetDistance: selectedGoal.value,
       mode: "NORMAL", // ✅ 이제 에러 안 남
+      voiceGuideEnabled,
+      voiceType,
     });
   };
 
