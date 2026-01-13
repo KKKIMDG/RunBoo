@@ -23,13 +23,10 @@ export type RootStackParamList = {
   MainStack: undefined;
 
   Running: {
-    userId: number;
     targetDistance: number;
     mode?: "NORMAL";
-    userVoiceSetting: {
-      voiceEnabled: boolean;
-      voiceType: "MALE" | "FEMALE";
-    };
+    voiceGuideEnabled: boolean;
+    voiceType: "MALE" | "FEMALE";
   };
 
   TierRunning: {

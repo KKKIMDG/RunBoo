@@ -9,6 +9,9 @@ import type { RootStackParamList } from "@/navigation/root/RootNavigator";
 import { createRecord } from "@/services/record/recordsService";
 import { useRecordStore } from "@/stores/recordStore";
 import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
+import { fetchUserVoiceSetting } from "@/services/user/userService";
+import { UserVoiceSetting } from "@/types/userSetting";
+import { useUserMe } from "@/contexts/UserMeContext"; // ✅ 추가
 
 type RunningScreenRouteProp = RouteProp<RootStackParamList, "Running">;
 type RunningScreenNavigationProp = StackNavigationProp<RootStackParamList>;
@@ -20,16 +23,13 @@ export const useRunningScreen = () => {
   useKeepAwake();
   const navigation = useNavigation<RunningScreenNavigationProp>();
   const route = useRoute<RunningScreenRouteProp>();
+  const { userMe } = useUserMe(); // ✅ 전역 사용자 정보 가져오기
 
-  const userId = route?.params?.userId;
+  const userId = userMe?.userId;
   const targetDistance = route.params?.targetDistance ?? 0;
-
-  // ✅ 유저 세팅값 가져오기 및 예외 처리
-  const voiceSetting = route.params?.userVoiceSetting;
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(
-    voiceSetting?.voiceEnabled ?? true
-  );
-  const [isMale, setIsMale] = useState(voiceSetting?.voiceType === "MALE");
+  // ✅ 유저 세팅값 가져오기
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+  const [isMale, setIsMale] = useState(true);
 
   // Store 구독
   const {
@@ -80,6 +80,7 @@ export const useRunningScreen = () => {
     },
   };
 
+  // 초기 위치 가져오기
   useEffect(() => {
     (async () => {
       resetStore();
@@ -95,6 +96,26 @@ export const useRunningScreen = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
+  }, []);
+
+  // 서버에서 유저 음성 설정 가져오기
+  useEffect(() => {
+    (async () => {
+      try {
+        const userVoice: UserVoiceSetting = await fetchUserVoiceSetting();
+        setIsVoiceEnabled(userVoice.voiceGuideEnabled);
+        setIsMale(userVoice.voiceType === "MALE");
+
+        // ✅ 로그 확인
+        console.log(
+          "[VoiceSetting] guideEnabled:",
+          userVoice.voiceGuideEnabled
+        );
+        console.log("[VoiceSetting] type:", userVoice.voiceType);
+      } catch (e) {
+        console.warn("Failed to fetch user voice setting", e);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -142,7 +163,6 @@ export const useRunningScreen = () => {
   };
 
   const stopRun = async (finalCadenceSpm: number) => {
-    // 1. 백그라운드 작업 즉시 중단
     const hasStarted = await Location.hasStartedLocationUpdatesAsync(
       LOCATION_TASK_NAME
     );
@@ -151,19 +171,19 @@ export const useRunningScreen = () => {
     stopStoreRun();
     if (timerRef.current) clearInterval(timerRef.current);
 
-    // ✅ [추가] 100미터 미만일 경우 기록하지 않음
-    if (distance < 100) {
-      Alert.alert(
-        "기록 저장 불가",
-        "100m 미만의 활동은 기록으로 저장되지 않습니다.",
-        [{ text: "확인", onPress: () => navigation.goBack() }]
-      );
-      return; // 함수 종료 (createRecord 호출 안 함)
-    }
+    // 100 미만 기록 예외
+    // if (distance < 100) {
+    //   Alert.alert(
+    //     "기록 저장 불가",
+    //     "100m 미만의 활동은 기록으로 저장되지 않습니다.",
+    //     [{ text: "확인", onPress: () => navigation.goBack() }]
+    //   );
+    //   return;
+    // }
 
     const avgPaceSec = distance > 0 ? displayTime / (distance / 1000) : 0;
     const requestData = {
-      userId: userId ? Number(userId) : 0,
+      userId: userId,
       mode: "NORMAL" as const,
       distanceM: Math.floor(distance),
       durationSec: displayTime,
