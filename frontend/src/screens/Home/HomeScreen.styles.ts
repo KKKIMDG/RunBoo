@@ -1,7 +1,11 @@
 import { StyleSheet, Platform } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+     fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -40,7 +44,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       alignItems: "center",
     },
     tabText: {
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       fontWeight: "600",
       color: Colors[scheme].icon,
       marginLeft: 6,
@@ -70,7 +74,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     },
     mapPlaceholderText: {
       color: Colors[scheme].icon,
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
     },
 
     // 👁️ 눈 모양 버튼 (줌/보기)
@@ -139,12 +143,12 @@ export const getStyles = (scheme: "light" | "dark") =>
       color: Colors[scheme].primary,
       fontWeight: "bold",
       marginLeft: 6,
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
     },
     detailText: {
       color: Colors[scheme].primary,
       fontWeight: "bold",
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
     },
 
     // ✅ [MapFullScreen과 동일하게 맞춘 마커 스타일]
@@ -187,7 +191,7 @@ export const getStyles = (scheme: "light" | "dark") =>
     startBtn: { height: 58, marginBottom: 0 },
     buttonTextMain: {
       color: Colors[scheme].background,
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "bold",
       textAlign: "center",
     },

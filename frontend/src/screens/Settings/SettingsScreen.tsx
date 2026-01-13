@@ -21,16 +21,14 @@ import { useUserMe } from "@/contexts/UserMeContext";
 import { useNotificationPreference } from "./useNotificationPreference";
 
 export default function SettingsScreen({ navigation, onLogout }: any) {
-  const colorScheme = useColorScheme() ?? "light";
-
-  const styles = useMemo(() => {
-    return getStyles(colorScheme);
-  }, [colorScheme]);
-
   const { userMe } = useUserMe();
-
+  
   /** 일반 설정 */
   const { settings, update } = useSettings();
+  const colorScheme = useColorScheme() ?? "light";
+  const styles = useMemo(() => {
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   /** 알림 타입별 설정 */
   const { preferences, updatePreference, loading } =
@@ -87,31 +85,28 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
             }}
           />
           <View
-              style={[
-                styles.dropdownContainer,
-                {
-                  top: dropdown.y + dropdown.height,
-                  right: 20,
-                },
-              ]}
+            style={[
+              styles.dropdownContainer,
+              {
+                top: dropdown.y + dropdown.height,
+                right: 20,
+              },
+            ]}
           >
             {dropdown.options.map((opt) => (
-                <TouchableOpacity
-                    key={String(opt.value)}
-                    style={styles.dropdownItem}
-                    onPress={() => {
-                      dropdown.onSelect(opt.value);
-                      setDropdown(null);
-                      setOpenSelectKey(null);
-                    }}
-                >
-                  <Text style={styles.dropdownItemText}>
-                    {opt.label}
-                  </Text>
-                </TouchableOpacity>
+              <TouchableOpacity
+                key={String(opt.value)}
+                style={styles.dropdownItem}
+                onPress={() => {
+                  dropdown.onSelect(opt.value);
+                  setDropdown(null);
+                  setOpenSelectKey(null);
+                }}
+              >
+                <Text style={styles.dropdownItemText}>{opt.label}</Text>
+              </TouchableOpacity>
             ))}
           </View>
-
         </Modal>
       )}
 
@@ -216,8 +211,8 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
               icon="volume-medium-outline"
               label="음성 안내"
               type="switch"
-              isEnabled={settings.voiceEnabled}
-              onToggle={(v) => update("voiceEnabled", v)}
+              isEnabled={settings.voiceGuideEnabled}
+              onToggle={(v) => update("voiceGuideEnabled", v)}
             />
 
             <SettingItem
@@ -289,7 +284,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
               }
               options={[
                 { label: "작게", value: "SMALL" },
-                { label: "보통", value: "NORMAL" },
+                { label: "보통", value: "MEDIUM" },
                 { label: "크게", value: "LARGE" },
               ]}
               onSelect={(v) => update("fontSize", v)}

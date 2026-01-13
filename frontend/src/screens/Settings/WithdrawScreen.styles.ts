@@ -1,7 +1,11 @@
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
     StyleSheet.create({
         safeArea: {
             flex: 1,
@@ -17,13 +21,13 @@ export const getStyles = (scheme: "light" | "dark") =>
         },
 
         headerTitle: {
-            fontSize: 17,
+            fontSize: scaleFont(17, fontSize),
             fontWeight: "bold",
             color: Colors[scheme].text,
         },
 
         icon: {
-            fontSize: 22,
+            fontSize: scaleFont(22, fontSize),
             color: Colors[scheme].icon,
         },
 
@@ -43,7 +47,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         },
 
         noticeIcon: {
-            fontSize: 18,
+            fontSize: scaleFont(18, fontSize),
             color: Colors[scheme].error, // 아이콘은 강하게
         },
 
@@ -53,14 +57,14 @@ export const getStyles = (scheme: "light" | "dark") =>
         },
 
         noticeTitle: {
-            fontSize: 13,
+            fontSize: scaleFont(13, fontSize),
             fontWeight: "600",
             color: Colors[scheme].destructiveTitle,
             marginBottom: 4,
         },
 
         noticeDesc: {
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
             color: Colors[scheme].destructiveText,
             lineHeight: 18,
         },
@@ -70,7 +74,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         },
 
         label: {
-            fontSize: 13,
+            fontSize: scaleFont(13, fontSize),
             fontWeight: "600",
             color: Colors[scheme].text,
             marginBottom: 6,
@@ -90,7 +94,7 @@ export const getStyles = (scheme: "light" | "dark") =>
 
         input: {
             flex: 1,
-            fontSize: 14,
+            fontSize: scaleFont(14, fontSize),
             color: Colors[scheme].text,
         },
 
@@ -111,7 +115,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         },
 
         withdrawButtonText: {
-            fontSize: 16,
+            fontSize: scaleFont(16, fontSize),
             fontWeight: "600",
             color: Colors[scheme].white,
         },

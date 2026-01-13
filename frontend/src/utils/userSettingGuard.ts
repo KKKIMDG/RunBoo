@@ -5,7 +5,7 @@ const DEFAULT_USER_SETTING: UserSetting = {
     voiceEnabled: true,
     voiceType: 'MALE',
     themeMode: 'SYSTEM',
-    fontSize: 'NORMAL',
+    fontSize: 'SMALL',
 };
 
 export function normalizeUserSetting(
@@ -40,7 +40,7 @@ export function normalizeUserSetting(
 
         fontSize:
             raw.fontSize === 'SMALL' ||
-            raw.fontSize === 'NORMAL' ||
+            raw.fontSize === 'MEDIUM' ||
             raw.fontSize === 'LARGE'
                 ? raw.fontSize
                 : DEFAULT_USER_SETTING.fontSize,

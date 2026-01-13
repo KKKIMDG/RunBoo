@@ -5,7 +5,7 @@ import {
   Modal,
   TouchableOpacity,
   FlatList,
-  ActivityIndicator,
+  ActivityIndicator, useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -13,7 +13,8 @@ import type { GhostProfileDto } from "@/types/ghost";
 import type { RecordDto } from "@/types/record";
 import { formatPaceSecToText, formatKm } from "@/screens/ghost/format";
 import { fetchNationalRankingTop5 } from "@/services/record/recordsService";
-import { getStyles } from "./GhostSelectSheet.styles"; // ✅ 외부 스타일 시트 임포트
+import { getStyles } from "./GhostSelectSheet.styles";
+import {useSettings} from "@/screens/Settings/useSettings"; // ✅ 외부 스타일 시트 임포트
 
 type Props = {
   visible: boolean;
@@ -137,13 +138,18 @@ function toRankingGhostProfiles(top: RecordDto[]): GhostProfileDto[] {
 
 export default function GhostSelectSheet({
   visible,
-  scheme,
   loading,
   data,
   onClose,
   onSelect,
 }: Props) {
-  const s = getStyles(scheme); // ✅ 외부 스타일 시트 참조
+
+  const { settings } = useSettings();
+  const colorScheme = useColorScheme() ?? "light";
+  const s = useMemo(() => {
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
+  // const s = getStyles(scheme); // ✅ 외부 스타일 시트 참조
   const [tab, setTab] = useState<TabKey>("self");
   const [rankingLocalLoading, setRankingLocalLoading] = useState(false);
   const [rankingLocal, setRankingLocal] = useState<GhostProfileDto[]>([]);

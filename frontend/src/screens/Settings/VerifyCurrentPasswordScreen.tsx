@@ -16,15 +16,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { getStyles } from "./ChangePasswordScreen.styles";
 import { verifyCurrentPassword } from "@/services/user/userService";
 import { useUserMe } from "@/contexts/UserMeContext";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 export default function VerifyCurrentPasswordScreen({ navigation }: any) {
+  const { userMe } = useUserMe();
+
+
+  /** 일반 설정 */
+  const { settings } = useSettings();
   const colorScheme = useColorScheme() ?? "light";
-
   const styles = useMemo(() => {
-    return getStyles(colorScheme);
-  }, [colorScheme]);
-
-  const { userMe, logout } = useUserMe();
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [isHidden, setIsHidden] = useState(true);
