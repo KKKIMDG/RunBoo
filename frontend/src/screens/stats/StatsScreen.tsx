@@ -5,7 +5,7 @@ import {
     View,
     Text,
     ActivityIndicator,
-    FlatList, useColorScheme,
+    FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -19,11 +19,12 @@ import PersonalBestList from "./components/PersonalBestList";
 
 import { getStyles } from "./StatsScreen.style";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 export default function StatsScreen() {
 
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);

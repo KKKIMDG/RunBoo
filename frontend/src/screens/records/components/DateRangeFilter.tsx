@@ -10,12 +10,12 @@ import {
     Modal,
     LayoutAnimation,
     UIManager,
-    useColorScheme,
 } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { Colors } from "@/constants/theme";
 import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 type Props = {
     fromDate: Date | null;
@@ -58,7 +58,7 @@ export default function DateRangeFilter({
                                             onReset,
                                         }: Props) {
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);

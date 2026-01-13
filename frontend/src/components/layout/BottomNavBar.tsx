@@ -1,9 +1,10 @@
 import React, { useMemo } from "react";
-import { View, Text, TouchableOpacity, useColorScheme } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { getStyles } from "./BottomNavBar.styles";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 export interface BottomNavBarProps {
   activeTab?: string;
@@ -19,11 +20,13 @@ export function BottomNavBar({
   activeTab = "홈",
   onTabPress,
 }: BottomNavBarProps) {
+
   const { settings } = useSettings();
-  const colorScheme = useColorScheme() ?? "light";
+  const resolvedTheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
-    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-  }, [colorScheme, settings?.fontSize]);
+    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+  }, [resolvedTheme, settings?.fontSize]);
+
   const tabs: {
     name: string;
     icon: IoniconName;

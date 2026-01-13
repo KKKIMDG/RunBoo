@@ -7,7 +7,6 @@ import {
   Image,
   ActivityIndicator,
   TextInput,
-  useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,16 +16,18 @@ import { getStyles } from "./ProfileScreen.styles";
 import { useProfile } from "./useProfile";
 import { TIER_ID_MAP } from "@/constants/TierImages";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 export default function ProfileScreen({ navigation }: any) {
   const profile = useProfile(12);
 
   /** 일반 설정 */
   const { settings } = useSettings();
-  const colorScheme = useColorScheme() ?? "light";
+  const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
     return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
   }, [colorScheme, settings?.fontSize]);
+
 
   return (
     <SafeAreaView style={styles.safeArea}>

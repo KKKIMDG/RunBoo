@@ -1,11 +1,12 @@
 //frontend/src/screens/stats/components/WeeklyChart.tsx
 
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, useColorScheme } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import type { WeeklySummaryDto } from "@/types/record";
 import { Colors } from "@/constants/theme";
 import {useSettings} from "@/screens/Settings/useSettings";
 import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 
@@ -24,7 +25,7 @@ function getMonStartIndex(item: any): number | null {
 
 export default function WeeklyChart({ weekly }: { weekly: WeeklySummaryDto }) {
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);

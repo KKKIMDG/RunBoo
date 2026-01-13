@@ -8,7 +8,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,12 +16,13 @@ import { withdrawUser } from "@/services/user/withdrawService";
 import { getStyles } from "./WithdrawScreen.styles";
 import { useUserMe } from "@/contexts/UserMeContext";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 export default function WithdrawScreen({ navigation }: any) {
   const { userMe, logout } = useUserMe();
   /** 일반 설정 */
   const { settings } = useSettings();
-  const colorScheme = useColorScheme() ?? "light";
+  const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
     return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
   }, [colorScheme, settings?.fontSize]);

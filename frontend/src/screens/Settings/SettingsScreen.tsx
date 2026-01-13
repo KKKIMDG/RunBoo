@@ -19,13 +19,15 @@ import SettingItem from "@/components/setting/SettingItem";
 import { useSettings } from "./useSettings";
 import { useUserMe } from "@/contexts/UserMeContext";
 import { useNotificationPreference } from "./useNotificationPreference";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 export default function SettingsScreen({ navigation, onLogout }: any) {
   const { userMe } = useUserMe();
   
   /** 일반 설정 */
   const { settings, update } = useSettings();
-  const colorScheme = useColorScheme() ?? "light";
+  const colorScheme = useResolvedTheme(settings?.themeMode);
+
   const styles = useMemo(() => {
     return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
   }, [colorScheme, settings?.fontSize]);

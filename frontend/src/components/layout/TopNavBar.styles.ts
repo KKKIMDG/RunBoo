@@ -3,8 +3,12 @@
 // - 필요 시 theme/토큰으로 추상화하세요.
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     root: {
       width: "100%",
@@ -50,7 +54,7 @@ export const getStyles = (scheme: "light" | "dark") =>
 
     logoText: {
       fontFamily: "FugazOne_400Regular",
-      fontSize: 24,
+      fontSize: scaleFont(24, fontSize),
       letterSpacing: 0.8,
       color: Colors[scheme].text,
     },
@@ -85,6 +89,6 @@ export const getStyles = (scheme: "light" | "dark") =>
 
     icon: {
       color: Colors[scheme].icon,
-      fontSize: 22,
+      fontSize: scaleFont(22, fontSize),
     },
   });
