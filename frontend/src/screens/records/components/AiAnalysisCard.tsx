@@ -13,23 +13,28 @@ import { fetchAiStatus, analyzeRunRecords } from "@/services/ai/aiService";
 import Markdown from "react-native-markdown-display";
 import { Colors } from "@/constants/theme";
 import PremiumModal from "@/screens/records/components/PremiumModal";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 export default function AiAnalysisCard() {
-  const colorScheme = useColorScheme() ?? "light";
 
   const [premiumVisible, setPremiumVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
 
   // 무료 분석 횟수 상태
-  const [freeAnalysisCount, setFreeAnalysisCount] = useState<number | null>(null);
-  const [isSubscribed, setIsSubscribed] = useState(false);
+    const [freeAnalysisCount, setFreeAnalysisCount] = useState<number | null>(null);
+    const [isSubscribed, setIsSubscribed] = useState(false);
+    const { settings } = useSettings();
+    const colorScheme = useColorScheme() ?? "light";
 
-  const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
-  const markdownStyles = useMemo(
-    () => getMarkdownStyles(colorScheme),
-    [colorScheme]
-  );
+    const styles = useMemo(() => {
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
+
+    const markdownStyles = useMemo(() => {
+        return getMarkdownStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
   useEffect(() => {
     loadStatus();
@@ -186,7 +191,10 @@ export default function AiAnalysisCard() {
   );
 }
 
-const getStyles = (scheme: "light" | "dark") =>
+const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     container: {
       backgroundColor: Colors[scheme].secondaryBackground,
@@ -200,7 +208,7 @@ const getStyles = (scheme: "light" | "dark") =>
       marginBottom: 16,
       paddingHorizontal: 4,
     },
-    title: { fontSize: 18, fontWeight: "700", color: Colors[scheme].text },
+    title: { fontSize: scaleFont(18, fontSize), fontWeight: "700", color: Colors[scheme].text },
     contentContainer: {
       backgroundColor: Colors[scheme].card,
       borderRadius: 16,
@@ -212,12 +220,12 @@ const getStyles = (scheme: "light" | "dark") =>
     centerBox: { alignItems: "center", justifyContent: "center" },
     loadingText: {
       marginTop: 10,
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       color: Colors[scheme].subtext,
       fontWeight: "500",
     },
     placeholderTitle: {
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "600",
       color: Colors[scheme].text,
       marginBottom: 6,
@@ -225,7 +233,7 @@ const getStyles = (scheme: "light" | "dark") =>
     placeholderText: {
       textAlign: "center",
       color: Colors[scheme].tabIconDefault,
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       lineHeight: 20,
     },
 
@@ -247,7 +255,7 @@ const getStyles = (scheme: "light" | "dark") =>
     },
     buttonText: {
       color: Colors[scheme].primaryButtonText,
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "700",
     },
     // ✅ 테스트 버튼 스타일
@@ -257,7 +265,7 @@ const getStyles = (scheme: "light" | "dark") =>
     },
     testButtonText: {
       color: "#8E8E93",
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       textDecorationLine: "underline",
     },
     subTextContainer: {
@@ -266,14 +274,17 @@ const getStyles = (scheme: "light" | "dark") =>
     },
     subText: {
       color: Colors[scheme].subtext || "#8E8E93",
-      fontSize: 13,
+      fontSize: scaleFont(13, fontSize),
       fontWeight: "500",
     },
   });
 
-const getMarkdownStyles = (scheme: "light" | "dark") =>
+const getMarkdownStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
-    body: { fontSize: 15, color: Colors[scheme].text, lineHeight: 26 },
+    body: { fontSize: scaleFont(15, fontSize), color: Colors[scheme].text, lineHeight: 26 },
     strong: { fontWeight: "700", color: Colors[scheme].text },
     paragraph: { marginBottom: 12, marginTop: 0 },
     list_item: { marginBottom: 8 },

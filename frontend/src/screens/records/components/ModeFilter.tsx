@@ -12,6 +12,8 @@ import {
     useColorScheme,
 } from "react-native";
 import { Colors } from "@/constants/theme";
+import {useSettings} from "@/screens/Settings/useSettings";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
 // 러닝 모드는 NORMAL, GHOST, TIER 3가지
 type Mode = "NORMAL" | "GHOST" | "TIER";
@@ -34,11 +36,11 @@ function modeLabel(m: Mode) {
 }
 
 export default function ModeFilter({ mode, onChangeMode, onReset }: Props) {
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
-
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
     const [expanded, setExpanded] = useState(false);
 
@@ -123,7 +125,10 @@ export default function ModeFilter({ mode, onChangeMode, onReset }: Props) {
     );
 }
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
     StyleSheet.create({
         wrap: {
             marginBottom: 10,
@@ -181,7 +186,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         modeText: {
             color: Colors[scheme].icon,
             fontWeight: "900",
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
         },
         modeTextActive: {
             color: Colors[scheme].primaryButtonText,
@@ -199,6 +204,6 @@ export const getStyles = (scheme: "light" | "dark") =>
         resetText: {
             color: Colors[scheme].error,
             fontWeight: "900",
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
         },
     });

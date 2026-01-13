@@ -21,16 +21,19 @@ import { fetchRunRecordDetail } from "@/services/record/recordsService";
 import type { RunRecordDetailDto } from "@/types/record";
 import { decodePolyline, LatLng } from "@/utils/polyline";
 import { Colors } from "@/constants/theme";
+import {useSettings} from "@/screens/Settings/useSettings";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
 type Params = { recordId: number };
 type R = RouteProp<{ params: Params }, "params">;
 
 export default function RunRecordDetailScreen() {
-    const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
-
+    const { settings } = useSettings();
+    const colorScheme = useColorScheme() ?? "light";
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
+
 
     const colors = Colors[colorScheme];
 
@@ -275,7 +278,10 @@ export default function RunRecordDetailScreen() {
     );
 }
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
     StyleSheet.create({
         overlay: {
             flex: 1,
@@ -299,13 +305,13 @@ export const getStyles = (scheme: "light" | "dark") =>
             flexDirection: "row",
         },
         title: {
-            fontSize: 18,
+            fontSize: scaleFont(18, fontSize),
             fontWeight: "900",
             color: Colors[scheme].primaryButtonText,
         },
         subTitle: {
             marginTop: 4,
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
             fontWeight: "700",
             color: Colors[scheme].icon,
         },
@@ -379,16 +385,16 @@ export const getStyles = (scheme: "light" | "dark") =>
             marginTop: 6,
             color: Colors[scheme].icon,
             fontWeight: "800",
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
         },
         cardValue: {
             marginTop: 6,
             color: Colors[scheme].text,
             fontWeight: "900",
-            fontSize: 18,
+            fontSize: scaleFont(18, fontSize),
         },
         cardUnit: {
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
             fontWeight: "900",
             color: Colors[scheme].icon,
         },

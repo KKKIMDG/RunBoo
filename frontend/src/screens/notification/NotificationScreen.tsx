@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useMemo} from "react";
 import {
     View,
     Text,
@@ -15,10 +15,14 @@ import type { NotificationItem } from "@/types/notification";
 import { formatRelativeTime } from "@/utils/time";
 import {useNavigation} from "@react-navigation/native";
 import { NotificationIconMap } from "@/constants/notificationIconMap";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 const NotificationScreen = () => {
-    const scheme = useColorScheme() ?? "light";
-    const styles = getStyles(scheme);
+    const { settings } = useSettings();
+    const colorScheme = useColorScheme() ?? "light";
+    const styles = useMemo(() => {
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
     const navigation = useNavigation<any>();
 
     const {

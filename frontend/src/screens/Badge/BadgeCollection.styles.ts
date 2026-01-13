@@ -1,11 +1,14 @@
 // src/screens/Profile/BadgeCollection.styles.ts
 import { StyleSheet, Dimensions } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
 const { height } = Dimensions.get("window");
 
-export const getStyles = (scheme: "light" | "dark") =>
-  StyleSheet.create({
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>  StyleSheet.create({
     overlay: {
       flex: 1,
       justifyContent: "flex-end",
@@ -38,7 +41,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       paddingHorizontal: 5,
     },
     headerTitle: {
-      fontSize: 20,
+      fontSize: scaleFont(20, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
       marginTop: 5,
@@ -51,7 +54,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       alignItems: "center",
     },
     badgeItem: {
-      width: (Dimensions.get("window").width - 80) / 3,
+      width: (Dimensions.get("window").width - 80) / 1,
       alignItems: "center",
       marginBottom: 25,
       marginHorizontal: 10,
@@ -68,14 +71,14 @@ export const getStyles = (scheme: "light" | "dark") =>
       borderColor: "rgba(58, 74, 152, 0.1)",
     },
     badgeName: {
-      fontSize: 13,
+      fontSize: scaleFont(13, fontSize),
       fontWeight: "600",
       color: Colors[scheme].text,
       textAlign: "center",
       marginBottom: 2,
     },
     badgeDate: {
-      fontSize: 10,
+      fontSize: scaleFont(10, fontSize),
       color: "#868E96",
       textAlign: "center",
     },

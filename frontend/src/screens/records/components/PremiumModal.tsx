@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getStyles } from "@/screens/records/components/PremiumModal.styles";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 const { width } = Dimensions.get("window");
 
@@ -24,11 +25,12 @@ const PremiumModal = ({
   onClose,
   onStartPremium,
 }: PremiumModalProps) => {
-  const colorScheme = useColorScheme() ?? "light";
 
+  const { settings } = useSettings();
+  const colorScheme = useColorScheme() ?? "light";
   const styles = useMemo(() => {
-    return getStyles(colorScheme);
-  }, [colorScheme]);
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   const features = [
     {
