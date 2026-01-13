@@ -1,83 +1,89 @@
 import { useState, useCallback } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import * as Location from 'expo-location'; // ✅ 위치 서비스 추가
+import * as Location from 'expo-location';
 import { Alert } from 'react-native';
 
-import { CourseService } from '@/services/course/CourseService';
-import { CourseType } from '@/components/CourseCard';
+import { CourseService, CourseSortType } from '@/services/course/CourseService';
+import { Course } from '@/types/course';
 
-export type FilterType = 'UNDER_5K' | 'OVER_5K' | 'SAVED';
+// ✅ 필터 타입 정의 ('MY' 추가됨)
+export type FilterType = CourseSortType | 'SAVED' | 'MY';
 
 export const useCourseScreen = () => {
     const navigation = useNavigation<any>();
-    const [courses, setCourses] = useState<CourseType[]>([]);
-    const [activeFilter, setActiveFilter] = useState<FilterType>('UNDER_5K');
-    const [loading, setLoading] = useState(false);
 
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [activeFilter, setActiveFilter] = useState<FilterType>('POPULAR');
+    const [loading, setLoading] = useState(false);
+    const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
+    // 🔄 데이터 불러오기
     const fetchCourses = useCallback(async () => {
         setLoading(true);
         try {
-            // 1. 찜한 목록은 '하트 표시'를 위해 언제나 필요하므로 먼저 가져옵니다.
-            // (혹은 병렬 처리를 위해 Promise.all을 써도 되지만, 로직 명확성을 위해 순차 처리)
+            // 1. 찜 목록 먼저 가져오기 (하트 표시용)
             let savedCourseIds = new Set<number>();
-            let savedCoursesData: CourseType[] = [];
-
             try {
-                const response = await CourseService.getSavedCourses();
-                savedCoursesData = Array.isArray(response) ? response : [];
-                savedCourseIds = new Set(savedCoursesData.map((c) => c.id));
-            } catch (e) {
-                console.log('찜 목록 로드 실패 (로그인 안 된 상태일 수 있음)');
-            }
+                const savedRes = await CourseService.getSavedCourses();
+                const savedList = Array.isArray(savedRes) ? savedRes : [];
+                savedCourseIds = new Set(savedList.map((c: any) => c.id));
+            } catch (e) {} // 비로그인 무시
 
-            // 2. 탭(Filter)에 따라 분기 처리
+            let resultData: Course[] = [];
 
-            // [CASE A] '찜한 코스' 탭인 경우
+            // 2. 탭에 따른 분기 처리
             if (activeFilter === 'SAVED') {
-                const savedCoursesWithFlag = savedCoursesData.map((course) => ({
-                    ...course,
-                    isSaved: true,
-                }));
-                setCourses(savedCoursesWithFlag);
+                // [찜한 코스]
+                const savedRes = await CourseService.getSavedCourses();
+                resultData = Array.isArray(savedRes) ? savedRes : [];
             }
-
-            // [CASE B] '5km 미만' / '5km 이상' 탭인 경우 (위치 기반 조회)
+            else if (activeFilter === 'MY') {
+                // [내 코스] (새로 추가됨) ✅
+                resultData = await CourseService.getMyCourses();
+            }
             else {
-                // (1) 현재 위치 가져오기
-                const location = await Location.getCurrentPositionAsync({});
-                const { latitude, longitude } = location.coords;
+                // [인기/최신/내주변]
+                let lat = location?.latitude;
+                let lon = location?.longitude;
 
-                // (2) 백엔드 파라미터로 변환 ('UNDER_5K' -> 'SHORT', 'OVER_5K' -> 'LONG')
-                const typeParam = activeFilter === 'UNDER_5K' ? 'SHORT' : 'LONG';
+                if (activeFilter === 'NEARBY' && !lat) {
+                    const { status } = await Location.requestForegroundPermissionsAsync();
+                    if (status !== 'granted') {
+                        Alert.alert('권한 필요', '위치 권한이 필요합니다.');
+                        setActiveFilter('POPULAR');
+                        setLoading(false);
+                        return;
+                    }
+                    const loc = await Location.getCurrentPositionAsync({});
+                    lat = loc.coords.latitude;
+                    lon = loc.coords.longitude;
+                    setLocation({ latitude: lat, longitude: lon });
+                }
 
-                // (3) 위치 기반 API 호출 (토큰 없이 호출됨)
-                const locationResponse = await CourseService.getCoursesByLocation(
-                    latitude,
-                    longitude,
-                    typeParam
+                resultData = await CourseService.getCourses(
+                    activeFilter as CourseSortType,
+                    lat,
+                    lon
                 );
-
-                const locationCourses = Array.isArray(locationResponse) ? locationResponse : [];
-
-                // (5) 찜 상태(isSaved) 병합하기
-                const mergedCourses = locationCourses.map((course) => ({
-                    ...course,
-                    isSaved: savedCourseIds.has(course.id),
-                }));
-
-                setCourses(mergedCourses);
             }
+
+            // 3. 데이터 병합 (isSaved 플래그 처리)
+            // 'SAVED' 탭이 아니더라도, 내가 찜한건지 표시해줌
+            const mergedCourses = resultData.map((course) => ({
+                ...course,
+                isSaved: activeFilter === 'SAVED' ? true : savedCourseIds.has(course.id),
+            }));
+
+            setCourses(mergedCourses);
 
         } catch (error) {
-            console.error('코스 목록 로딩 실패:', error);
-            // 에러 발생 시 목록 비우기보다 기존 데이터를 유지하거나 빈 배열 처리
-            // setCourses([]);
+            console.error('목록 로딩 실패:', error);
+            setCourses([]);
         } finally {
             setLoading(false);
         }
-    }, [activeFilter]);
+    }, [activeFilter, location]);
 
-    // 화면이 포커스될 때마다 데이터 갱신 (탭 이동 후 돌아왔을 때 등)
     useFocusEffect(
         useCallback(() => {
             fetchCourses();
@@ -87,40 +93,61 @@ export const useCourseScreen = () => {
     const handlers = {
         handleFilterChange: (filter: FilterType) => {
             if (activeFilter !== filter) {
-                setCourses([]); // 탭 전환 시 깜빡임 방지용 초기화
+                setCourses([]);
                 setActiveFilter(filter);
             }
         },
-        handlePressCard: (course: CourseType) => {
-            // 상세 페이지로 이동 (파라미터 전달 방식은 Navigation 구조에 맞게 수정)
-            navigation.navigate('CourseDetail', { courseId: course.id, course });
+        handlePressCard: (course: Course) => {
+            navigation.navigate('CourseDetail', { course });
         },
+
+        // ❤️ 찜하기 토글
         handleToggleHeart: async (courseId: number) => {
-            // 1. UI 낙관적 업데이트 (즉시 반영)
+            // UI 낙관적 업데이트
             setCourses((prev) =>
                 prev.map((c) =>
-                    c.id === courseId ? { ...c, isSaved: !c.isSaved } : c
+                    c.id === courseId
+                        ? { ...c, isSaved: !c.isSaved, saveCount: c.isSaved ? c.saveCount - 1 : c.saveCount + 1 }
+                        : c
                 )
             );
 
             try {
-                // 2. 서버 요청 (찜 토글)
-                await CourseService.toggleCourseScrap(courseId);
-
-                // 'SAVED' 탭일 때 찜 해제하면 목록에서 제거
+                await CourseService.toggleCourseSave(courseId);
+                // 찜한 코스 탭에서 취소하면 목록에서 제거
                 if (activeFilter === 'SAVED') {
-                    setCourses((prev) => prev.filter((c) => c.id !== courseId || c.isSaved));
+                    setCourses((prev) => prev.filter((c) => c.isSaved));
                 }
             } catch (error) {
-                console.error('찜하기 실패:', error);
-                // 3. 실패 시 롤백
-                setCourses((prev) =>
-                    prev.map((c) =>
-                        c.id === courseId ? { ...c, isSaved: !c.isSaved } : c
-                    )
-                );
+                Alert.alert("알림", "로그인이 필요하거나 오류가 발생했습니다.");
+                fetchCourses(); // 롤백
             }
         },
+
+        // 🗑️ [추가] 코스 삭제 핸들러
+        handleDeleteCourse: (courseId: number) => {
+            Alert.alert(
+                "코스 삭제",
+                "정말로 삭제하시겠습니까?\n삭제된 코스는 복구할 수 없습니다.",
+                [
+                    { text: "취소", style: "cancel" },
+                    {
+                        text: "삭제",
+                        style: "destructive",
+                        onPress: async () => {
+                            try {
+                                await CourseService.deleteCourse(courseId);
+                                Alert.alert("삭제 완료", "코스가 삭제되었습니다.");
+                                // 목록에서 즉시 제거
+                                setCourses((prev) => prev.filter((c) => c.id !== courseId));
+                            } catch (e) {
+                                Alert.alert("오류", "삭제에 실패했습니다.");
+                            }
+                        }
+                    }
+                ]
+            );
+        }
     };
 
     return { activeFilter, courses, loading, handlers };

@@ -25,17 +25,20 @@ public class UserCourseService {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
 
-    /**
-     * 코스 찜 / 해제
-     */
     public UserCourseDto.Response toggleCourseSave(Long userId, UserCourseDto.Request request) {
         Long courseId = request.getCourseId();
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 코스입니다. id=" + courseId));
 
         Optional<UserCourse> userCourseBox =
                 userCourseRepository.findByUserIdAndCourseId(userId, courseId);
 
         if (userCourseBox.isPresent()) {
             userCourseRepository.delete(userCourseBox.get());
+
+            course.decreaseSaveCount();
+
             return new UserCourseDto.Response("저장 취소", false);
         }
 
@@ -44,20 +47,14 @@ public class UserCourseService {
                         new IllegalArgumentException("존재하지 않는 회원입니다. id=" + userId)
                 );
 
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 코스입니다. id=" + courseId)
-                );
-
         UserCourse userCourse = new UserCourse(user, course);
         userCourseRepository.save(userCourse);
+
+        course.increaseSaveCount();
 
         return new UserCourseDto.Response("저장 성공", true);
     }
 
-    /**
-     * 내가 찜한 코스 목록 조회
-     */
     @Transactional(readOnly = true)
     public List<CourseDto> getSavedCourses(Long userId) {
         List<UserCourse> userCourses =

@@ -7,44 +7,48 @@ import {
     ActivityIndicator,
     Alert,
     Platform,
+    ScrollView
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import polyline from '@mapbox/polyline'; // 👈 npm install @mapbox/polyline 필수!
 
 // ✅ API 및 훅 import
 import { api } from '@/services/api';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { useMe } from '@/hooks/useMe';
-import {useSettings} from "@/screens/Settings/useSettings";
-import {FontSizeSetting, scaleFont} from "@/utils/fontScale"; // ✅ 내 정보(userId) 가져오기 위해 추가
-
-interface CourseDetailType {
-    id: number;
-    name: string;
-    address: string;
-    lengthKm: number;
-    imageUrl: string | null;
-    description?: string;
-    isSaved?: boolean;
-    latitude: number;
-    longitude: number;
-}
+import { useSettings } from "@/screens/Settings/useSettings";
+import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
+import { Course } from '@/types/course'; // 타입 import
 
 export default function CourseDetailScreen({ route, navigation }: any) {
-    const { course }: { course: CourseDetailType } = route.params || {};
+    const { course }: { course: Course } = route.params || {};
     const [loading, setLoading] = useState(true);
-    const [isSaved, setIsSaved] = useState(false);
+    const [isSaved, setIsSaved] = useState(course?.isSaved ?? false);
 
-    // ✅ 로그인 유저 정보 가져오기
     const { me } = useMe();
-
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
     const colors = Colors[colorScheme];
-    const { settings } = useSettings();
+
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);
+
+    // ✅ 경로 데이터 디코딩 (pathData -> 좌표 배열)
+    const routeCoordinates = useMemo(() => {
+        if (!course?.pathData) return [];
+        try {
+            return polyline.decode(course.pathData).map((point) => ({
+                latitude: point[0],
+                longitude: point[1],
+            }));
+        } catch (e) {
+            console.error("Polyline Decode Error:", e);
+            return [];
+        }
+    }, [course]);
 
     useEffect(() => {
         if (!course) {
@@ -52,7 +56,9 @@ export default function CourseDetailScreen({ route, navigation }: any) {
             navigation.goBack();
         } else {
             setLoading(false);
-            setIsSaved(!!course.isSaved);
+            if (course.isSaved !== undefined) {
+                setIsSaved(course.isSaved);
+            }
         }
     }, [course]);
 
@@ -60,7 +66,6 @@ export default function CourseDetailScreen({ route, navigation }: any) {
         navigation.goBack();
     };
 
-    // ✅ [수정됨] API 명세서에 맞춘 토글 로직 (POST /api/user-courses/toggle)
     const handleToggleHeart = async () => {
         if (!me) {
             Alert.alert("알림", "로그인이 필요한 기능입니다.");
@@ -69,27 +74,19 @@ export default function CourseDetailScreen({ route, navigation }: any) {
 
         const originalState = isSaved;
         const newState = !isSaved;
-
-        // 1. 화면 먼저 변경 (낙관적 업데이트)
-        setIsSaved(newState);
+        setIsSaved(newState); // 낙관적 업데이트
 
         try {
-            // 2. API 요청 (명세서 기준)
-            // Endpoint: POST /api/user-courses/toggle
-            // Body: { "userId": 1, "courseId": 1 }
+            // API 명세: POST /api/user-courses/toggle Body: { userId, courseId }
             await api.post('/api/user-courses/toggle', {
                 userId: me.userId,
                 courseId: course.id
             });
-
             console.log(`찜하기 토글 성공: ${newState ? 'ON' : 'OFF'}`);
-
         } catch (error) {
-            console.error("찜하기 변경 실패:", error);
-
-            // 3. 실패 시 롤백 (원래 상태로 복구)
-            setIsSaved(originalState);
-            Alert.alert("오류", "찜하기 상태를 변경하지 못했습니다.");
+            console.error("찜하기 실패:", error);
+            setIsSaved(originalState); // 롤백
+            Alert.alert("오류", "저장에 실패했습니다.");
         }
     };
 
@@ -150,28 +147,49 @@ export default function CourseDetailScreen({ route, navigation }: any) {
                         initialRegion={{
                             latitude: course.latitude || 37.5665,
                             longitude: course.longitude || 126.9780,
-                            latitudeDelta: 0.005,
-                            longitudeDelta: 0.005,
+                            latitudeDelta: 0.015,
+                            longitudeDelta: 0.015,
                         }}
                     >
+                        {/* 시작점 마커 */}
                         <Marker
                             coordinate={{
                                 latitude: course.latitude || 37.5665,
                                 longitude: course.longitude || 126.9780,
                             }}
-                            title={course.name}
-                            description={course.address}
+                            title="출발점"
+                        />
+
+                        {/* 🔥 경로 그리기 (Polyline) */}
+                        <Polyline
+                            coordinates={routeCoordinates}
+                            strokeColor="#4A90E2" // 파란색 경로
+                            strokeWidth={4}
                         />
                     </MapView>
                 </View>
 
-                {/* Info */}
+                {/* Info Content */}
                 <View style={styles.infoContent}>
-                    <View style={styles.badge}>
-                        <Text style={styles.distanceText}>
-                            🏃 총 거리 {course.lengthKm} km
-                        </Text>
+                    <View style={styles.statsRow}>
+                        <View style={styles.badge}>
+                            <Text style={styles.distanceText}>
+                                🏃 {course.lengthKm} km
+                            </Text>
+                        </View>
+                        <View style={[styles.badge, { marginLeft: 8 }]}>
+                            <Text style={styles.distanceText}>
+                                ❤️ {course.saveCount}명이 저장함
+                            </Text>
+                        </View>
                     </View>
+
+                    {/* 설명글 (스크롤 가능하게) */}
+                    <ScrollView style={{ maxHeight: 100, marginTop: 12 }}>
+                        <Text style={styles.descriptionText}>
+                            {course.description || "코스 설명이 없습니다."}
+                        </Text>
+                    </ScrollView>
                 </View>
 
                 <TouchableOpacity
@@ -179,7 +197,7 @@ export default function CourseDetailScreen({ route, navigation }: any) {
                     onPress={handleCopyAddress}
                 >
                     <Text style={styles.copyButtonText}>
-                        클립보드 복사 →
+                        주소 복사하기
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -187,10 +205,8 @@ export default function CourseDetailScreen({ route, navigation }: any) {
     );
 }
 
-export const getStyles = (
-    scheme: "light" | "dark",
-    fontSize: FontSizeSetting
-    ) => {
+// 스타일 정의
+export const getStyles = (scheme: "light" | "dark", fontSize: FontSizeSetting) => {
     const colors = Colors[scheme];
 
     return StyleSheet.create({
@@ -204,7 +220,7 @@ export const getStyles = (
         popupContainer: {
             backgroundColor: colors.background,
             width: '100%',
-            height: '70%',
+            height: '75%', // 높이 조금 늘림
             borderRadius: 16,
             overflow: 'hidden',
         },
@@ -258,18 +274,28 @@ export const getStyles = (
         },
         infoContent: {
             padding: 20,
+            paddingBottom: 10,
+        },
+        statsRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
         },
         badge: {
             backgroundColor: scheme === 'dark' ? '#333' : '#F3F4F6',
-            paddingHorizontal: 10,
+            paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 6,
             alignSelf: 'flex-start',
         },
         distanceText: {
-            fontSize: scaleFont(15, fontSize),
+            fontSize: scaleFont(14, fontSize),
             color: colors.text,
-            fontWeight: '700',
+            fontWeight: '600',
+        },
+        descriptionText: {
+            fontSize: scaleFont(14, fontSize),
+            color: colors.text,
+            lineHeight: 20,
         },
         copyButton: {
             backgroundColor: scheme === 'dark' ? '#4B5563' : '#1F2937',
