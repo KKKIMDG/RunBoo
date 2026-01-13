@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL } from '@env'; // 👈 .env 파일에서 주소 가져오기
+import { API_BASE_URL } from '@env';
 
-// ✅ [핵심 1] 변수와 헬퍼 함수는 'export const CourseService'보다 위에 있어야 합니다.
+// ✅ 1. 변수와 헬퍼 함수 정의
 const BASE_URL = API_BASE_URL;
 
 const getHeaders = async () => {
@@ -11,107 +11,125 @@ const getHeaders = async () => {
     return headers;
 };
 
+// ✅ 2. 정렬 타입 정의 (프론트에서 자동완성 되도록 export)
+export type CourseSortType = 'POPULAR' | 'LATEST' | 'NEARBY';
+
 export const CourseService = {
 
     /**
-     * ✅ 1. 내 위치 기반 코스 목록 조회 (토큰 없이 요청)
-     * 403 에러 방지를 위해 Authorization 헤더를 뺍니다.
+     * ✅ 1. 코스 목록 조회 (통합됨)
+     * - sort: 'POPULAR'(인기순), 'LATEST'(최신순), 'NEARBY'(거리순)
+     * - latitude, longitude: 'NEARBY'일 때 필수, 나머지는 선택
      */
-    getCoursesByLocation: async (latitude: number, longitude: number, type: string) => {
+    getCourses: async (
+        sort: CourseSortType = 'POPULAR',
+        latitude?: number,
+        longitude?: number
+    ) => {
         try {
-            // 토큰 없는 순수 헤더
-            const headers = { 'Content-Type': 'application/json' };
+            // 토큰이 있으면 넣고, 없으면 뺍니다 (비로그인 유저도 조회 가능하게)
+            const token = await AsyncStorage.getItem('accessToken');
+            const headers: any = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
 
-            // 쿼리 스트링 조합
-            const url = `${BASE_URL}/api/courses/list?latitude=${latitude}&longitude=${longitude}&type=${type}`;
+            // URL 파라미터 구성
+            const params = new URLSearchParams();
+            params.append('sort', sort);
 
-            console.log("🚀 위치 기반 요청 URL:", url);
+            // 거리순 정렬이거나, 좌표가 있으면 보냄
+            if (latitude && longitude) {
+                params.append('latitude', latitude.toString());
+                params.append('longitude', longitude.toString());
+            }
+
+            const url = `${BASE_URL}/api/courses/list?${params.toString()}`;
+            console.log("🚀 코스 목록 요청:", url);
 
             const response = await fetch(url, { method: 'GET', headers });
 
-            // 에러 처리
             if (!response.ok) {
-                const text = await response.text();
-                // 백엔드 쿼리 에러(500) 등이 났을 때 로그 확인용
-                throw new Error(`위치 조회 실패(${response.status}): ${text}`);
+                throw new Error(`코스 조회 실패(${response.status})`);
             }
 
             return await response.json();
-        } catch (error: any) {
-            // 네트워크 에러 처리
-            if (error?.message === "Network request failed" || error?.message?.includes("network") || error?.code === "NETWORK_ERROR") {
-                console.error('🚨 위치 기반 조회 네트워크 에러:', error);
-                return []; // 네트워크 에러는 조용히 빈 배열 반환
-            }
-            console.error('🚨 위치 기반 조회 에러:', error);
-            return []; // 에러 나면 빈 배열 반환해서 앱 죽는 것 방지
+        } catch (error) {
+            console.error('🚨 코스 목록 조회 에러:', error);
+            return []; // 에러 시 빈 배열 반환
         }
     },
 
     /**
-     * ✅ 2. 찜한 목록 조회
-     * 로그인이 안 되어 있으면(토큰 없음/403) 그냥 빈 배열을 줍니다.
+     * ✅ 2. 코스 상세 조회
      */
-    getSavedCourses: async () => {
-        try {
-            const headers = await getHeaders();
-
-            // 토큰이 없으면 요청도 보내지 않음
-            if (!headers['Authorization']) return [];
-
-            const url = `${BASE_URL}/api/user-courses`;
-            const response = await fetch(url, { method: 'GET', headers });
-
-            // 403(권한 없음)이나 401(인증 실패)이면 조용히 넘김
-            if (response.status === 403 || response.status === 401) {
-                return [];
-            }
-
-            if (!response.ok) throw new Error(`상태: ${response.status}`);
-            return await response.json();
-
-        } catch (error) {
-            // 로그인 안 된 상태에서는 에러 로그를 굳이 띄우지 않음
-            return [];
-        }
-    },
-
-    /**
-     * ✅ 3. 찜하기 토글
-     */
-    toggleCourseScrap: async (courseId: number) => {
-        // 아래에 있는 toggleCourse 함수를 재사용
-        return CourseService.toggleCourse(courseId);
-    },
-
-    // ---------------------------------------------------------
-    // ▼ 기존 함수들 (호환성 유지용 - 지우지 마세요)
-    // ---------------------------------------------------------
-
-    getCourses: async (condition: string) => {
-        try {
-            const headers = await getHeaders();
-            let url = `${BASE_URL}/api/courses?category=${condition}`;
-            if (condition === 'SAVED') url = `${BASE_URL}/api/user-courses`;
-
-            const response = await fetch(url, { method: 'GET', headers });
-            return response.ok ? await response.json() : [];
-        } catch (error) {
-            return [];
-        }
-    },
-
     getCourseDetail: async (id: number) => {
         try {
             const headers = await getHeaders();
             const response = await fetch(`${BASE_URL}/api/courses/${id}`, { method: 'GET', headers });
-            return response.ok ? await response.json() : null;
+
+            if (!response.ok) return null;
+            return await response.json();
         } catch (error) {
+            console.error('🚨 코스 상세 조회 에러:', error);
             return null;
         }
     },
 
-    toggleCourse: async (courseId: number) => {
+    /**
+     * ✅ 3. [신규] 내 기록으로 코스 만들기 (업로드)
+     */
+    createCourseFromRecord: async (data: {
+        recordId: number;
+        name: string;
+        description: string;
+        address: string;
+        latitude: number;   // 👈 추가
+        longitude: number;  // 👈 추가
+    }) => {
+        try {
+            const headers = await getHeaders();
+            const response = await fetch(`${BASE_URL}/api/courses/from-record`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || '코스 등록 실패');
+            }
+
+            // 성공 시 리턴값 (필요하면 백엔드 응답에 따라 수정)
+            return true;
+        } catch (error) {
+            console.error('🚨 코스 등록 에러:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * ✅ 4. 찜한 목록 조회
+     */
+    getSavedCourses: async () => {
+        try {
+            const headers = await getHeaders();
+            if (!headers['Authorization']) return []; // 비로그인 시 빈 배열
+
+            const url = `${BASE_URL}/api/user-courses`;
+            const response = await fetch(url, { method: 'GET', headers });
+
+            if (response.status === 403 || response.status === 401) return [];
+            if (!response.ok) throw new Error(`상태: ${response.status}`);
+
+            return await response.json();
+        } catch (error) {
+            return [];
+        }
+    },
+
+    /**
+     * ✅ 5. 찜하기 / 찜 취소 토글
+     */
+    toggleCourseSave: async (courseId: number) => {
         try {
             const headers = await getHeaders();
             const response = await fetch(`${BASE_URL}/api/user-courses/toggle`, {
@@ -119,10 +137,48 @@ export const CourseService = {
                 headers,
                 body: JSON.stringify({ courseId }),
             });
+
             if (!response.ok) throw new Error(`찜 실패: ${response.status}`);
-            return await response.json();
+            return await response.json(); // { message: "...", isSaved: boolean }
         } catch (error) {
+            console.error('🚨 찜 토글 에러:', error);
             throw error;
         }
     },
+
+    getMyCourses: async () => {
+        try {
+            const headers = await getHeaders();
+            if (!headers['Authorization']) return []; // 비로그인 시 빈 배열
+
+            const response = await fetch(`${BASE_URL}/api/courses/my`, { method: 'GET', headers });
+            if (!response.ok) return [];
+
+            return await response.json();
+        } catch (error) {
+            console.error('내 코스 조회 에러:', error);
+            return [];
+        }
+    },
+
+    /**
+     * ✅ [추가] 코스 삭제
+     */
+    deleteCourse: async (courseId: number) => {
+        try {
+            const headers = await getHeaders();
+            const response = await fetch(`${BASE_URL}/api/courses/${courseId}`, {
+                method: 'DELETE',
+                headers
+            });
+
+            if (!response.ok) {
+                throw new Error('삭제 실패');
+            }
+            return true;
+        } catch (error) {
+            console.error('코스 삭제 에러:', error);
+            throw error;
+        }
+    }
 };

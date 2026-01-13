@@ -1,69 +1,103 @@
 package com.runboo.domain.course.service;
 
+import com.runboo.domain.course.dto.CourseCreateRequest;
 import com.runboo.domain.course.dto.CourseDto;
 import com.runboo.domain.course.entity.Course;
-import com.runboo.domain.course.entity.CourseCategory;
 import com.runboo.domain.course.repository.CourseRepository;
+import com.runboo.domain.record.entity.RunRecord;
+import com.runboo.domain.record.repository.RunRecordRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class CourseService {
 
     private final CourseRepository courseRepository;
+    private final RunRecordRepository runRecordRepository;
 
-    public List<CourseDto> findCoursesByLocation(double lat, double lon, String type) {
-        double minLen = 0;
-        double maxLen = 1000;
+    public List<CourseDto> getCourseList(String sortType, Double lat, Double lon) {
+        List<Course> courses;
 
-        // 프론트에서 보낸 타입에 따라 길이 범위 설정
-        if ("SHORT".equalsIgnoreCase(type)) { // 5km 미만
-            minLen = 0;
-            maxLen = 5.0;
-        } else if ("LONG".equalsIgnoreCase(type)) { // 5km 이상
-            minLen = 5.0;
-            maxLen = 1000;
+        if ("NEARBY".equalsIgnoreCase(sortType) && lat != null && lon != null) {
+            courses = courseRepository.findNearbyCourses(lat, lon);
+        } else if ("LATEST".equalsIgnoreCase(sortType)) {
+            courses = courseRepository.findAll(Sort.by(Sort.Direction.DESC, "id")); // id 역순도 최신순과 동일
+        } else {
+            courses = courseRepository.findAll(Sort.by(Sort.Direction.DESC, "saveCount"));
         }
 
-        return courseRepository.findCoursesByLocationAndLength(lat, lon, minLen, maxLen)
-                .stream().map(CourseDto::new).collect(Collectors.toList());
-    }
-
-    public List<CourseDto> findCoursesByCategory(CourseCategory courseCategory) {
-        List<Course> courses = courseRepository.findByCourseCategory(courseCategory);
-
-        List<CourseDto> courseList = new ArrayList<>();
-
-        for (Course course : courses) {
-            CourseDto dto = new CourseDto(course);
-            dto.setImageUrl(course.getImageUrl());
-            courseList.add(dto);
-        }
-
-        return courseList;
+        return courses.stream()
+                .map(CourseDto::new)
+                .collect(Collectors.toList());
     }
 
     public CourseDto findCourseDetail(Long id) {
-        Optional<Course> courseBox = courseRepository.findById(id);
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 코스가 없습니다. id=" + id));
+        return new CourseDto(course);
+    }
 
-        Course course = null;
+    @Transactional
+    public void createCourse(Long userId, CourseDto request) {
+        Course course = new Course(
+                userId,
+                request.getName(),
+                request.getDescription(),
+                request.getAddress(),
+                request.getLengthKm(),
+                request.getLatitude(),
+                request.getLongitude(),
+                request.getPathData(),
+                request.getImageUrl()
+        );
+        courseRepository.save(course);
+    }
+    @Transactional
+    public void createCourseFromRecord(Long userId, CourseCreateRequest request) {
+        RunRecord record = runRecordRepository.findById(request.getRecordId())
+                .orElseThrow(() -> new IllegalArgumentException("기록이 없습니다."));
 
-        if (courseBox.isPresent()) {
-            course = courseBox.get();
-        } else {
-            throw new IllegalArgumentException("해당 코스가 없습니다. id=" + id);
+        if (!record.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("본인의 기록만 등록 가능합니다.");
         }
 
-        CourseDto dto = new CourseDto(course);
+        Course course = new Course(
+                userId,
+                request.getName(),
+                request.getDescription(),
+                request.getAddress(),
+                record.getDistanceM() / 1000.0, // m -> km
+                request.getLatitude(),
+                request.getLongitude(),
+                record.getRoutePolyLine(), // 경로 데이터
+                null // 이미지
+        );
 
-        dto.setImageUrl(course.getImageUrl());
+        courseRepository.save(course);
+    }
+    public List<CourseDto> getMyCourseList(Long userId) {
+        return courseRepository.findAllByWriterIdOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(CourseDto::new)
+                .collect(Collectors.toList());
+    }
 
-        return dto;
+    @Transactional
+    public void deleteCourse(Long userId, Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 코스입니다."));
+
+        if (!course.getWriterId().equals(userId)) {
+            throw new IllegalArgumentException("본인이 작성한 코스만 삭제할 수 있습니다.");
         }
+
+        courseRepository.delete(course);
+    }
 }
