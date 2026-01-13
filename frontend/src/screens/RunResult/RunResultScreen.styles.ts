@@ -60,9 +60,24 @@ export const getStyles = (
       marginBottom: 20,
       position: "relative",
     },
-    mapPlaceholderText: {
+    mapPlaceholderContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 30,
+    },
+    placeholderTitle: {
+      marginTop: 8,
+      fontSize: 18,
+      fontWeight: "700",
+      color: Colors[scheme].text,
+    },
+    placeholderSubtitle: {
+      marginTop: 6,
+      textAlign: "center",
       color: Colors[scheme].subtext,
-      fontSize: 16,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
     // ✅ 지도 위 스탯 오버레이 스타일

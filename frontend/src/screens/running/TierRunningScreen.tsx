@@ -27,6 +27,7 @@ import { StatBox } from "@/components/StatBox";
 import { useCadence } from "@/hooks/useCadence";
 import {useSettings} from "@/screens/Settings/useSettings";
 import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import { useMapFocusing } from "./useRunCore";
 
 const { width } = Dimensions.get("window");
 
@@ -40,7 +41,6 @@ const TierRunningScreen = () => {
 
   const isDarkMode = resolvedTheme === "dark";
   const mapRef = useRef<MapView>(null);
-  const [isTracking, setIsTracking] = useState(true);
 
   const { state, actions, utils } = useTierRunningScreen();
 
@@ -54,7 +54,16 @@ const TierRunningScreen = () => {
     countdown,
     lastLocation,
     initialLocation,
+    routeCoordinates,
   } = state;
+
+  const mapFocusing = useMapFocusing({
+    mapRef,
+    initialLocation,
+    routeCoordinates,
+  });
+
+  const { isFollowing, handleFocusPress } = mapFocusing;
 
   const { pauseRun, resumeRun, stopTierRunManual } = actions;
   const { formatTime, formatPace } = utils;
@@ -90,52 +99,6 @@ const TierRunningScreen = () => {
     },
   ];
 
-  useEffect(() => {
-    if (initialLocation && mapRef.current) {
-      mapRef.current.animateToRegion(
-        { ...initialLocation, latitudeDelta: 0.002, longitudeDelta: 0.002 },
-        500
-      );
-    }
-  }, [initialLocation]);
-
-  useEffect(() => {
-    if (lastLocation && !isPaused && isTracking && mapRef.current) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: lastLocation.latitude,
-          longitude: lastLocation.longitude,
-          latitudeDelta: 0.002,
-          longitudeDelta: 0.002,
-        },
-        1000
-      );
-    }
-  }, [lastLocation, isPaused, isTracking]);
-
-  const moveToCurrentLocation = async () => {
-    setIsTracking(true);
-    if (lastLocation) {
-      mapRef.current?.animateToRegion(
-        { ...lastLocation, latitudeDelta: 0.002, longitudeDelta: 0.002 },
-        500
-      );
-    } else {
-      const loc = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-      mapRef.current?.animateToRegion(
-        {
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude,
-          latitudeDelta: 0.002,
-          longitudeDelta: 0.002,
-        },
-        500
-      );
-    }
-  };
-
   const handleStopPress = () => {
     const msg = "종료하려면 버튼을 길게 눌러주세요.";
     if (Platform.OS === "android") ToastAndroid.show(msg, ToastAndroid.SHORT);
@@ -162,7 +125,7 @@ const TierRunningScreen = () => {
           customMapStyle={
             Platform.OS === "android" ? blurredMapStyle : undefined
           }
-          onPanDrag={() => setIsTracking(false)}
+          onPanDrag={() => mapFocusing.setIsFollowing(false)}
           initialRegion={
             initialLocation
               ? {
@@ -302,19 +265,19 @@ const TierRunningScreen = () => {
             style={[
               customStyles.locationButton,
               {
-                backgroundColor: isTracking
+                backgroundColor: isFollowing
                   ? "#4A6EA9"
                   : isDarkMode
                   ? "#333"
                   : "#FFF",
               },
             ]}
-            onPress={moveToCurrentLocation}
+            onPress={handleFocusPress}
           >
             <MaterialCommunityIcons
               name="crosshairs-gps"
               size={24}
-              color={isTracking ? "#FFF" : isDarkMode ? "#AAA" : "#333"}
+              color={isFollowing ? "#FFF" : isDarkMode ? "#AAA" : "#333"}
             />
           </TouchableOpacity>
         </View>

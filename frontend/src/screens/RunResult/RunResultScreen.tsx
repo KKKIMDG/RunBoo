@@ -267,9 +267,20 @@ const RunResultScreen = () => {
                 </TouchableOpacity>
               </>
             ) : (
-              <Text style={styles.mapPlaceholderText}>
-                경로 정보가 없습니다.
-              </Text>
+              <View style={styles.mapPlaceholderContainer}>
+                <Ionicons
+                  name="map-outline"
+                  size={40}
+                  color={styles.placeholderSubtitle.color}
+                />
+                <Text style={styles.placeholderTitle}>
+                  경로 정보가 없습니다
+                </Text>
+                <Text style={styles.placeholderSubtitle}>
+                  기록 중 위치 정보가 저장되지 않았습니다. GPS 권한이나 연결
+                  상태를 확인해 주세요.
+                </Text>
+              </View>
             )}
           </View>
 
