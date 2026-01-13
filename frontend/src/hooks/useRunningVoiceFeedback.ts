@@ -1,4 +1,6 @@
+// frontend/src/hooks/useRunningVoiceFeedback.ts
 import { useRef, useEffect, useState } from "react";
+import { Platform } from "react-native";
 import * as Speech from "expo-speech";
 
 interface VoiceFeedbackProps {
@@ -6,8 +8,9 @@ interface VoiceFeedbackProps {
     targetDistance: number;
 
     recommendedPaceSec?: number; // sec/km
-    minRecordDistanceM?: number; // default 100 (※ 이제 음성 안내는 안 씀)
+    minRecordDistanceM?: number; // default 100 (※ 현재 버전에서는 음성 안내는 안 씀)
 
+    // ghost voice feedback
     ghostDiffUnitM?: number; // default 100
     ghostDiffCooldownMs?: number; // default 6000
     ghostPaceSimilarThresholdSec?: number; // default 5
@@ -32,9 +35,9 @@ export const useRunningVoiceFeedback = ({
     // ✅ 말 겹침 방지
     const speakingLock = useRef(false);
 
-    // ✅ [추가] 시작 멘트 2번 방지 (어디서 2번 호출해도 1번만)
+    // ✅ 시작 멘트 2번 방지
     const lastStartSpokenAtRef = useRef<number>(0);
-    const START_DEDUP_MS = 2000; // 2초 이내 중복 호출 무시
+    const START_DEDUP_MS = 2000;
 
     // ✅ 고스트 격차 안내용 상태(ref)
     const ghostLastSpokenAtRef = useRef<number>(0);
@@ -43,45 +46,97 @@ export const useRunningVoiceFeedback = ({
     const ghostLastPaceSimilarRef = useRef<boolean>(false);
     const ghostBlockUntilRef = useRef<number>(0);
 
-    // iOS/Android 모두: 선택된 음성 identifier(가능하면 적용)
-    const [selectedVoice, setSelectedVoice] = useState<string | undefined>(
-        undefined
-    );
+    // iOS 음성 identifier
+    const [selectedVoice, setSelectedVoice] = useState<string | undefined>(undefined);
+
+    // Android 음성 identifier (남/여)
+    const [androidMaleVoice, setAndroidMaleVoice] = useState<string | undefined>(undefined);
+    const [androidFemaleVoice, setAndroidFemaleVoice] = useState<string | undefined>(undefined);
 
     /** -----------------------------
      * 시스템 음성 선택
-     * - 남성: Minsu
-     * - 여성: Suhyun
-     * - Enhanced 제외 → 무료 음성 우선
+     * - iOS: Enhanced 제외(무료) + 남성 Minsu / 여성 Suhyun 우선
+     * - Android: ko-KR 중 이름 패턴(kod/koc/kob) + local 우선
      * ----------------------------- */
     useEffect(() => {
         (async () => {
             try {
                 const voices = await Speech.getAvailableVoicesAsync();
 
+                // 한국어 음성 후보
                 const koVoices = voices.filter((v) =>
                     (v.language || "").toLowerCase().startsWith("ko")
                 );
 
-                const freeKo = koVoices.filter(
-                    (v) => (v.quality || "").toLowerCase() !== "enhanced"
-                );
+                // -----------------
+                // iOS
+                // -----------------
+                if (Platform.OS === "ios") {
+                    const freeKo = koVoices.filter(
+                        (v) => (v.quality || "").toLowerCase() !== "enhanced"
+                    );
 
-                const pool =
-                    freeKo.length > 0
-                        ? freeKo
-                        : koVoices.length > 0
-                            ? koVoices
-                            : voices;
+                    const pool =
+                        freeKo.length > 0
+                            ? freeKo
+                            : koVoices.length > 0
+                                ? koVoices
+                                : voices;
 
-                const targetName = isMale ? "minsu" : "suhyun";
-                const found = pool.find((v) =>
-                    (v.name || "").toLowerCase().includes(targetName)
-                );
+                    const targetName = isMale ? "minsu" : "suhyun";
+                    const found = pool.find((v) =>
+                        (v.name || "").toLowerCase().includes(targetName)
+                    );
 
-                setSelectedVoice(found?.identifier ?? pool[0]?.identifier);
-            } catch {
+                    setSelectedVoice(found?.identifier ?? pool[0]?.identifier);
+                    return;
+                }
+
+                // -----------------
+                // Android
+                // -----------------
+                if (Platform.OS === "android") {
+                    // 1) ko-KR만
+                    const koSpecificVoices = koVoices.filter((v) => v.language === "ko-KR");
+
+                    // 2) 남/여 후보 (요구사항: ism 절대 사용 X)
+                    const maleVoices = koSpecificVoices.filter((v) => (v.name || "").includes("kod"));
+                    const femaleVoices = koSpecificVoices.filter(
+                        (v) => (v.name || "").includes("koc") || (v.name || "").includes("kob")
+                    );
+
+                    // 3) local 우선 → network → 첫 번째
+                    const pickBestVoice = (candidates: typeof koSpecificVoices) => {
+                        if (candidates.length === 0) return undefined;
+                        return (
+                            candidates.find((v) => (v.name || "").includes("local")) ??
+                            candidates.find((v) => (v.name || "").includes("network")) ??
+                            candidates[0]
+                        );
+                    };
+
+                    const finalMale = pickBestVoice(maleVoices);
+                    const finalFemale = pickBestVoice(femaleVoices);
+
+                    // 4) fallback: ism 제외한 아무거나
+                    const fallback = koSpecificVoices.find(
+                        (v) => !(v.name || "").includes("ism")
+                    )?.identifier;
+
+                    setAndroidMaleVoice(finalMale?.identifier ?? fallback);
+                    setAndroidFemaleVoice(finalFemale?.identifier ?? fallback);
+
+                    // iOS 전용 상태는 비워둠(혼동 방지)
+                    setSelectedVoice(undefined);
+
+                    console.log("남성(Android):", finalMale?.name);
+                    console.log("여성(Android):", finalFemale?.name);
+                }
+            } catch (e) {
+                console.warn("Voice fetch failed", e);
                 setSelectedVoice(undefined);
+                setAndroidMaleVoice(undefined);
+                setAndroidFemaleVoice(undefined);
             }
         })();
     }, [isMale]);
@@ -97,20 +152,42 @@ export const useRunningVoiceFeedback = ({
     const aiTargetPaceSec = recommendedPaceSec ?? getAiRecommendedPace();
 
     /** -----------------------------
-     * 발화 함수 (hook 내부만 사용)
+     * 발화 옵션 (iOS / Android 분기)
+     * ----------------------------- */
+    const getSpeechOptions = () => {
+        if (Platform.OS === "ios") {
+            return {
+                language: "ko-KR",
+                voice: selectedVoice,
+                pitch: 1.0,
+                rate: 1.0,
+            };
+        }
+
+        return {
+            language: "ko-KR",
+            voice: isMale ? androidMaleVoice : androidFemaleVoice,
+            pitch: 1.0,
+            rate: 1.0,
+        };
+    };
+
+    /** -----------------------------
+     * 발화 함수
      * ----------------------------- */
     const speak = async (text: string, onDone?: () => void) => {
         if (speakingLock.current) return;
         speakingLock.current = true;
 
+        console.log(`📢 [Voice Feedback]: ${text}`);
+
         try {
             await Speech.stop();
 
+            const options = getSpeechOptions();
+
             Speech.speak(text, {
-                language: "ko-KR",
-                voice: selectedVoice,
-                pitch: 1.0,
-                rate: 1.0,
+                ...options,
                 onDone: () => {
                     speakingLock.current = false;
                     onDone?.();
@@ -131,7 +208,7 @@ export const useRunningVoiceFeedback = ({
      * 시작 / 종료 / 일시정지 / 재개
      * ----------------------------- */
     const speakStart = () => {
-        // ✅ [핵심] 2초 내 중복 호출 차단
+        // ✅ 2초 내 중복 호출 차단
         const now = Date.now();
         if (now - lastStartSpokenAtRef.current < START_DEDUP_MS) return;
         lastStartSpokenAtRef.current = now;
@@ -159,17 +236,16 @@ export const useRunningVoiceFeedback = ({
         const km = (finalDist / 1000).toFixed(2);
         speak(`측정을 종료합니다. 총 ${km} 킬로미터를 달렸습니다.`, onComplete);
 
-        // ✅ 다음 러닝 시작 멘트가 정상적으로 나오도록 리셋
+        // ✅ 다음 러닝 시작 멘트 정상화
         lastStartSpokenAtRef.current = 0;
     };
 
     const speakPause = () => speak("운동을 일시 정지합니다.");
     const speakResume = () => speak("러닝을 다시 시작합니다.");
 
-    // ✅ [요구] 100m 미만 종료 시 “기록 안 됨” 음성 안내는 제거
+    // ✅ 100m 미만 종료 시 “기록 안 됨” 음성 안내는 제거 (요구사항 유지)
     const speakMinDistanceWarning = () => {
         // intentionally empty
-        // (UI/Alert 등 텍스트 안내로만 처리)
         void minRecordDistanceM;
     };
 
@@ -228,6 +304,7 @@ export const useRunningVoiceFeedback = ({
     ) => {
         const { isReady, isRunning, isPaused, timeSec } = ctx;
 
+        // 러닝 타이머가 0이면(또는 새 세션 시작 직후) 상태 리셋
         if (timeSec <= 0) {
             resetGhostDiff();
             return;
@@ -246,7 +323,7 @@ export const useRunningVoiceFeedback = ({
 
         const absM = Math.abs(d);
         const bucket = Math.floor(absM / ghostDiffUnitM);
-        const sign = absM < 1 ? 0 : d > 0 ? 1 : -1;
+        const sign = absM < 1 ? 0 : d > 0 ? 1 : -1; // +: 뒤처짐, -: 앞섬(메시지 기준)
 
         const pd = Number(paceDiffSec);
         const isPaceSimilar =
@@ -257,14 +334,15 @@ export const useRunningVoiceFeedback = ({
         const signChanged = sign !== ghostLastSignRef.current;
         const paceSimilarChanged = isPaceSimilar !== ghostLastPaceSimilarRef.current;
 
-        const cooldownPassed =
-            now - ghostLastSpokenAtRef.current >= ghostDiffCooldownMs;
+        const cooldownPassed = now - ghostLastSpokenAtRef.current >= ghostDiffCooldownMs;
 
+        // 방향(앞/뒤)이 안 바뀌었는데 쿨다운도 안 지났으면 말하지 않음
         if (!signChanged && !cooldownPassed) return;
+
+        // 버킷/방향/페이스유사도 변화도 없으면 말하지 않음
         if (!bucketChanged && !signChanged && !paceSimilarChanged) return;
 
         let msg = "";
-
         if (bucket === 0) {
             msg = isPaceSimilar
                 ? "고스트와 거의 나란히 달리고 있어요. 페이스도 비슷해요. 지금처럼 유지해요."
@@ -288,6 +366,7 @@ export const useRunningVoiceFeedback = ({
         ghostLastPaceSimilarRef.current = isPaceSimilar;
     };
 
+    // 언마운트 시 발화 정리
     useEffect(() => {
         return () => {
             Speech.stop();
@@ -300,7 +379,7 @@ export const useRunningVoiceFeedback = ({
         speakPause,
         speakResume,
         speakStop,
-        speakMinDistanceWarning, // ✅ no-op 유지(호출돼도 말 안 함)
+        speakMinDistanceWarning, // ✅ no-op 유지
         checkAndSpeakGhostDiff,
         resetGhostDiff,
     };
