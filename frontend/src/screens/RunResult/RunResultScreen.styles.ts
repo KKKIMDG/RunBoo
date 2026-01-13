@@ -31,8 +31,8 @@ export const getStyles = (scheme: "light" | "dark") =>
       overflow: "hidden",
     },
     profileImage: {
-      width: "70%",
-      height: "70%",
+      width: "100%",
+      height: "100%",
     },
     titleText: {
       fontSize: 28,
