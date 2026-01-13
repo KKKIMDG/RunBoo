@@ -13,12 +13,9 @@ const PermissionGuard: React.FC<PermissionGuardProps> = ({ children }) => {
 
   const requestAll = async () => {
     try {
-      // 1️⃣ 위치 권한 요청 (Foreground → Background)
+      // 1️⃣ 위치 권한 요청 (Foreground만 필요 - foregroundService 사용)
       const { status: fg } = await Location.requestForegroundPermissionsAsync();
       if (fg !== "granted") return setGranted(false);
-
-      const { status: bg } = await Location.requestBackgroundPermissionsAsync();
-      if (bg !== "granted") return setGranted(false);
 
       // 2️⃣ 신체 활동/모션 권한 요청 (iOS/Android)
       const pedometerStatus = await Pedometer.requestPermissionsAsync();
@@ -64,7 +61,7 @@ const PermissionGuard: React.FC<PermissionGuardProps> = ({ children }) => {
           권한이 필요합니다
         </Text>
         <Text style={{ marginVertical: 10, textAlign: "center" }}>
-          러닝 기록을 위해 위치(항상 허용)와 신체 활동 권한이 필요합니다.
+          러닝 기록을 위해 위치(앱 사용 중)와 신체 활동 권한이 필요합니다.
         </Text>
         <TouchableOpacity
           onPress={openSettings} // ✅ 설정으로 안내

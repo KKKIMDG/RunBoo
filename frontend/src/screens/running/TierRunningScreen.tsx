@@ -25,14 +25,13 @@ import { useTierRunningScreen } from "./useTierRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
 import { StatBox } from "@/components/StatBox";
 import { useCadence } from "@/hooks/useCadence";
-import {useSettings} from "@/screens/Settings/useSettings";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import { useSettings } from "@/screens/Settings/useSettings";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useMapFocusing } from "./useRunCore";
 
 const { width } = Dimensions.get("window");
 
 const TierRunningScreen = () => {
-
   const { settings } = useSettings();
   const resolvedTheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
@@ -63,7 +62,15 @@ const TierRunningScreen = () => {
     routeCoordinates,
   });
 
-  const { isFollowing, handleFocusPress } = mapFocusing;
+  const { isFollowing, onLocationUpdate, handleFocusPress } = mapFocusing;
+
+  // ✅ 위치 업데이트 시 지도 자동 추적
+  useEffect(() => {
+    if (routeCoordinates.length > 0 && onLocationUpdate.current) {
+      const lastCoord = routeCoordinates[routeCoordinates.length - 1];
+      onLocationUpdate.current(lastCoord);
+    }
+  }, [routeCoordinates]);
 
   const { pauseRun, resumeRun, stopTierRunManual } = actions;
   const { formatTime, formatPace } = utils;

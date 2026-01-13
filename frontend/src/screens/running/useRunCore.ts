@@ -28,7 +28,9 @@ export function useCadence() {
     }
     cadenceSumRef.current += v;
     cadenceCountRef.current += 1;
-    console.log(`[useCadence] Sample added: ${v} SPM, Total count: ${cadenceCountRef.current}`);
+    console.log(
+      `[useCadence] Sample added: ${v} SPM, Total count: ${cadenceCountRef.current}`
+    );
   };
 
   const resetCadenceAgg = () => {
@@ -72,7 +74,11 @@ export function useRunTimer(
         setDisplayTime(currentSec);
 
         if (currentSec > 0 && currentSec % 5 === 0 && currentPace > 0) {
-          console.log(`[useRunTimer] Adding pace to history: ${currentPace / 60} min/km at ${currentSec}s`);
+          console.log(
+            `[useRunTimer] Adding pace to history: ${
+              currentPace / 60
+            } min/km at ${currentSec}s`
+          );
           setPaceHistory((prev) => [...prev, currentPace / 60]);
         }
       }, 1000);
@@ -97,8 +103,8 @@ export function makeStartLocationTracking(
     console.log("[LocationTracking] Starting location updates");
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.BestForNavigation,
-      timeInterval: 1000,
-      distanceInterval: 1,
+      timeInterval: 3000,
+      distanceInterval: 5,
       foregroundService: {
         notificationTitle,
         notificationBody,
@@ -175,7 +181,10 @@ export async function saveRecord(params: {
       const records = await fetchMyRecords();
       if (records?.length) {
         recordId = Math.max(...records.map((r: any) => Number(r.id)));
-        console.log("[saveRecord] Determined recordId from fetched records:", recordId);
+        console.log(
+          "[saveRecord] Determined recordId from fetched records:",
+          recordId
+        );
       }
     }
 
@@ -216,7 +225,9 @@ export function useMapFocusing(params: {
 
   // 실시간 위치 추적
   useEffect(() => {
-    console.log(`[useMapFocusing] Setting up location update handler, isFollowing: ${isFollowing}`);
+    console.log(
+      `[useMapFocusing] Setting up location update handler, isFollowing: ${isFollowing}`
+    );
     onLocationUpdate.current = (coords) => {
       if (isFollowing && mapRef.current) {
         console.log(`[useMapFocusing] Animating to location:`, coords);
@@ -231,7 +242,10 @@ export function useMapFocusing(params: {
   // 초기 위치 설정
   useEffect(() => {
     if (initialLocation && mapRef.current) {
-      console.log("[useMapFocusing] Setting initial map location:", initialLocation);
+      console.log(
+        "[useMapFocusing] Setting initial map location:",
+        initialLocation
+      );
       mapRef.current.animateToRegion(
         { ...initialLocation, latitudeDelta: 0.002, longitudeDelta: 0.002 },
         500
@@ -260,7 +274,10 @@ export function useMapFocusing(params: {
           500
         );
       } catch (e) {
-        console.warn("[useMapFocusing] Failed to get current position, using last route coordinate", e);
+        console.warn(
+          "[useMapFocusing] Failed to get current position, using last route coordinate",
+          e
+        );
         if (routeCoordinates.length > 0) {
           const last = routeCoordinates[routeCoordinates.length - 1];
           console.log("[useMapFocusing] Using last route coordinate:", last);

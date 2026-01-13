@@ -75,6 +75,14 @@ const RunningScreen = () => {
 
   const { isFollowing, onLocationUpdate, handleFocusPress } = mapFocusing;
 
+  // ✅ 위치 업데이트 시 지도 자동 추적
+  useEffect(() => {
+    if (routeCoordinates.length > 0 && onLocationUpdate.current) {
+      const lastCoord = routeCoordinates[routeCoordinates.length - 1];
+      onLocationUpdate.current(lastCoord);
+    }
+  }, [routeCoordinates]);
+
   // ✅ 케이던스 훅 (Screen에서만 측정)
   const cadence = useCadence({
     enabled: !isReady && !isPaused,
