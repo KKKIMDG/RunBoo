@@ -124,7 +124,7 @@ export const useRunningVoiceFeedback = ({
     speak(`측정을 종료합니다. 총 ${km} 킬로미터를 달렸습니다.`, onComplete);
   };
 
-  const speakPause = () => speak("운동을 일시 정지합니다.");
+  const speakPause = () => speak("러닝을 일시 정지합니다.");
   const speakResume = () => speak("러닝을 다시 시작합니다.");
   const speakMinDistanceWarning = () => {
     speak(`최소 ${minRecordDistanceM}m 는 뛰어야 런닝 내용이 기록돼요`);
