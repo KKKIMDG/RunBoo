@@ -9,11 +9,11 @@ import {
     LayoutAnimation,
     Platform,
     UIManager,
-    useColorScheme,
 } from "react-native";
 import { Colors } from "@/constants/theme";
 import {useSettings} from "@/screens/Settings/useSettings";
 import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 // 러닝 모드는 NORMAL, GHOST, TIER 3가지
 type Mode = "NORMAL" | "GHOST" | "TIER";
@@ -37,7 +37,7 @@ function modeLabel(m: Mode) {
 
 export default function ModeFilter({ mode, onChangeMode, onReset }: Props) {
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);

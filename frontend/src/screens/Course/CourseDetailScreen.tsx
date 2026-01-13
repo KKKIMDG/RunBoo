@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
     View,
     Text,
@@ -11,21 +11,24 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
-import polyline from '@mapbox/polyline'; // 👈 npm install @mapbox/polyline 필수!
+import polyline from '@mapbox/polyline';
 
 // ✅ API 및 훅 import
 import { api } from '@/services/api';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { useMe } from '@/hooks/useMe';
+import { useColorScheme } from '@/hooks/use-color-scheme'; // hooks 경로 확인
 import { useSettings } from "@/screens/Settings/useSettings";
 import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
-import { Course } from '@/types/course'; // 타입 import
+import { Course } from '@/types/course'; // ✅ 타입 import (donggun 브랜치 기준)
 
 export default function CourseDetailScreen({ route, navigation }: any) {
     const { course }: { course: Course } = route.params || {};
     const [loading, setLoading] = useState(true);
     const [isSaved, setIsSaved] = useState(course?.isSaved ?? false);
+    
+    // ✅ 지도 제어용 Ref (자동 줌인 기능)
+    const mapRef = useRef<MapView>(null);
 
     const { me } = useMe();
     const { settings } = useSettings();
@@ -62,6 +65,18 @@ export default function CourseDetailScreen({ route, navigation }: any) {
         }
     }, [course]);
 
+    // ✅ 지도가 로드되면 경로가 보이도록 자동 이동 (Fit To Coordinates)
+    useEffect(() => {
+        if (routeCoordinates.length > 0 && mapRef.current) {
+            setTimeout(() => {
+                mapRef.current?.fitToCoordinates(routeCoordinates, {
+                    edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+                    animated: true,
+                });
+            }, 500);
+        }
+    }, [routeCoordinates]);
+
     const handleClose = () => {
         navigation.goBack();
     };
@@ -77,7 +92,6 @@ export default function CourseDetailScreen({ route, navigation }: any) {
         setIsSaved(newState); // 낙관적 업데이트
 
         try {
-            // API 명세: POST /api/user-courses/toggle Body: { userId, courseId }
             await api.post('/api/user-courses/toggle', {
                 userId: me.userId,
                 courseId: course.id
@@ -104,6 +118,10 @@ export default function CourseDetailScreen({ route, navigation }: any) {
             </View>
         );
     }
+
+    // 초기 지도 중심값 (경로가 있으면 첫 번째 좌표, 없으면 기본값)
+    const initialLat = routeCoordinates.length > 0 ? routeCoordinates[0].latitude : (course.latitude || 37.5665);
+    const initialLng = routeCoordinates.length > 0 ? routeCoordinates[0].longitude : (course.longitude || 126.9780);
 
     return (
         <View style={styles.overlay}>
@@ -142,11 +160,12 @@ export default function CourseDetailScreen({ route, navigation }: any) {
                 {/* MapView 영역 */}
                 <View style={styles.mapArea}>
                     <MapView
+                        ref={mapRef} // ✅ Ref 연결
                         style={{ flex: 1 }}
                         provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
                         initialRegion={{
-                            latitude: course.latitude || 37.5665,
-                            longitude: course.longitude || 126.9780,
+                            latitude: initialLat,
+                            longitude: initialLng,
                             latitudeDelta: 0.015,
                             longitudeDelta: 0.015,
                         }}
@@ -154,8 +173,8 @@ export default function CourseDetailScreen({ route, navigation }: any) {
                         {/* 시작점 마커 */}
                         <Marker
                             coordinate={{
-                                latitude: course.latitude || 37.5665,
-                                longitude: course.longitude || 126.9780,
+                                latitude: initialLat,
+                                longitude: initialLng,
                             }}
                             title="출발점"
                         />
@@ -163,7 +182,7 @@ export default function CourseDetailScreen({ route, navigation }: any) {
                         {/* 🔥 경로 그리기 (Polyline) */}
                         <Polyline
                             coordinates={routeCoordinates}
-                            strokeColor="#4A90E2" // 파란색 경로
+                            strokeColor="#4A90E2"
                             strokeWidth={4}
                         />
                     </MapView>
@@ -220,7 +239,7 @@ export const getStyles = (scheme: "light" | "dark", fontSize: FontSizeSetting) =
         popupContainer: {
             backgroundColor: colors.background,
             width: '100%',
-            height: '75%', // 높이 조금 늘림
+            height: '75%',
             borderRadius: 16,
             overflow: 'hidden',
         },

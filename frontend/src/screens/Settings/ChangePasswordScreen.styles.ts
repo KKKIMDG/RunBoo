@@ -132,7 +132,7 @@ export const getStyles = (
     confirmButtonText: {
       fontSize: scaleFont(16, fontSize),
       fontWeight: "600",
-      color: Colors[scheme].text,
+      color: Colors[scheme].white,
     },
     helperText: {
       fontSize: scaleFont(13, fontSize),

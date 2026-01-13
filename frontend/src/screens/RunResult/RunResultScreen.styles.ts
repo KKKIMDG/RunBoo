@@ -1,9 +1,13 @@
-import { Dimensions, StyleSheet, Platform } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting} from "@/utils/fontScale";
 
 const { width } = Dimensions.get("window");
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -31,8 +35,8 @@ export const getStyles = (scheme: "light" | "dark") =>
       overflow: "hidden",
     },
     profileImage: {
-      width: "70%",
-      height: "70%",
+      width: "100%",
+      height: "100%",
     },
     titleText: {
       fontSize: 28,
@@ -56,9 +60,24 @@ export const getStyles = (scheme: "light" | "dark") =>
       marginBottom: 20,
       position: "relative",
     },
-    mapPlaceholderText: {
+    mapPlaceholderContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 30,
+    },
+    placeholderTitle: {
+      marginTop: 8,
+      fontSize: 18,
+      fontWeight: "700",
+      color: Colors[scheme].text,
+    },
+    placeholderSubtitle: {
+      marginTop: 6,
+      textAlign: "center",
       color: Colors[scheme].subtext,
-      fontSize: 16,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
     // ✅ 지도 위 스탯 오버레이 스타일

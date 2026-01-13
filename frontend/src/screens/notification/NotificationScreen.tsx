@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { getStyles } from "./Notification.styles";
 import { useNotificationScreen } from "./useNotificationScreen";
 import type { NotificationItem } from "@/types/notification";
@@ -16,10 +15,11 @@ import { formatRelativeTime } from "@/utils/time";
 import {useNavigation} from "@react-navigation/native";
 import { NotificationIconMap } from "@/constants/notificationIconMap";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 const NotificationScreen = () => {
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);

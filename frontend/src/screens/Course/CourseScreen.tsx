@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -7,10 +7,10 @@ import CourseCard from '@/components/CourseCard';
 import FilterChip from '@/components/FilterChip';
 import { useCourseScreen, FilterType } from './useCourseScreen';
 import { getStyles } from './CourseScreen.styles';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { useSettings } from "@/screens/Settings/useSettings";
-import { Course } from '@/types/course';
+import { useColorScheme } from '@/hooks/use-color-scheme'; // ✅ 테마 훅 import
+import { Course } from '@/types/course'; // ✅ 타입 import (donggun 브랜치)
 
 // ✅ 필터 목록 ('내 코스' 추가됨)
 const FILTERS: { label: string; type: FilterType }[] = [
@@ -24,6 +24,8 @@ const FILTERS: { label: string; type: FilterType }[] = [
 export default function CourseScreen() {
     const { activeFilter, courses, loading, handlers } = useCourseScreen();
     const { settings } = useSettings();
+    
+    // ✅ 테마 및 컬러 설정 (donggun 브랜치 기준 병합)
     const colorScheme = useColorScheme() ?? "light";
     const colors = Colors[colorScheme];
 

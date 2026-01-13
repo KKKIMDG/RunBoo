@@ -8,7 +8,6 @@ import {
     TouchableOpacity,
     ScrollView,
     Dimensions,
-    useColorScheme,
     Alert, Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,6 +20,9 @@ import { useGhostRunScreen } from "./useGhostRunScreen";
 import { StatBox } from "@/components/StatBox";
 import { useCadence } from "@/hooks/useCadence";
 import { useRunningVoiceFeedback } from "@/hooks/useRunningVoiceFeedback";
+import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
 const { width: W } = Dimensions.get("window");
 
@@ -34,10 +36,13 @@ type IoniconName =
     | "medal-outline";
 
 export default function GhostRunScreen() {
-    const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
-    const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
+    const { settings } = useSettings();
+    const resolvedTheme = useResolvedTheme(settings?.themeMode);
+    const styles = useMemo(() => {
+        return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+    }, [resolvedTheme, settings?.fontSize]);
 
-    const c = Colors[colorScheme] as any;
+    const c = Colors[resolvedTheme] as any;
     const colors = {
         background: c?.background ?? "#F5F6F8",
         headerBg: c?.background ?? c?.card ?? "#FFFFFF",
@@ -255,7 +260,7 @@ export default function GhostRunScreen() {
         decimalPlaces: 1,
         color: (opacity = 1) => `rgba(44, 63, 110, ${opacity})`,
         labelColor: (opacity = 1) =>
-            colorScheme === "dark"
+            resolvedTheme === "dark"
                 ? `rgba(255,255,255,${opacity})`
                 : `rgba(0,0,0,${opacity})`,
         style: { borderRadius: 16 },
@@ -555,7 +560,10 @@ export default function GhostRunScreen() {
     );
 }
 
-export const getStyles = (scheme: "light" | "dark") => {
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) => {
     const shadow = Platform.select({
         ios: {
             shadowColor: Colors[scheme].shadow,
@@ -599,7 +607,7 @@ export const getStyles = (scheme: "light" | "dark") => {
             borderWidth: 1,
             ...shadow,
         },
-        headerPillText: { fontWeight: "800", fontSize: 13, marginLeft: 6, marginRight: 6 },
+        headerPillText: { fontWeight: "800", fontSize: scaleFont(13, fontSize), marginLeft: 6, marginRight: 6 },
 
         headerMiniPill: {
             flexDirection: "row",
@@ -620,20 +628,20 @@ export const getStyles = (scheme: "light" | "dark") => {
 
         card: { borderWidth: 1, borderRadius: 16, padding: 14, marginBottom: 12, ...shadow2 },
         cardTopRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-        cardTitle: { fontWeight: "900", fontSize: 14 },
+        cardTitle: { fontWeight: "900", fontSize: scaleFont(14, fontSize) },
 
         badge: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999 },
-        badgeText: { fontWeight: "900", fontSize: 12 },
+        badgeText: { fontWeight: "900", fontSize: scaleFont(12, fontSize) },
 
         rankRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
-        rankLabel: { fontSize: 12, fontWeight: "700" },
-        rankValue: { fontSize: 12, fontWeight: "700" },
+        rankLabel: { fontSize: scaleFont(12, fontSize), fontWeight: "700" },
+        rankValue: { fontSize: scaleFont(12, fontSize), fontWeight: "700" },
 
         gaugeTrack: { height: 10, borderRadius: 999, overflow: "hidden", marginTop: 10 },
         gaugeFill: { height: "100%", borderRadius: 999 },
 
         progressMarks: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
-        mark: { fontSize: 11, fontWeight: "700" },
+        mark: { fontSize: scaleFont(11, fontSize), fontWeight: "700" },
 
         statsContainer: {
             flexDirection: "row",
@@ -643,7 +651,7 @@ export const getStyles = (scheme: "light" | "dark") => {
             marginBottom: 12,
         },
 
-        small: { fontSize: 11, fontWeight: "700" },
+        small: { fontSize: scaleFont(11, fontSize), fontWeight: "700" },
 
         controls: {
             position: "absolute",
@@ -694,7 +702,7 @@ export const getStyles = (scheme: "light" | "dark") => {
             zIndex: 999,
             elevation: 999,
         },
-        countdownText: { fontSize: 120, fontWeight: "900" },
-        countdownLabel: { fontSize: 20, marginTop: 12 },
+        countdownText: { fontSize: scaleFont(120, fontSize), fontWeight: "900" },
+        countdownLabel: { fontSize: scaleFont(20, fontSize), marginTop: 12 },
     });
 };

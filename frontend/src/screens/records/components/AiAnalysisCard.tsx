@@ -15,6 +15,7 @@ import { Colors } from "@/constants/theme";
 import PremiumModal from "@/screens/records/components/PremiumModal";
 import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 export default function AiAnalysisCard() {
 
@@ -26,7 +27,7 @@ export default function AiAnalysisCard() {
     const [freeAnalysisCount, setFreeAnalysisCount] = useState<number | null>(null);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
 
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");

@@ -10,3 +10,4 @@ export type UserVoiceSetting = {
   voiceGuideEnabled: boolean;
   voiceType: "MALE" | "FEMALE";
 };
+

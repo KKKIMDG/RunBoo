@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Platform,
-    useColorScheme,
     Modal,
     TextInput,
     KeyboardAvoidingView,
@@ -20,7 +19,7 @@ import {
     FontAwesome5,
 } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
-import * as Location from 'expo-location'; // ✅ 위치 모듈 추가
+import * as Location from 'expo-location'; // ✅ 위치 모듈
 
 import { fetchRunRecordDetail } from "@/services/record/recordsService";
 import { CourseService } from "@/services/course/CourseService";
@@ -29,18 +28,21 @@ import { decodePolyline, LatLng } from "@/utils/polyline";
 import { Colors } from "@/constants/theme";
 import { useSettings } from "@/screens/Settings/useSettings";
 import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme"; // ✅ 테마 훅 (dev 브랜치)
 
 type Params = { recordId: number };
 type R = RouteProp<{ params: Params }, "params">;
 
 export default function RunRecordDetailScreen() {
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    // ✅ dev 브랜치의 테마 로직 적용
+    const resolvedTheme = useResolvedTheme(settings?.themeMode);
+    
     const styles = useMemo(() => {
-        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-    }, [colorScheme, settings?.fontSize]);
+        return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+    }, [resolvedTheme, settings?.fontSize]);
 
-    const colors = Colors[colorScheme];
+    const colors = Colors[resolvedTheme];
 
     const navigation = useNavigation<any>();
     const route = useRoute<R>();
@@ -52,13 +54,13 @@ export default function RunRecordDetailScreen() {
     const [data, setData] = useState<RunRecordDetailDto | null>(null);
     const [errorText, setErrorText] = useState<string | null>(null);
 
-    // 모달 및 코스 정보 상태
+    // ✅ 모달 및 코스 정보 상태 (donggun 브랜치 기능)
     const [modalVisible, setModalVisible] = useState(false);
     const [courseName, setCourseName] = useState("");
     const [courseDesc, setCourseDesc] = useState("");
     const [isUploading, setIsUploading] = useState(false);
 
-    // ✅ 주소 상태 추가
+    // ✅ 주소 상태
     const [address, setAddress] = useState<string>("위치 정보 없음");
 
     const coords: LatLng[] = useMemo(() => {
@@ -90,17 +92,15 @@ export default function RunRecordDetailScreen() {
         })();
     }, [recordId]);
 
-    // ✅ [핵심] 좌표가 있으면 주소 변환 (Reverse Geocoding)
+    // ✅ 좌표 -> 주소 변환 (Reverse Geocoding)
     useEffect(() => {
         const fetchAddress = async () => {
             if (coords.length > 0) {
                 const start = coords[0];
                 try {
-                    // 1. 권한 확인 (보통 앱 실행 시 받았겠지만 안전하게 체크)
                     const { status } = await Location.getForegroundPermissionsAsync();
                     if (status !== 'granted') return;
 
-                    // 2. 좌표 -> 주소 변환
                     const result = await Location.reverseGeocodeAsync({
                         latitude: start.latitude,
                         longitude: start.longitude
@@ -108,13 +108,11 @@ export default function RunRecordDetailScreen() {
 
                     if (result.length > 0) {
                         const addr = result[0];
-                        // 주소 조합 (null 체크)
                         const region = addr.region || "";
                         const city = addr.city || "";
                         const street = addr.street || "";
                         const name = addr.name || "";
 
-                        // 보기 좋은 형태로 조합
                         const fullAddress = `${region} ${city} ${street} ${name}`.trim() || "주소 정보 없음";
                         setAddress(fullAddress);
                     }
@@ -142,7 +140,6 @@ export default function RunRecordDetailScreen() {
             Alert.alert("알림", "지도 경로 데이터가 없어 코스로 공유할 수 없습니다.");
             return;
         }
-        // 기본 이름 세팅
         setCourseName("나만의 러닝 코스");
         setCourseDesc("");
         setModalVisible(true);
@@ -162,7 +159,6 @@ export default function RunRecordDetailScreen() {
                 recordId: Number(recordId),
                 name: courseName,
                 description: courseDesc,
-                // ✅ 변환된 실제 주소 사용
                 address: address,
                 latitude: startPoint.latitude,
                 longitude: startPoint.longitude
@@ -332,7 +328,7 @@ export default function RunRecordDetailScreen() {
     );
 }
 
-// ... (getStyles는 기존과 동일하므로 생략 가능, 전체 파일 덮어쓰기 시 맨 아래에 기존 코드를 유지해주세요)
+// 스타일 정의 (dev/donggun 호환)
 export const getStyles = (
     scheme: "light" | "dark",
     fontSize: FontSizeSetting
