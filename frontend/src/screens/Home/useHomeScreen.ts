@@ -5,6 +5,7 @@ import * as Location from "expo-location";
 import { RootStackParamList } from "@/navigation/root/RootNavigator"; // 경로 확인 필요
 import { UserVoiceSetting } from "@/types/userSetting";
 import { fetchUserVoiceSetting } from "@/services/user/userService";
+import { useUserMe } from "@/contexts/UserMeContext";
 
 export type RunningMode = "측정" | "티어" | "고스트";
 
@@ -14,7 +15,9 @@ export const useHomeScreen = () => {
 
   // 1. 모드 상태
   const [activeMode, setActiveMode] = useState<RunningMode>("측정");
+  const { userMe } = useUserMe();
 
+  const userId = userMe?.userId;
   // 2. [측정 모드] 목표 설정 상태
   const [isGoalPickerOpen, setIsGoalPickerOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<{
@@ -81,6 +84,7 @@ export const useHomeScreen = () => {
   };
   const handleStartRun = () => {
     navigation.navigate("Running", {
+      userId: userId ? Number(userId) : 0,
       targetDistance: selectedGoal.value,
       mode: "NORMAL", // ✅ 이제 에러 안 남
       voiceGuideEnabled,
