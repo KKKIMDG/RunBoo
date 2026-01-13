@@ -11,11 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import {
-  Ionicons,
-  MaterialCommunityIcons,
-  FontAwesome5,
-} from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import MapView, {
   Polyline,
   Marker,
@@ -44,16 +40,16 @@ const RunResultScreen = () => {
   const navigation = useNavigation();
   const route = useRoute<RunResultRouteProp>();
   const {
-      distanceM,
-      durationSec,
-      avgPaceSec,
-      calories,
-      routeCoordinates,
-      cadenceSpm, } = route.params;
+    distanceM,
+    durationSec,
+    avgPaceSec,
+    calories,
+    routeCoordinates,
+    cadenceSpm,
+  } = route.params;
   const colorScheme = useColorScheme() ?? "light";
   const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
 
-  const shareRef = useRef<View>(null);
   const storyRef = useRef<any>(null);
   const mapRef = useRef<MapView>(null);
 
@@ -94,7 +90,7 @@ const RunResultScreen = () => {
   const handleFocusRoute = () => {
     if (routeCoordinates && routeCoordinates.length > 0 && mapRef.current) {
       mapRef.current.fitToCoordinates(routeCoordinates, {
-        edgePadding: { top: 60, right: 60, bottom: 60, left: 60 },
+        edgePadding: { top: 180, right: 60, bottom: 60, left: 60 }, // 텍스트 공간 확보를 위해 top 패딩 상향
         animated: true,
       });
     }
@@ -130,7 +126,10 @@ const RunResultScreen = () => {
         <ViewShot
           ref={storyRef}
           options={{ format: "png", quality: 1.0 }}
-          style={{ width: "100%" }}
+          style={{
+            width: "100%",
+            backgroundColor: styles.container.backgroundColor,
+          }}
         >
           {/* --- 상단 프로필 영역 --- */}
           <View style={styles.profileContainer}>
@@ -145,37 +144,10 @@ const RunResultScreen = () => {
             <Text style={styles.subtitleText}>Run Boo!</Text>
           </View>
 
-          {/* --- 요약 통계 --- */}
-          <View style={styles.summaryContainer}>
-            <View style={styles.summaryItem}>
-              <MaterialCommunityIcons
-                name="map-marker-distance"
-                style={styles.icon}
-              />
-              <Text style={styles.summaryLabel}>거리</Text>
-              <Text style={styles.summaryValue}>
-                {(distanceM / 1000).toFixed(2)}
-              </Text>
-              <Text style={styles.summaryUnit}>km</Text>
-            </View>
-            <View style={styles.summaryItem}>
-              <Ionicons name="time-outline" style={styles.icon} />
-              <Text style={styles.summaryLabel}>시간</Text>
-              <Text style={styles.summaryValue}>{formatTime(durationSec)}</Text>
-              <Text style={styles.summaryUnit}>분:초</Text>
-            </View>
-            <View style={styles.summaryItem}>
-              <FontAwesome5 name="running" style={styles.icon} />
-              <Text style={styles.summaryLabel}>페이스</Text>
-              <Text style={styles.summaryValue}>{formatPace(avgPaceSec)}</Text>
-              <Text style={styles.summaryUnit}>/km</Text>
-            </View>
-          </View>
-
-          {/* --- 지도 --- */}
+          {/* --- 지도 및 요약 통계(겹침) --- */}
           <View style={styles.mapContainer}>
             {routeCoordinates && routeCoordinates.length > 0 && midCoord ? (
-              <View style={StyleSheet.absoluteFill}>
+              <>
                 <MapView
                   ref={mapRef}
                   style={StyleSheet.absoluteFill}
@@ -192,7 +164,6 @@ const RunResultScreen = () => {
                     longitudeDelta: 0.015,
                   }}
                 >
-                  {/* 여러 레이어 Polyline */}
                   <Polyline
                     coordinates={routeCoordinates}
                     strokeColor="rgba(0,0,0,0.1)"
@@ -230,6 +201,8 @@ const RunResultScreen = () => {
                           height: 16,
                           borderRadius: 8,
                           backgroundColor: "#4CAF50",
+                          borderWidth: 2,
+                          borderColor: "#fff",
                         }}
                       />
                     </Marker>
@@ -242,31 +215,53 @@ const RunResultScreen = () => {
                           height: 16,
                           borderRadius: 8,
                           backgroundColor: "#FF3B30",
+                          borderWidth: 2,
+                          borderColor: "#fff",
                         }}
                       />
                     </Marker>
                   )}
                 </MapView>
 
+                {/* ✅ 지도 위에 겹쳐진 요약 통계 영역 */}
+                <View style={styles.statsOverlay}>
+                  <View style={styles.overlayItem}>
+                    <Text style={styles.overlayLabel}>거리</Text>
+                    <View style={styles.overlayValueRow}>
+                      <Text style={styles.overlayValue}>
+                        {(distanceM / 1000).toFixed(2)}
+                      </Text>
+                      <Text style={styles.overlayUnit}>km</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.overlayItem}>
+                    <Text style={styles.overlayLabel}>시간</Text>
+                    <Text style={styles.overlayValue}>
+                      {formatTime(durationSec)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.overlayItem}>
+                    <Text style={styles.overlayLabel}>페이스</Text>
+                    <Text style={styles.overlayValue}>
+                      {formatPace(avgPaceSec)}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* 경로 포커스 버튼 */}
                 <TouchableOpacity
-                  style={{
-                    position: "absolute",
-                    bottom: 16,
-                    right: 16,
-                    backgroundColor: "#FFFFFF",
-                    padding: 10,
-                    borderRadius: 30,
-                    elevation: 5,
-                  }}
+                  style={styles.mapActionIcon}
                   onPress={handleFocusRoute}
                 >
                   <MaterialCommunityIcons
-                    name="altimeter"
+                    name="near-me"
                     size={24}
-                    color="#4A6EA9"
+                    color="#FFF"
                   />
                 </TouchableOpacity>
-              </View>
+              </>
             ) : (
               <Text style={styles.mapPlaceholderText}>
                 경로 정보가 없습니다.
@@ -274,28 +269,37 @@ const RunResultScreen = () => {
             )}
           </View>
 
-          {/* --- 하단 정보 --- */}
+          {/* --- 하단 정보 (평균속도/칼로리/케이던스) --- */}
           <View style={styles.bottomInfoContainer}>
-            <View style={styles.bottomInfoCard}>
-              <Text style={styles.bottomInfoLabel}>칼로리</Text>
-              <Text style={styles.bottomInfoValue}>{calories} kcal</Text>
-            </View>
-            <View style={styles.bottomInfoCard}>
+            <View style={styles.bottomInfoItem}>
               <Text style={styles.bottomInfoLabel}>평균 속도</Text>
-              <Text style={styles.bottomInfoValue}>
-                {avgSpeedKmh.toFixed(1)} km/h
-              </Text>
-            </View>
-            <View style={styles.bottomInfoCard}>
-                <Text style={styles.bottomInfoLabel}>케이던스</Text>
+              <View style={styles.bottomInfoValueRow}>
                 <Text style={styles.bottomInfoValue}>
-                    {Math.round((cadenceSpm ?? 0) as number)} spm
+                  {avgSpeedKmh.toFixed(1)}
                 </Text>
+                <Text style={styles.bottomInfoUnit}>km/h</Text>
+              </View>
+            </View>
+            <View style={styles.bottomInfoItem}>
+              <Text style={styles.bottomInfoLabel}>칼로리</Text>
+              <View style={styles.bottomInfoValueRow}>
+                <Text style={styles.bottomInfoValue}>{calories}</Text>
+                <Text style={styles.bottomInfoUnit}>kcal</Text>
+              </View>
+            </View>
+            <View style={styles.bottomInfoItem}>
+              <Text style={styles.bottomInfoLabel}>케이던스</Text>
+              <View style={styles.bottomInfoValueRow}>
+                <Text style={styles.bottomInfoValue}>
+                  {Math.round(cadenceSpm ?? 0)}
+                </Text>
+                <Text style={styles.bottomInfoUnit}>spm</Text>
+              </View>
             </View>
           </View>
         </ViewShot>
 
-        {/* --- 버튼 --- */}
+        {/* --- 버튼 영역 --- */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
             <Ionicons name="share-social-outline" size={24} color="#FFF" />
