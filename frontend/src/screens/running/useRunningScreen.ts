@@ -37,15 +37,16 @@ export const useRunningScreen = () => {
   const { userMe } = useUserMe();
 
   // 유저 ID 확보 (Context 우선, 차선책 Params)
-  const userId = userMe?.id || route.params?.userId;
+  const userId = userMe?.userId;
   const targetDistance = route.params?.targetDistance ?? 0;
 
   // 음성 설정 상태 (Params에서 먼저 시도 후 fetch)
-  const voiceSetting = route.params?.userVoiceSetting;
+  const voiceGuideEnabled = route.params?.voiceGuideEnabled;
+  const voiceType = route.params?.voiceType;
+  const [isMale, setIsMale] = useState(voiceType === "MALE");
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(
-    voiceSetting?.voiceEnabled ?? true
+    voiceGuideEnabled ?? true
   );
-  const [isMale, setIsMale] = useState(voiceSetting?.voiceType === "MALE");
 
   const {
     isReady,
@@ -67,7 +68,9 @@ export const useRunningScreen = () => {
   } = useRecordStore();
 
   const [isFollowing, setIsFollowing] = useState(true);
-  const [initialLocation, setInitialLocation] = useState<Coordinate | null>(null);
+  const [initialLocation, setInitialLocation] = useState<Coordinate | null>(
+    null
+  );
   const [displayTime, setDisplayTime] = useState(0);
   const [paceHistory, setPaceHistory] = useState<number[]>([]);
 
@@ -101,7 +104,9 @@ export const useRunningScreen = () => {
       const h = Math.floor(s / 3600);
       const m = Math.floor((s % 3600) / 60);
       const sec = s % 60;
-      return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${sec < 10 ? "0" + sec : sec}`;
+      return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${
+        sec < 10 ? "0" + sec : sec
+      }`;
     },
     formatPace: (p: number) => {
       if (p === 0 || !isFinite(p) || p > 3600) return "-'--\"";
@@ -118,9 +123,12 @@ export const useRunningScreen = () => {
       resetCadenceAgg();
 
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-          Alert.alert("위치 권한 필요", "러닝 기록을 위해 위치 권한이 필요합니다.");
-          return;
+      if (status !== "granted") {
+        Alert.alert(
+          "위치 권한 필요",
+          "러닝 기록을 위해 위치 권한이 필요합니다."
+        );
+        return;
       }
 
       const loc = await Location.getCurrentPositionAsync({
@@ -146,9 +154,9 @@ export const useRunningScreen = () => {
       try {
         const userVoice: UserVoiceSetting = await fetchUserVoiceSetting();
         // Params에 값이 없었던 경우에만 서버값으로 덮어씀 (선택 사항)
-        if (voiceSetting === undefined) {
-            setIsVoiceEnabled(userVoice.voiceGuideEnabled);
-            setIsMale(userVoice.voiceType === "MALE");
+        if (voiceGuideEnabled === undefined) {
+          setIsVoiceEnabled(userVoice.voiceGuideEnabled);
+          setIsMale(userVoice.voiceType === "MALE");
         }
       } catch (e) {
         console.warn("Failed to fetch user voice setting", e);
@@ -206,7 +214,9 @@ export const useRunningScreen = () => {
 
   // ✅ 통합된 stopRun: 평균 케이던스 포함 및 ID 확보
   const stopRun = async () => {
-    const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+    const hasStarted = await Location.hasStartedLocationUpdatesAsync(
+      LOCATION_TASK_NAME
+    );
     if (hasStarted) await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
 
     stopStoreRun();
@@ -233,7 +243,9 @@ export const useRunningScreen = () => {
       calories: Math.floor(distance * 0.05),
       cadence: avgCadence(), // 누적된 샘플의 평균값
       routePolyline: encodePath(routeCoordinates),
-      startedAt: startTime ? toIsoPlus9(new Date(startTime)) : new Date().toISOString(),
+      startedAt: startTime
+        ? toIsoPlus9(new Date(startTime))
+        : new Date().toISOString(),
       endedAt: toIsoPlus9(new Date()),
     };
 
@@ -245,10 +257,10 @@ export const useRunningScreen = () => {
 
       // 만약 response에 ID가 없다면 목록에서 최신 ID 조회 (Fallback)
       if (!recordId) {
-          const records = await fetchMyRecords();
-          if (records?.length) {
-            recordId = Math.max(...records.map((r: any) => Number(r.id)));
-          }
+        const records = await fetchMyRecords();
+        if (records?.length) {
+          recordId = Math.max(...records.map((r: any) => Number(r.id)));
+        }
       }
     } catch (e) {
       console.error("기록 저장 실패:", e);
