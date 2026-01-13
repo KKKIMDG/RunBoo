@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   Modal,
   Dimensions,
-  useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getStyles } from "@/screens/records/components/PremiumModal.styles";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 const { width } = Dimensions.get("window");
 
@@ -27,7 +27,7 @@ const PremiumModal = ({
 }: PremiumModalProps) => {
 
   const { settings } = useSettings();
-  const colorScheme = useColorScheme() ?? "light";
+  const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
     return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
   }, [colorScheme, settings?.fontSize]);

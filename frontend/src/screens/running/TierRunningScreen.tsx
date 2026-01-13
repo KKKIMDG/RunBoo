@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
   Dimensions,
   Alert,
   ToastAndroid,
@@ -26,14 +25,20 @@ import { useTierRunningScreen } from "./useTierRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
 import { StatBox } from "@/components/StatBox";
 import { useCadence } from "@/hooks/useCadence";
+import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 const { width } = Dimensions.get("window");
 
 const TierRunningScreen = () => {
-  const colorScheme = useColorScheme() ?? "light";
-  const isDarkMode = colorScheme === "dark";
-  const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
 
+  const { settings } = useSettings();
+  const resolvedTheme = useResolvedTheme(settings?.themeMode);
+  const styles = useMemo(() => {
+    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+  }, [resolvedTheme, settings?.fontSize]);
+
+  const isDarkMode = resolvedTheme === "dark";
   const mapRef = useRef<MapView>(null);
   const [isTracking, setIsTracking] = useState(true);
 

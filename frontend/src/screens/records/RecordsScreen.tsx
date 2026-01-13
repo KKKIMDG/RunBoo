@@ -6,7 +6,6 @@ import {
     Text,
     FlatList,
     ActivityIndicator,
-    useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -26,6 +25,7 @@ import type { RecordDto, DashboardStatsDto } from "@/types/record";
 import { getStyles } from "./RecordsScreen.style";
 import AiAnalysisCard from "./components/AiAnalysisCard";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 type TopTab = "record" | "stats";
 type Mode = "NORMAL" | "GHOST" | "TIER";
@@ -53,7 +53,7 @@ function endOfDay(d: Date) {
 export default function RecordsScreen() {
 
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);

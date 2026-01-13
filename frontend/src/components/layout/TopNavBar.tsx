@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import {
-  StyleSheet,
   View,
   TouchableOpacity,
   Image,
   ActivityIndicator,
   Text,
-  useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useUserMe } from "@/contexts/UserMeContext";
@@ -15,6 +13,8 @@ import { useMemo } from "react";
 
 import { useFonts, FugazOne_400Regular } from "@expo-google-fonts/fugaz-one";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 export interface TopNavBarProps {
   onLeftPress?: () => void;
@@ -24,12 +24,13 @@ export interface TopNavBarProps {
 export function TopNavBar({ onLeftPress, onRightPress }: TopNavBarProps) {
   const { userMe } = useUserMe();
   const [imageLoading, setImageLoading] = useState(false);
-  const colorScheme = useColorScheme() ?? "light";
   const { hasUnread } = useUnreadNotifications();
 
+  const { settings } = useSettings();
+  const resolvedTheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
-    return getStyles(colorScheme);
-  }, [colorScheme]);
+    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+  }, [resolvedTheme, settings?.fontSize]);
 
   const [fontsLoaded] = useFonts({
     FugazOne_400Regular,

@@ -22,10 +22,10 @@ export default function WithdrawScreen({ navigation }: any) {
   const { userMe, logout } = useUserMe();
   /** 일반 설정 */
   const { settings } = useSettings();
-  const resolvedTheme = useResolvedTheme(settings?.themeMode);
+  const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
-    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
-  }, [resolvedTheme, settings?.fontSize]);
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   if (!userMe) return null;
 

@@ -1,7 +1,9 @@
-import React, { ReactNode } from "react";
+import React, {ReactNode, useMemo} from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 interface ScreenLayoutProps {
   title: string;
@@ -11,7 +13,10 @@ interface ScreenLayoutProps {
 }
 
 // 스타일을 생성하는 함수를 만듭니다.
-const getStyles = (scheme: "light" | "dark") =>
+const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -20,7 +25,7 @@ const getStyles = (scheme: "light" | "dark") =>
       backgroundColor: Colors[scheme].background, // 테마에 맞는 배경색 사용
     },
     title: {
-      fontSize: 22,
+      fontSize: scaleFont(22, fontSize),
       fontWeight: "900",
       color: Colors[scheme].text, // 테마에 맞는 텍스트 색상 사용
     },
@@ -43,13 +48,16 @@ export default function ScreenLayout({
   loading,
   children,
 }: ScreenLayoutProps) {
-  const colorScheme = useColorScheme() ?? "light";
-  const styles = getStyles(colorScheme); // 현재 테마에 맞는 스타일을 동적으로 생성
+    const { settings } = useSettings();
+    const resolvedTheme = useResolvedTheme(settings?.themeMode);
+    const styles = useMemo(() => {
+        return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+    }, [resolvedTheme, settings?.fontSize]);
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={Colors[colorScheme].tint} />
+        <ActivityIndicator color={Colors[resolvedTheme].tint} />
       </View>
     );
   }

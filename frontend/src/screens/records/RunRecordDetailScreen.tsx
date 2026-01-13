@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Platform,
-    useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
@@ -23,19 +22,20 @@ import { decodePolyline, LatLng } from "@/utils/polyline";
 import { Colors } from "@/constants/theme";
 import {useSettings} from "@/screens/Settings/useSettings";
 import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 type Params = { recordId: number };
 type R = RouteProp<{ params: Params }, "params">;
 
 export default function RunRecordDetailScreen() {
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const resolvedTheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
-        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-    }, [colorScheme, settings?.fontSize]);
+        return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+    }, [resolvedTheme, settings?.fontSize]);
 
 
-    const colors = Colors[colorScheme];
+    const colors = Colors[resolvedTheme];
 
     const navigation = useNavigation<any>();
     const route = useRoute<R>();

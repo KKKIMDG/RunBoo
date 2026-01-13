@@ -23,10 +23,10 @@ export default function ChangePasswordScreen({ navigation }: any) {
 
   /** 일반 설정 */
   const { settings } = useSettings();
-  const resolvedTheme = useResolvedTheme(settings?.themeMode);
+  const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
-    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
-  }, [resolvedTheme, settings?.fontSize]);
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   /**
    * 🔒 이 화면은 userMe가 존재할 때만 렌더됨

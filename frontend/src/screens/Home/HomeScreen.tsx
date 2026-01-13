@@ -16,7 +16,6 @@ import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps";
 import { TopNavBar } from "@/components/layout/TopNavBar";
 import { useHomeScreen, RunningMode } from "./useHomeScreen";
 import { getStyles } from "./HomeScreen.styles";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
 import { useNearbyRunners } from "@/hooks/useNearbyRunners";
 import { useMe } from "@/hooks/useMe";
@@ -32,6 +31,7 @@ import type { GhostProfileDto } from "@/types/ghost";
 // ✅ records 조회
 import { fetchMyRecords } from "@/services/record/recordsService";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 type HomeScreenProps = {
   navigation: { navigate: (screen: string, params?: any) => void };
@@ -46,10 +46,10 @@ const ModeTab: FC<{
 }> = ({ mode, activeMode, onPress, icon, scheme }) => {
 
   const { settings } = useSettings();
-  const colorScheme = useColorScheme() ?? "light";
+  const resolvedTheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
-    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-  }, [colorScheme, settings?.fontSize]);
+    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+  }, [resolvedTheme, settings?.fontSize]);
 
   const colors = Colors[scheme];
   return (
@@ -236,14 +236,14 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     }
   };
 
-  const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
   const { settings } = useSettings();
+  const resolvedTheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
-    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-  }, [colorScheme, settings?.fontSize]);
+    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+  }, [resolvedTheme, settings?.fontSize]);
 
-  const colors = Colors[colorScheme];
-  const borderColor = colorScheme === "dark" ? "#333333" : "#E0E0E0";
+  const colors = Colors[resolvedTheme];
+  const borderColor = resolvedTheme === "dark" ? "#333333" : "#E0E0E0";
 
   /** 고스트 모드 상태 */
   const [ghostSheetOpen, setGhostSheetOpen] = useState(false);
@@ -364,21 +364,21 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
             activeMode={activeMode}
             onPress={handleModeChange}
             icon="timer-outline"
-            scheme={colorScheme}
+            scheme={resolvedTheme}
           />
           <ModeTab
             mode="티어"
             activeMode={activeMode}
             onPress={handleModeChange}
             icon="ribbon-outline"
-            scheme={colorScheme}
+            scheme={resolvedTheme}
           />
           <ModeTab
             mode="고스트"
             activeMode={activeMode}
             onPress={handleModeChange}
             icon="body-outline"
-            scheme={colorScheme}
+            scheme={resolvedTheme}
           />
         </View>
 
@@ -626,7 +626,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
 
       <GhostSelectSheet
         visible={ghostSheetOpen}
-        scheme={colorScheme}
+        scheme={resolvedTheme}
         loading={ghostLoading}
         data={ghostProfiles}
         onClose={() => setGhostSheetOpen(false)}

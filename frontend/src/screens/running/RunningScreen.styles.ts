@@ -1,9 +1,13 @@
 import { StyleSheet, Platform, Dimensions } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
 const { width } = Dimensions.get("window");
 
-export const getStyles = (scheme: "light" | "dark" = "light") => {
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) => {
   // ✅ Colors 객체가 존재하는지 방어 코드 추가
   const activeColors = Colors?.[scheme] ??
     Colors?.light ?? {
@@ -36,13 +40,13 @@ export const getStyles = (scheme: "light" | "dark" = "light") => {
       zIndex: 9999,
     },
     countdownText: {
-      fontSize: 120,
+      fontSize: scaleFont(120, fontSize),
       fontWeight: "bold",
       color: activeColors.primary,
       fontVariant: ["tabular-nums"],
     },
     countdownLabel: {
-      fontSize: 24,
+      fontSize: scaleFont(24, fontSize),
       fontWeight: "600",
       color: activeColors.text,
       marginTop: 20,
@@ -76,7 +80,7 @@ export const getStyles = (scheme: "light" | "dark" = "light") => {
       marginRight: 8,
     },
     statusText: {
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "bold",
       color: activeColors.text,
     },
@@ -110,7 +114,7 @@ export const getStyles = (scheme: "light" | "dark" = "light") => {
       alignItems: "center",
     },
     statLabel: {
-      fontSize: 15,
+      fontSize: scaleFont(15, fontSize),
       color: subTextColor,
       fontWeight: "500",
       marginLeft: 6,
@@ -120,7 +124,7 @@ export const getStyles = (scheme: "light" | "dark" = "light") => {
       alignItems: "baseline",
     },
     statValue: {
-      fontSize: 24,
+      fontSize: scaleFont(24, fontSize),
       fontWeight: "700",
       color: activeColors.text,
       fontVariant: ["tabular-nums"],
@@ -130,7 +134,7 @@ export const getStyles = (scheme: "light" | "dark" = "light") => {
       color: scheme === "light" ? "#2D3269" : activeColors.primary,
     },
     statUnit: {
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       color: subTextColor,
       fontWeight: "500",
       marginLeft: 4,
@@ -151,7 +155,7 @@ export const getStyles = (scheme: "light" | "dark" = "light") => {
       marginBottom: 15,
     },
     chartTitle: {
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "800",
       color: activeColors.text,
       marginLeft: 8,
@@ -167,7 +171,7 @@ export const getStyles = (scheme: "light" | "dark" = "light") => {
       marginTop: 10,
     },
     chartLabelText: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       color: subTextColor,
       fontWeight: "600",
     },
@@ -218,5 +222,14 @@ export const getStyles = (scheme: "light" | "dark" = "light") => {
       justifyContent: "center",
       alignItems: "center",
     },
+    voiceSettingButton: {
+      fontSize: scaleFont(12, fontSize),
+      color: "#4A6EA9"
+    },
+    voiceOnOffButton:{
+      fontSize: scaleFont(12, fontSize),
+      marginLeft: 4,
+    }
+
   });
 };
