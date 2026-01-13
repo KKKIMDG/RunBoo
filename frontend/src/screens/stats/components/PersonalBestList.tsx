@@ -10,6 +10,8 @@ import {
     formatKm,
     formatPace,
 } from "../../records/components/format";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 function Row({
                  title,
@@ -44,11 +46,11 @@ function Row({
 }
 
 export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
-
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
     const longestDistance = pb.longestDistance;
     const longestDuration = pb.longestDuration;
@@ -89,7 +91,10 @@ export default function PersonalBestList({ pb }: { pb: PersonalBestsDto }) {
     );
 }
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
     StyleSheet.create({
         card: {
             backgroundColor: Colors[scheme].background,
@@ -139,11 +144,11 @@ export const getStyles = (scheme: "light" | "dark") =>
             marginTop: 6,
             color: Colors[scheme].tabIconDefault,
             fontWeight: "600",
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
         },
         rowValueRight: {
             color: Colors[scheme].primary,
-            fontSize: 20,
+            fontSize: scaleFont(20, fontSize),
             fontWeight: "800",
             textAlign: "right",
         },

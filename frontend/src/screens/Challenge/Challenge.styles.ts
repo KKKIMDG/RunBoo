@@ -1,8 +1,12 @@
 // src/screens/Challange/Challenge.styles.ts
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -22,7 +26,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       marginLeft: -4, // 버튼 아이콘의 여백 때문에 조금 왼쪽으로 당김
     },
     headerTitle: {
-      fontSize: 24,
+      fontSize: scaleFont(24, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
       lineHeight: 32,
@@ -31,7 +35,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       flex: 1, // 남은 공간 모두 차지
     },
     headerSubtitle: {
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       color: Colors[scheme].icon, // rgba(134, 142, 150, 1) 대응
       marginTop: 4,
     },
@@ -58,7 +62,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       backgroundColor: Colors[scheme].primary, // rgba(58, 74, 152, 1) 대응
     },
     tabButtonText: {
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       fontWeight: "600",
       color: Colors[scheme].icon,
       marginLeft: 8,
@@ -84,7 +88,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       alignSelf: "flex-start",
     },
     summaryHeaderText: {
-      fontSize: 16,
+      fontSize: scaleFont(16, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
       marginLeft: 8,
@@ -93,13 +97,13 @@ export const getStyles = (scheme: "light" | "dark") =>
       alignItems: "center",
     },
     summaryValue: {
-      fontSize: 36,
+      fontSize: scaleFont(36, fontSize),
       fontWeight: "700",
       color: Colors[scheme].primary, // rgba(46, 61, 110, 1) 계열
       letterSpacing: 0.37,
     },
     summaryLabel: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       color: Colors[scheme].icon,
       marginTop: 4,
     },
@@ -127,18 +131,18 @@ export const getStyles = (scheme: "light" | "dark") =>
       flex: 1,
     },
     cardTitle: {
-      fontSize: 18,
+      fontSize: scaleFont(18, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
       marginBottom: 4,
     },
     cardDate: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       color: Colors[scheme].icon,
       marginBottom: 4,
     },
     cardReward: {
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       color: Colors[scheme].primary,
     },
     listContainer: {
@@ -171,7 +175,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       gap: 8,
     },
     challengeTitle: {
-      fontSize: 18,
+      fontSize: scaleFont(18, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
     },
@@ -181,12 +185,12 @@ export const getStyles = (scheme: "light" | "dark") =>
       borderRadius: 10,
     },
     levelText: {
-      fontSize: 11,
+      fontSize: scaleFont(11, fontSize),
       fontWeight: "700",
       color: "#FFF",
     },
     challengeDescription: {
-      fontSize: 14,
+      fontSize: scaleFont(14, fontSize),
       color: Colors[scheme].icon,
       marginBottom: 20,
       lineHeight: 20,
@@ -200,11 +204,11 @@ export const getStyles = (scheme: "light" | "dark") =>
       marginBottom: 8,
     },
     progressLabel: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       color: Colors[scheme].icon,
     },
     progressValue: {
-      fontSize: 12,
+      fontSize: scaleFont(12, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
     },
@@ -237,12 +241,12 @@ export const getStyles = (scheme: "light" | "dark") =>
       marginRight: 10,
     },
     infoLabel: {
-      fontSize: 10,
+      fontSize: scaleFont(10, fontSize),
       color: Colors[scheme].icon,
       marginBottom: 2,
     },
     infoValue: {
-      fontSize: 13,
+      fontSize: scaleFont(13, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
     },

@@ -2,8 +2,12 @@
 
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
     StyleSheet.create({
         safeArea: {
             flex: 1,
@@ -15,14 +19,14 @@ export const getStyles = (scheme: "light" | "dark") =>
             paddingTop: 20,
         },
         title: {
-            fontSize: 24,
+            fontSize: scaleFont(24, fontSize),
             fontWeight: "700",
             color: Colors[scheme].text,
             lineHeight: 32,
             marginLeft: 12,
         },
         subTitle: {
-            fontSize: 14,
+            fontSize: scaleFont(14, fontSize),
             color: Colors[scheme].icon,
             marginTop: 4,
             marginLeft: 12,

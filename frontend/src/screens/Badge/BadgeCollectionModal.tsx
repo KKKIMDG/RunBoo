@@ -1,25 +1,29 @@
-import React from "react";
+import React, {useMemo} from "react";
 import {
   View,
   Text,
   TouchableWithoutFeedback,
   TouchableOpacity,
   FlatList,
-  Image, // ✅ 아이콘 이미지 출력을 위해 추가
-  ActivityIndicator, // ✅ 로딩 표시를 위해 추가
+  Image, // 아이콘 이미지 출력을 위해 추가
+  ActivityIndicator, // 로딩 표시를 위해 추가
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
 import { getStyles } from "./BadgeCollection.styles";
-import { useBadge } from "@/screens/Badge/useBadge"; // ✅ 만든 훅 임포트
+import { useBadge } from "@/screens/Badge/useBadge"; // 만든 훅 임포트
 import { UserBadgeDto } from "@/types/badge";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 export default function BadgeCollectionModal({ navigation }: any) {
-  const colorScheme = useColorScheme() ?? "light";
-  const styles = getStyles(colorScheme);
+    const { settings } = useSettings();
+    const colorScheme = useColorScheme() ?? "light";
+    const styles = useMemo(() => {
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
-  // ✅ useBadge 훅을 통해 서버 데이터를 가져옵니다 (유저 ID 1번 고정)
+  // useBadge 훅을 통해 서버 데이터를 가져옵니다 (유저 ID 1번 고정)
     const { badges, loading, badgeCount } = useBadge();
 
   // 개별 배지 아이템 렌더링
@@ -56,7 +60,7 @@ export default function BadgeCollectionModal({ navigation }: any) {
         <View style={styles.indicator} />
 
         <View style={styles.header}>
-          {/* ✅ [API 연동] 전체 획득 개수를 동적으로 표시 */}
+          {/* [API 연동] 전체 획득 개수를 동적으로 표시 */}
           <Text style={styles.headerTitle}>배지 보관함 ({badgeCount})</Text>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -67,7 +71,7 @@ export default function BadgeCollectionModal({ navigation }: any) {
         </View>
 
         {loading ? (
-          // ✅ 로딩 중일 때 표시
+          // 로딩 중일 때 표시
           <View
             style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
           >
@@ -75,7 +79,7 @@ export default function BadgeCollectionModal({ navigation }: any) {
           </View>
         ) : (
           <FlatList
-            /* ✅ [API 연동] 서버에서 받아온 실제 배지 배열 연결 */
+            /* [API 연동] 서버에서 받아온 실제 배지 배열 연결 */
               data={badges}
               keyExtractor={(item) => item.userBadgeId.toString()}
               renderItem={renderBadgeItem}

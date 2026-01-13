@@ -14,6 +14,8 @@ import {
 } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 type Props = {
     fromDate: Date | null;
@@ -55,11 +57,11 @@ export default function DateRangeFilter({
                                             onChangeToDate,
                                             onReset,
                                         }: Props) {
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
-
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
     const [expanded, setExpanded] = useState(false);
     const [pickerTarget, setPickerTarget] = useState<"from" | "to" | null>(null);
@@ -224,7 +226,10 @@ export default function DateRangeFilter({
     );
 }
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
     StyleSheet.create({
         wrap: {
             marginBottom: 0,
@@ -279,7 +284,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         pickLabel: {
             color: Colors[scheme].icon,
             fontWeight: "900",
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
         },
         pickValue: {
             marginTop: 4,
@@ -299,13 +304,13 @@ export const getStyles = (scheme: "light" | "dark") =>
         resetText: {
             color: Colors[scheme].error,
             fontWeight: "900",
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
         },
         hint: {
             marginTop: 8,
             color: Colors[scheme].subtext,
             fontWeight: "700",
-            fontSize: 12,
+            fontSize: scaleFont(12, fontSize),
         },
 
         // iOS Modal
