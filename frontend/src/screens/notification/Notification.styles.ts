@@ -1,8 +1,12 @@
 // src/screens/Notification/Notification.styles.ts
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
     StyleSheet.create({
         container: {
             flex: 1,
@@ -18,7 +22,7 @@ export const getStyles = (scheme: "light" | "dark") =>
             paddingHorizontal: 20,
         },
         headerTitle: {
-            fontSize: 18,
+            fontSize: scaleFont(18, fontSize),
             fontWeight: "800",
             color: Colors[scheme].text,
         },
@@ -58,7 +62,7 @@ export const getStyles = (scheme: "light" | "dark") =>
             backgroundColor: Colors[scheme].primary,
         },
         tabText: {
-            fontSize: 14,
+            fontSize: scaleFont(14, fontSize),
             fontWeight: "600",
             color: Colors[scheme].icon,
         },
@@ -75,7 +79,7 @@ export const getStyles = (scheme: "light" | "dark") =>
             justifyContent: "center",
         },
         badgeText: {
-            fontSize: 11,
+            fontSize: scaleFont(11, fontSize),
             fontWeight: "700",
             color: "#FFF",
         },
@@ -92,7 +96,7 @@ export const getStyles = (scheme: "light" | "dark") =>
             paddingTop: 6,
         },
         readAllText: {
-            fontSize: 14,
+            fontSize: scaleFont(14, fontSize),
             fontWeight: "700",
             color: "#212529",
             paddingVertical: 8,
@@ -136,18 +140,18 @@ export const getStyles = (scheme: "light" | "dark") =>
             flex: 1,
         },
         cardTitle: {
-            fontSize: 15,
+            fontSize: scaleFont(15, fontSize),
             fontWeight: "700",
             color: Colors[scheme].text,
             marginBottom: 4,
         },
         cardMessage: {
-            fontSize: 13,
+            fontSize: scaleFont(13, fontSize),
             color: Colors[scheme].icon,
             marginBottom: 6,
         },
         cardDate: {
-            fontSize: 11,
+            fontSize: scaleFont(11, fontSize),
             color: Colors[scheme].icon,
         },
 
@@ -157,17 +161,17 @@ export const getStyles = (scheme: "light" | "dark") =>
         },
         emptyTitle: {
             marginTop: 12,
-            fontSize: 16,
+            fontSize: scaleFont(16, fontSize),
             fontWeight: "700",
             color: Colors[scheme].text,
         },
         emptyDesc: {
             marginTop: 6,
-            fontSize: 13,
+            fontSize: scaleFont(13, fontSize),
             color: Colors[scheme].icon,
         },
         icon:{
             color: Colors[scheme].icon,
-            fontSize: 22,
+            fontSize: scaleFont(22, fontSize),
         }
     });

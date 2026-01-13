@@ -6,7 +6,7 @@ import {
     Text,
     FlatList,
     ActivityIndicator,
-    RefreshControl, useColorScheme,
+    useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -25,6 +25,7 @@ import type { RecordDto, DashboardStatsDto } from "@/types/record";
 
 import { getStyles } from "./RecordsScreen.style";
 import AiAnalysisCard from "./components/AiAnalysisCard";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 type TopTab = "record" | "stats";
 type Mode = "NORMAL" | "GHOST" | "TIER";
@@ -51,18 +52,18 @@ function endOfDay(d: Date) {
 
 export default function RecordsScreen() {
 
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
-
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
+
 
     const tabBarHeight = useSafeBottomTabBarHeight();
 
     const [activeTab, setActiveTab] = useState<TopTab>("record");
 
     const [recordsLoading, setRecordsLoading] = useState(true);
-    const [recordsRefreshing, setRecordsRefreshing] = useState(false);
     const [records, setRecords] = useState<RecordDto[]>([]);
     const [recordsError, setRecordsError] = useState<string | null>(null);
 
@@ -72,7 +73,6 @@ export default function RecordsScreen() {
     const [mode, setMode] = useState<Mode | null>(null);
 
     const [statsLoading, setStatsLoading] = useState(true);
-    const [statsRefreshing, setStatsRefreshing] = useState(false);
     const [stats, setStats] = useState<DashboardStatsDto | null>(null);
     const [statsError, setStatsError] = useState<string | null>(null);
 

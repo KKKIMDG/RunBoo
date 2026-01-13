@@ -3,8 +3,12 @@
 // - 필요 시 theme/토큰으로 추상화하세요.
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+    ) =>
   StyleSheet.create({
     root: {
       position: "absolute", // 화면에 고정
@@ -44,7 +48,7 @@ export const getStyles = (scheme: "light" | "dark") =>
       backgroundColor: Colors[scheme].primary,
     },
     tabText: {
-      fontSize: 10,
+      fontSize: scaleFont(10, fontSize),
       marginTop: 4,
     },
     activeText: {

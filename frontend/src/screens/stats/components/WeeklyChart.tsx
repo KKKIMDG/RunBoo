@@ -4,6 +4,8 @@ import React, { useMemo } from "react";
 import { View, Text, StyleSheet, useColorScheme } from "react-native";
 import type { WeeklySummaryDto } from "@/types/record";
 import { Colors } from "@/constants/theme";
+import {useSettings} from "@/screens/Settings/useSettings";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
 const DAYS = ["월", "화", "수", "목", "금", "토", "일"];
 
@@ -21,11 +23,11 @@ function getMonStartIndex(item: any): number | null {
 }
 
 export default function WeeklyChart({ weekly }: { weekly: WeeklySummaryDto }) {
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
-
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
     // ✅ 주간 총 러닝 횟수
     const totalRuns = weekly.items.reduce((sum, it) => sum + (it.runs ?? 0), 0);
@@ -87,7 +89,10 @@ export default function WeeklyChart({ weekly }: { weekly: WeeklySummaryDto }) {
     );
 }
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
     StyleSheet.create({
         card: {
             backgroundColor: Colors[scheme].background,
@@ -147,7 +152,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         },
         km: {
             marginTop: 2,
-            fontSize: 11,
+            fontSize: scaleFont(11, fontSize),
             color: Colors[scheme].text,
             fontWeight: "700",
         },

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, useColorScheme } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { getStyles } from "./BottomNavBar.styles";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 export interface BottomNavBarProps {
   activeTab?: string;
@@ -18,11 +19,11 @@ export function BottomNavBar({
   activeTab = "홈",
   onTabPress,
 }: BottomNavBarProps) {
+  const { settings } = useSettings();
   const colorScheme = useColorScheme() ?? "light";
-
   const styles = useMemo(() => {
-    return getStyles(colorScheme);
-  }, [colorScheme]);
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
   const tabs: {
     name: string;
     icon: IoniconName;
