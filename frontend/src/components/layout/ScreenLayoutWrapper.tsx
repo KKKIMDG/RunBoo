@@ -3,8 +3,9 @@ import { View, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TopNavBar, TopNavBarProps } from './TopNavBar';
 import { BottomNavBar, BottomNavBarProps } from './BottomNavBar';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
+import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 interface ScreenLayoutProps {
   children: ReactNode;
@@ -21,16 +22,17 @@ export function Layout({
   topNavProps,
   bottomNavProps,
 }: ScreenLayoutProps) {
-  const colorScheme = useColorScheme() ?? 'light';
+  const { settings } = useSettings();
+  const resolvedTheme = useResolvedTheme(settings?.themeMode);
   
   const styles = useMemo(() => StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: Colors[colorScheme].background,
+      backgroundColor: Colors[resolvedTheme].background,
     },
     container: {
       flex: 1,
-      backgroundColor: Colors[colorScheme].background,
+      backgroundColor: Colors[resolvedTheme].background,
     },
     content: {
       flex: 1,
@@ -40,7 +42,7 @@ export function Layout({
         default: 75,
       }) : 0,
     },
-  }), [colorScheme, showBottomNav]);
+  }), [resolvedTheme, showBottomNav]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>

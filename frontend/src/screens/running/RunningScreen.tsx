@@ -34,6 +34,8 @@ import { useMapFocusing } from "./useRunCore";
 
 import * as Speech from "expo-speech";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 const { width } = Dimensions.get("window");
 
@@ -41,12 +43,13 @@ const RunningScreen = () => {
   const isDarkMode = useColorScheme() === "dark";
 
     const mapRef = useRef<MapView>(null);
-
-    const colorScheme = useColorScheme() ?? "light";
+    const { settings } = useSettings();
+    const colorScheme = useResolvedTheme(settings?.themeMode);
 
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
+
 
 
   // ✅ 훅에서 모든 상태와 액션을 가져옵니다.

@@ -7,7 +7,6 @@ import {
     StyleSheet,
     TouchableOpacity,
     Platform,
-    useColorScheme,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import MapView, { Polyline, PROVIDER_GOOGLE } from "react-native-maps";
@@ -26,10 +25,11 @@ import { decodePolyline, LatLng } from "@/utils/polyline";
 import { Colors } from "@/constants/theme";
 import {useSettings} from "@/screens/Settings/useSettings";
 import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 export default function RecordCard({ item }: { item: RecordDto }) {
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme =  useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);

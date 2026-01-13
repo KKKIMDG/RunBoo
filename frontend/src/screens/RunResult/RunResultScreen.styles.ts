@@ -1,9 +1,13 @@
-import { Dimensions, StyleSheet, Platform } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
+import {FontSizeSetting} from "@/utils/fontScale";
 
 const { width } = Dimensions.get("window");
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
   StyleSheet.create({
     container: {
       flex: 1,

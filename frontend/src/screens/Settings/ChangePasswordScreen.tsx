@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,13 +16,14 @@ import { getStyles } from "./ChangePasswordScreen.styles";
 import { changePassword } from "@/services/user/userService";
 import { useUserMe } from "@/contexts/UserMeContext";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 export default function ChangePasswordScreen({ navigation }: any) {
   const { userMe, logout } = useUserMe();
 
   /** 일반 설정 */
   const { settings } = useSettings();
-  const colorScheme = useColorScheme() ?? "light";
+  const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
     return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
   }, [colorScheme, settings?.fontSize]);

@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
   Dimensions,
   Alert,
   ToastAndroid,
@@ -33,10 +32,14 @@ import { useMapFocusing } from "./useRunCore";
 const { width } = Dimensions.get("window");
 
 const TierRunningScreen = () => {
-  const colorScheme = useColorScheme() ?? "light";
-  const isDarkMode = colorScheme === "dark";
-  const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
 
+  const { settings } = useSettings();
+  const resolvedTheme = useResolvedTheme(settings?.themeMode);
+  const styles = useMemo(() => {
+    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+  }, [resolvedTheme, settings?.fontSize]);
+
+  const isDarkMode = resolvedTheme === "dark";
   const mapRef = useRef<MapView>(null);
 
   const { state, actions, utils } = useTierRunningScreen();

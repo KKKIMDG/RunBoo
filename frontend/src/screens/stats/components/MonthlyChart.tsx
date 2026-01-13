@@ -1,11 +1,12 @@
 //frontend/src/screens/stats/components/MonthlyChart.tsx
 
 import React, {useMemo} from "react";
-import {View, Text, StyleSheet, useColorScheme} from "react-native";
+import {View, Text, StyleSheet } from "react-native";
 import type { MonthlySummaryDto } from "@/types/record";
 import {Colors} from "@/constants/theme";
 import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 function km(m: number) {
     return (m / 1000).toFixed(2);
@@ -18,7 +19,7 @@ function hours(sec: number) {
 export default function MonthlyChart({ monthly }: { monthly: MonthlySummaryDto }) {
 
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);

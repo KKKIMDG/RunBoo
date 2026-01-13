@@ -7,9 +7,9 @@ import CourseCard, { CourseType } from '@/components/CourseCard';
 import FilterChip from '@/components/FilterChip';
 import { useCourseScreen, FilterType } from './useCourseScreen';
 import { getStyles } from './CourseScreen.styles';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 // 상단 필터 버튼 데이터
 const FILTERS: { label: string; type: FilterType }[] = [
@@ -22,7 +22,7 @@ export default function CourseScreen() {
     const { activeFilter, courses, loading, handlers } = useCourseScreen();
 
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);

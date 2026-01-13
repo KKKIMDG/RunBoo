@@ -11,6 +11,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "react-native";
 import { getStyles } from "./SettingItem.styles";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 /**
  * Select 옵션 타입
@@ -117,12 +118,12 @@ export default function SettingItem({
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const itemRef = useRef<View>(null);
 
-  const colorScheme = useColorScheme() ?? "light";
   const { settings } = useSettings();
+  const resolvedTheme = useResolvedTheme(settings?.themeMode);
 
   const styles = useMemo(() => {
-    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-  }, [colorScheme, settings?.fontSize]);
+    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+  }, [resolvedTheme, settings?.fontSize]);
 
   useEffect(() => {
     Animated.timing(rotateAnim, {

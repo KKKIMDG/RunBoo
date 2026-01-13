@@ -13,11 +13,11 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 
 // ✅ API 및 훅 import
 import { api } from '@/services/api';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { useMe } from '@/hooks/useMe';
 import {useSettings} from "@/screens/Settings/useSettings";
-import {FontSizeSetting, scaleFont} from "@/utils/fontScale"; // ✅ 내 정보(userId) 가져오기 위해 추가
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme"; // ✅ 내 정보(userId) 가져오기 위해 추가
 
 interface CourseDetailType {
     id: number;
@@ -39,13 +39,13 @@ export default function CourseDetailScreen({ route, navigation }: any) {
     // ✅ 로그인 유저 정보 가져오기
     const { me } = useMe();
 
-    const colorScheme = useColorScheme() ?? "light";
-    const colors = Colors[colorScheme];
     const { settings } = useSettings();
+    const colorScheme =  useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);
 
+    const colors = Colors[colorScheme];
     useEffect(() => {
         if (!course) {
             Alert.alert('오류', '코스 정보가 없습니다.');

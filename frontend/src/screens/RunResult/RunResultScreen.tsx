@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  useColorScheme,
   StyleSheet,
   Platform,
 } from "react-native";
@@ -24,6 +23,8 @@ import * as Sharing from "expo-sharing";
 
 import { getStyles } from "./RunResultScreen.styles";
 import { Coordinate } from "@/utils/runUtils";
+import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 type RunResultRouteParams = {
   distanceM: number;
@@ -47,8 +48,11 @@ const RunResultScreen = () => {
     routeCoordinates,
     cadenceSpm,
   } = route.params;
-  const colorScheme = useColorScheme() ?? "light";
-  const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
+  const { settings } = useSettings();
+  const resolvedTheme = useResolvedTheme(settings?.themeMode);
+  const styles = useMemo(() => {
+    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+  }, [resolvedTheme, settings?.fontSize]);
 
   const storyRef = useRef<any>(null);
   const mapRef = useRef<MapView>(null);
@@ -115,7 +119,7 @@ const RunResultScreen = () => {
     }
   };
 
-  const isDarkMode = colorScheme === "dark";
+  const isDarkMode = resolvedTheme === "dark";
 
   return (
     <SafeAreaView style={styles.container}>
