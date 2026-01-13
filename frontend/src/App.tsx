@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Platform, useColorScheme, View } from "react-native";
+import { Platform, View } from "react-native";
 import {
   NavigationContainer,
   DefaultTheme,
@@ -12,7 +12,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import PermissionGuard from "@/components/auth/PermissionGuard";
 import RootNavigator from "./navigation/root/RootNavigator";
 import { setAccessToken } from "@/services/api";
-import { Colors } from "@/constants/theme";
 import { AuthService } from "@/services/auth/authService";
 import { authEventBus } from "@/services/auth/authEvents";
 import { UserMeProvider } from "@/contexts/UserMeContext";
@@ -22,6 +21,8 @@ import {
   registerPushDevice,
 } from "@/services/notification/notificationService";
 import { getFcmToken } from "@/services/notification/fcmToken";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -29,8 +30,6 @@ WebBrowser.maybeCompleteAuthSession();
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const colorScheme = useColorScheme();
-
   /** 앱 전체 준비 완료 여부 (스플래시 제어용) */
   const [appReady, setAppReady] = useState(false);
 
@@ -138,31 +137,54 @@ export default function App() {
     return <View style={{ flex: 1, backgroundColor: "#000000" }} />;
   }
 
-  /** 테마 설정 */
-  const MyTheme = {
-    ...(colorScheme === "dark" ? DarkTheme : DefaultTheme),
-    colors: {
-      ...(colorScheme === "dark" ? DarkTheme.colors : DefaultTheme.colors),
-      primary: Colors[colorScheme === "dark" ? "dark" : "light"].primary,
-      background: Colors[colorScheme === "dark" ? "dark" : "light"].background,
-      card: Colors[colorScheme === "dark" ? "dark" : "light"].card,
-      text: Colors[colorScheme === "dark" ? "dark" : "light"].text,
-    },
-  };
+  // /** 테마 설정 */
+  // const MyTheme = {
+  //   ...(colorScheme === "dark" ? DarkTheme : DefaultTheme),
+  //   colors: {
+  //     ...(colorScheme === "dark" ? DarkTheme.colors : DefaultTheme.colors),
+  //     primary: Colors[colorScheme === "dark" ? "dark" : "light"].primary,
+  //     background: Colors[colorScheme === "dark" ? "dark" : "light"].background,
+  //     card: Colors[colorScheme === "dark" ? "dark" : "light"].card,
+  //     text: Colors[colorScheme === "dark" ? "dark" : "light"].text,
+  //   },
+  // };
+  function AppInner({
+                      isLoggedIn,
+                      onLoginSuccess,
+                      onLogout,
+                    }: {
+    isLoggedIn: boolean;
+    onLoginSuccess: (token: string) => void;
+    onLogout: () => void;
+  }) {
+    const { settings } = useSettings();
+    const resolvedTheme = useResolvedTheme(settings?.themeMode);
 
-  return (
-    <NavigationContainer theme={MyTheme}>
-      <UserSettingProvider>
-        <UserMeProvider>
+    return (
+        <NavigationContainer
+            theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
+        >
           <PermissionGuard>
             <RootNavigator
+                isLoggedIn={isLoggedIn}
+                onLoginSuccess={onLoginSuccess}
+                onLogout={onLogout}
+            />
+          </PermissionGuard>
+        </NavigationContainer>
+    );
+  }
+
+
+  return (
+      <UserSettingProvider>
+        <UserMeProvider>
+          <AppInner
               isLoggedIn={isLoggedIn}
               onLoginSuccess={handleLoginSuccess}
               onLogout={handleLogout}
-            />
-          </PermissionGuard>
+          />
         </UserMeProvider>
       </UserSettingProvider>
-    </NavigationContainer>
   );
 }

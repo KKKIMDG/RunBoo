@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +16,7 @@ import { getStyles } from "./ChangePasswordScreen.styles";
 import { verifyCurrentPassword } from "@/services/user/userService";
 import { useUserMe } from "@/contexts/UserMeContext";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 export default function VerifyCurrentPasswordScreen({ navigation }: any) {
   const { userMe } = useUserMe();
@@ -24,10 +24,10 @@ export default function VerifyCurrentPasswordScreen({ navigation }: any) {
 
   /** 일반 설정 */
   const { settings } = useSettings();
-  const colorScheme = useColorScheme() ?? "light";
+  const resolvedTheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
-    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-  }, [colorScheme, settings?.fontSize]);
+    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+  }, [resolvedTheme, settings?.fontSize]);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [isHidden, setIsHidden] = useState(true);

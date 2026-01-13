@@ -9,19 +9,20 @@ import {
   ActivityIndicator, // 로딩 표시를 위해 추가
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Colors } from "@/constants/theme";
 import { getStyles } from "./BadgeCollection.styles";
 import { useBadge } from "@/screens/Badge/useBadge"; // 만든 훅 임포트
 import { UserBadgeDto } from "@/types/badge";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 export default function BadgeCollectionModal({ navigation }: any) {
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const resolvedTheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
-        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-    }, [colorScheme, settings?.fontSize]);
+        return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
+    }, [resolvedTheme, settings?.fontSize]);
+
 
   // useBadge 훅을 통해 서버 데이터를 가져옵니다 (유저 ID 1번 고정)
     const { badges, loading, badgeCount } = useBadge();
@@ -66,7 +67,7 @@ export default function BadgeCollectionModal({ navigation }: any) {
             onPress={() => navigation.goBack()}
             style={styles.closeButton}
           >
-            <Ionicons name="close" size={24} color={Colors[colorScheme].text} />
+            <Ionicons name="close" size={24} color={Colors[resolvedTheme].text} />
           </TouchableOpacity>
         </View>
 
