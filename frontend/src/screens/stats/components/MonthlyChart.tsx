@@ -4,6 +4,8 @@ import React, {useMemo} from "react";
 import {View, Text, StyleSheet, useColorScheme} from "react-native";
 import type { MonthlySummaryDto } from "@/types/record";
 import {Colors} from "@/constants/theme";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import {useSettings} from "@/screens/Settings/useSettings";
 
 function km(m: number) {
     return (m / 1000).toFixed(2);
@@ -15,11 +17,11 @@ function hours(sec: number) {
 
 export default function MonthlyChart({ monthly }: { monthly: MonthlySummaryDto }) {
 
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
-
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
     return (
         <View style={styles.card}>
@@ -50,7 +52,10 @@ export default function MonthlyChart({ monthly }: { monthly: MonthlySummaryDto }
     );
 }
 
-export const getStyles = (scheme: "light" | "dark" ) =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) =>
     StyleSheet.create({
     card: {
         backgroundColor: Colors[scheme].background,
@@ -92,13 +97,13 @@ export const getStyles = (scheme: "light" | "dark" ) =>
     },
     boxValue1: {
         marginTop: 6,
-        fontSize: 25,
+        fontSize:  scaleFont(25, fontSize),
         fontWeight: "900",
         color: Colors[scheme].primary,
     },
     boxValue2: {
         marginTop: 6,
-        fontSize: 25,
+        fontSize:  scaleFont(25, fontSize),
         fontWeight: "900",
         color: Colors[scheme].primary,
     },

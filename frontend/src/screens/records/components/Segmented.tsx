@@ -7,6 +7,8 @@ import {
     useColorScheme,
 } from "react-native";
 import { Colors } from "@/constants/theme";
+import {useSettings} from "@/screens/Settings/useSettings";
+import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 
 type Props = {
     leftLabel: string;
@@ -21,11 +23,11 @@ export default function Segmented({
                                       value,
                                       onChange,
                                   }: Props) {
+    const { settings } = useSettings();
     const colorScheme = useColorScheme() ?? "light";
-
     const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
     const leftActive = value === "left";
     const rightActive = value === "right";
@@ -55,7 +57,10 @@ export default function Segmented({
     );
 }
 
-export const getStyles = (scheme: "light" | "dark") =>
+export const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+    ) =>
     StyleSheet.create({
         wrap: {
             flexDirection: "row",
@@ -87,7 +92,7 @@ export const getStyles = (scheme: "light" | "dark") =>
         },
 
         txt: {
-            fontSize: 14,
+            fontSize: scaleFont(14, fontSize),
             fontWeight: "600",
             color: Colors[scheme].icon,
         },
