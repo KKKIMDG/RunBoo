@@ -1,14 +1,15 @@
+// frontend/src/screens/ghost/GhostRunScreen.tsx
+
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import {
     View,
     Text,
     StyleSheet,
     TouchableOpacity,
-    Pressable,
     ScrollView,
     Dimensions,
-    Platform,
     useColorScheme,
+    Alert, Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -19,25 +20,22 @@ import { Colors } from "@/constants/theme";
 import { useGhostRunScreen } from "./useGhostRunScreen";
 import { StatBox } from "@/components/StatBox";
 import { useCadence } from "@/hooks/useCadence";
+import { useRunningVoiceFeedback } from "@/hooks/useRunningVoiceFeedback";
 
 const { width: W } = Dimensions.get("window");
 
 type IoniconName =
-    | "volume-high-outline"
-    | "volume-mute-outline"
+    | "volume-high"
+    | "volume-mute"
     | "pause"
     | "play"
     | "stop"
     | "analytics-outline"
-    | "medal-outline"
-    | "glasses-sharp";
+    | "medal-outline";
 
 export default function GhostRunScreen() {
     const colorScheme = (useColorScheme() ?? "light") as "light" | "dark";
-
-    const styles = useMemo(() => {
-        return getStyles(colorScheme);
-    }, [colorScheme]);
+    const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
 
     const c = Colors[colorScheme] as any;
     const colors = {
@@ -46,14 +44,16 @@ export default function GhostRunScreen() {
         card: c?.card ?? c?.background ?? "#FFFFFF",
         text: c?.text ?? "#111111",
         text2: c?.text2 ?? c?.text ?? "#222222",
-        primary: c?.primary ?? "#2F3A8F",
+        primary: c?.primary ?? "#4A6EA9",
         border: c?.border ?? "#E5E7EB",
         mutedText: c?.mutedText ?? c?.icon ?? c?.subtext ?? "#6B7280",
         danger: c?.danger ?? "#ff3b30",
         primaryButtonText: c?.primaryButtonText ?? "#ffffff",
     };
 
-    const [isSoundOn, setIsSoundOn] = useState(true);
+    // ✅ RunningScreen과 동일한 방식(화면 단 토글)
+    const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+    const [isMale, setIsMale] = useState(true);
 
     const { state, actions, utils } = useGhostRunScreen();
     const {
@@ -72,227 +72,128 @@ export default function GhostRunScreen() {
         paceDiffSec,
     } = state;
 
-    // 케이던스 관련 훅
+    const { pauseRun, resumeRun, stopRun } = actions;
+    const { formatTime, formatPace, formatDiffBadge } = utils;
+
+    // ✅ 케이던스
     const cadence = useCadence({
         enabled: !isReady && !isPaused,
         windowSec: 5,
     });
 
-    // ✅ [추가] cadence 샘플을 훅에 전달 (평균 계산은 훅에서)
     useEffect(() => {
         actions.pushCadenceSample(cadence);
     }, [cadence]);
 
-    const { pauseRun, resumeRun, stopRun } = actions;
-    const { formatTime, formatPace, formatDiffBadge } = utils;
+    // ✅ 음성 훅
+    const {
+        checkAndSpeak,
+        speakStart,
+        speakPause,
+        speakResume,
+        speakStop,
+        checkAndSpeakGhostDiff,
+    } = useRunningVoiceFeedback({
+        isMale,
+        targetDistance: ghostTotalDistanceM || 0,
+        recommendedPaceSec: ghostAvgPaceSec || undefined,
+    });
 
-    const totalKm = ghostTotalDistanceM > 0 ? ghostTotalDistanceM / 1000 : 0;
-
-    const youRatio =
-        ghostTotalDistanceM > 0
-            ? Math.max(0, Math.min(1, distanceM / ghostTotalDistanceM))
-            : 0;
-    const ghostRatio =
-        ghostTotalDistanceM > 0
-            ? Math.max(0, Math.min(1, ghostDistanceM / ghostTotalDistanceM))
-            : 0;
-
-    const youKmText = (distanceM / 1000).toFixed(2);
-    const ghostKmText = (ghostDistanceM / 1000).toFixed(2);
-
-    const midKm = totalKm > 0 ? totalKm / 2 : 0;
-    const markRight = totalKm > 0 ? `${totalKm.toFixed(1)}km` : "-";
-    const markMid = totalKm > 0 ? `${midKm.toFixed(1)}km` : "-";
-
-    const [rtPaceData, setRtPaceData] = useState<number[]>([0, 0]);
-    const lastAddedRef = useRef<number | null>(null);
-    const startedRef = useRef(false);
-
-    // ============================================================
-    // ✅ [음성] 공통 speak 유틸 + "말하는 중" 원천 차단
-    // ============================================================
-    const speakingRef = useRef(false);
-
-    const speak = (text: string, onDone?: () => void) => {
-        if (!isSoundOn) return;
-
-        speakingRef.current = true;
-        Speech.stop();
-
-        Speech.speak(text, {
-            language: "ko-KR",
-            rate: 1.0,
-            pitch: 1.0,
-            onDone: () => {
-                speakingRef.current = false;
-                onDone?.();
-            },
-            onStopped: () => {
-                speakingRef.current = false;
-            },
-            onError: () => {
-                speakingRef.current = false;
-            },
-        });
+    // ✅ RunningScreen과 동일: 음성 토글 시 발화 즉시 정지
+    const toggleVoice = () => {
+        if (isVoiceEnabled) Speech.stop();
+        setIsVoiceEnabled(!isVoiceEnabled);
     };
 
-    // ✅ 사운드 끌 때 즉시 정지
-    useEffect(() => {
-        if (!isSoundOn) {
-            speakingRef.current = false;
-            Speech.stop();
-        }
-    }, [isSoundOn]);
-
-    // ✅ 화면 나갈 때 음성 정지
+    // ✅ 언마운트 시 발화 정리
     useEffect(() => {
         return () => {
-            speakingRef.current = false;
             Speech.stop();
         };
     }, []);
 
     // ============================================================
-    // ✅ 시작/종료 음성 안내 (일반 측정처럼)
+    // ✅ 시작 음성: "무조건 1번만" 나오게 락
+    // - 핵심: startSpokenRef
+    // - time이 0 이하로 리셋되면 다음 러닝을 위해 락 해제
     // ============================================================
-    const startSpokenRef = useRef(false);
-    const compareBlockUntilRef = useRef<number>(0);
-
-    const buildStartMessage = () => {
-        const km =
-            ghostTotalDistanceM > 0 ? (ghostTotalDistanceM / 1000).toFixed(2) : "0";
-        const targetPace = formatPace(ghostAvgPaceSec || 0);
-        return `고스트 런닝을 시작합니다. 목표 거리는 ${km}킬로미터, 목표 페이스는 ${targetPace}입니다.`;
-    };
-
-    const buildEndMessage = () => {
-        const km = distanceM > 0 ? (distanceM / 1000).toFixed(2) : "0";
-        const avgPaceSec2 = distanceM > 0 ? time / (distanceM / 1000) : 0;
-        const avgPaceText = formatPace(avgPaceSec2);
-        return `런닝을 종료합니다. 총 거리 ${km}킬로미터, 평균 페이스 ${avgPaceText}입니다.`;
-    };
-
     const prevIsReady = useRef(isReady);
+    const startSpokenRef = useRef(false);
+
     useEffect(() => {
-        if (!isSoundOn) {
-            prevIsReady.current = isReady;
-            return;
-        }
+        // 러닝 리셋(새 세션) 시 다시 허용
+        if (time <= 0) startSpokenRef.current = false;
 
         if (
+            isVoiceEnabled &&
             prevIsReady.current === true &&
             isReady === false &&
             !startSpokenRef.current
         ) {
             startSpokenRef.current = true;
-
-            compareBlockUntilRef.current = Number.MAX_SAFE_INTEGER;
-
-            speak(buildStartMessage(), () => {
-                compareBlockUntilRef.current = Date.now() + 15000;
-            });
-        }
-
-        if (time <= 0) {
-            startSpokenRef.current = false;
-            compareBlockUntilRef.current = 0;
-            speakingRef.current = false;
+            speakStart();
         }
 
         prevIsReady.current = isReady;
-    }, [isReady, isSoundOn, time, ghostTotalDistanceM, ghostAvgPaceSec]);
-
-    // ✅ [수정] stopRun() 인자 제거 (평균 케이던스는 훅이 저장)
-    const handleStopPress = () => {
-        if (isSoundOn) speak(buildEndMessage());
-        stopRun();
-    };
+    }, [isReady, isVoiceEnabled, time]); // ✅ 의존성 최소화 (중복 트리거 방지)
 
     // ============================================================
-    // ✅ 100m 단위 + 페이스 유사(±5초) 음성 안내
+    // ✅ km 체크 음성: RunningScreen과 동일 조건
     // ============================================================
-    const lastSpokenAtRef = useRef<number>(0);
-    const lastBucketRef = useRef<number | null>(null);
-    const lastSignRef = useRef<number>(0);
-    const lastPaceSimilarRef = useRef<boolean>(false);
-
-    const COOLDOWN_MS = 6000;
-    const UNIT_M = 100;
-    const PACE_SIMILAR_THRESHOLD_SEC = 5;
-
     useEffect(() => {
-        if (time <= 0) {
-            lastSpokenAtRef.current = 0;
-            lastBucketRef.current = null;
-            lastSignRef.current = 0;
-            lastPaceSimilarRef.current = false;
+        if (isVoiceEnabled && !isPaused && !isReady && distanceM > 0) {
+            checkAndSpeak(distanceM);
         }
-    }, [time]);
+    }, [distanceM, isPaused, isReady, isVoiceEnabled, isMale]);
 
+    // ============================================================
+    // ✅ 일시정지/재개 음성: RunningScreen과 동일 트리거
+    // ============================================================
+    const prevIsPaused = useRef(isPaused);
     useEffect(() => {
-        if (!isSoundOn) return;
+        if (isVoiceEnabled && !isReady && prevIsPaused.current !== isPaused) {
+            if (isPaused) speakPause();
+            else speakResume();
+        }
+        prevIsPaused.current = isPaused;
+    }, [isPaused, isReady, isVoiceEnabled]);
+
+    // ============================================================
+    // ✅ 고스트 비교 음성(추가): 100m 이상에서만
+    // ============================================================
+    useEffect(() => {
+        if (!isVoiceEnabled) return;
         if (isReady) return;
         if (!isRunning) return;
         if (isPaused) return;
 
-        const now = Date.now();
+        if (distanceM < 100) return;
 
-        if (speakingRef.current) return;
-        if (now < compareBlockUntilRef.current) return;
-
-        const d = Number(diffM);
-        if (!Number.isFinite(d)) return;
-
-        const absM = Math.abs(d);
-        const bucket = Math.floor(absM / UNIT_M);
-        const sign = absM < 1 ? 0 : d > 0 ? 1 : -1;
-
-        const paceDiff = Number(paceDiffSec);
-        const isPaceSimilar =
-            Number.isFinite(paceDiff) &&
-            Math.abs(paceDiff) <= PACE_SIMILAR_THRESHOLD_SEC;
-
-        const bucketChanged =
-            lastBucketRef.current === null || bucket !== lastBucketRef.current;
-        const signChanged = sign !== lastSignRef.current;
-        const paceSimilarChanged = isPaceSimilar !== lastPaceSimilarRef.current;
-
-        const cooldownPassed = now - lastSpokenAtRef.current >= COOLDOWN_MS;
-
-        if (!signChanged && !cooldownPassed) return;
-        if (!bucketChanged && !signChanged && !paceSimilarChanged) return;
-
-        let msg = "";
-
-        if (bucket === 0) {
-            msg = isPaceSimilar
-                ? "고스트와 거의 나란히 달리고 있어요. 페이스도 비슷해요. 지금처럼 유지해요."
-                : "고스트와 거의 나란히 달리고 있어요.";
-        } else {
-            const m = bucket * UNIT_M;
-            msg =
-                sign > 0
-                    ? `고스트보다 ${m}미터 뒤처지고 있어요.`
-                    : `좋아요. 고스트보다 ${m}미터 앞서고 있어요.`;
-            if (isPaceSimilar) msg += " 페이스는 거의 비슷해요.";
-        }
-
-        if (!msg) return;
-
-        speak(msg);
-
-        lastSpokenAtRef.current = now;
-        lastBucketRef.current = bucket;
-        lastSignRef.current = sign;
-        lastPaceSimilarRef.current = isPaceSimilar;
-    }, [isSoundOn, isReady, isRunning, isPaused, diffM, paceDiffSec]);
+        checkAndSpeakGhostDiff(diffM, paceDiffSec, {
+            isReady,
+            isRunning,
+            isPaused,
+            timeSec: time,
+        });
+    }, [
+        isVoiceEnabled,
+        isReady,
+        isRunning,
+        isPaused,
+        distanceM,
+        diffM,
+        paceDiffSec,
+        time,
+    ]);
 
     // ============================================================
-    // ✅ 러닝 "새로 시작" 감지
+    // ✅ 차트 데이터
     // ============================================================
+    const [rtPaceData, setRtPaceData] = useState<number[]>([0, 0]);
+    const lastAddedRef = useRef<number | null>(null);
+
     useEffect(() => {
         if (time <= 0) {
-            startedRef.current = false;
             lastAddedRef.current = null;
             setRtPaceData([0, 0]);
         }
@@ -300,17 +201,12 @@ export default function GhostRunScreen() {
 
     useEffect(() => {
         if (isReady) return;
-
-        if (!startedRef.current && time > 0) {
-            startedRef.current = true;
-        }
-
         if (isPaused) return;
 
         const pace =
             typeof currentPaceSec === "number" ? currentPaceSec : Number(currentPaceSec);
-        if (!Number.isFinite(pace) || pace <= 0) return;
 
+        if (!Number.isFinite(pace) || pace <= 0) return;
         if (lastAddedRef.current !== null && lastAddedRef.current === pace) return;
 
         lastAddedRef.current = pace;
@@ -381,50 +277,127 @@ export default function GhostRunScreen() {
         [rtPaceData]
     );
 
+    // ============================================================
+    // ✅ 고스트 경쟁 UI 계산
+    // ============================================================
+    const totalKm = ghostTotalDistanceM > 0 ? ghostTotalDistanceM / 1000 : 0;
+
+    const youRatio =
+        ghostTotalDistanceM > 0
+            ? Math.max(0, Math.min(1, distanceM / ghostTotalDistanceM))
+            : 0;
+    const ghostRatio =
+        ghostTotalDistanceM > 0
+            ? Math.max(0, Math.min(1, ghostDistanceM / ghostTotalDistanceM))
+            : 0;
+
+    const youKmText = (distanceM / 1000).toFixed(2);
+    const ghostKmText = (ghostDistanceM / 1000).toFixed(2);
+
+    const midKm = totalKm > 0 ? totalKm / 2 : 0;
+    const markRight = totalKm > 0 ? `${totalKm.toFixed(1)}km` : "-";
+    const markMid = totalKm > 0 ? `${midKm.toFixed(1)}km` : "-";
+
+    // ============================================================
+    // ✅ 기록 종료: RunningScreen과 동일 패턴
+    // ============================================================
+    const handleStopLongPress = () => {
+        if (isVoiceEnabled) {
+            speakStop(distanceM);
+            stopRun();
+        } else {
+            stopRun();
+        }
+    };
+
     const stoppedRef = useRef(false);
     useEffect(() => {
         if (stoppedRef.current) return;
         if (!ghostTotalDistanceM || ghostTotalDistanceM <= 0) return;
 
-        if (!isPaused && distanceM >= ghostTotalDistanceM) {
+        if (!isPaused && !isReady && distanceM >= ghostTotalDistanceM) {
             stoppedRef.current = true;
-            if (isSoundOn) speak(buildEndMessage());
-            // ✅ [수정] 인자 제거
+            if (isVoiceEnabled) speakStop(distanceM);
             stopRun();
         }
-    }, [distanceM, ghostTotalDistanceM, isPaused, stopRun, isSoundOn]);
+    }, [distanceM, ghostTotalDistanceM, isPaused, isReady, isVoiceEnabled, stopRun]);
 
     const isFinished = ghostTotalDistanceM > 0 && distanceM >= ghostTotalDistanceM;
 
     return (
         <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
             {isReady && (
-                <View pointerEvents="auto" style={[styles.countdownOverlay, { backgroundColor: colors.background }]}>
+                <View
+                    pointerEvents="auto"
+                    style={[styles.countdownOverlay, { backgroundColor: colors.background }]}
+                >
                     <Text style={[styles.countdownText, { color: colors.primary }]}>
                         {countdown > 0 ? countdown : "GO!"}
                     </Text>
-                    <Text style={[styles.countdownLabel, { color: colors.text }]}>준비하세요!</Text>
+                    <Text style={[styles.countdownLabel, { color: colors.text }]}>
+                        준비하세요!
+                    </Text>
                 </View>
             )}
 
-            <View style={[styles.header, { backgroundColor: colors.headerBg, borderColor: colors.border }]}>
-                <View style={[styles.headerPill, { backgroundColor: colors.headerBg, borderColor: colors.border }]}>
+            <View
+                style={[
+                    styles.header,
+                    { backgroundColor: colors.headerBg, borderColor: colors.border },
+                ]}
+            >
+                <View
+                    style={[
+                        styles.headerPill,
+                        { backgroundColor: colors.headerBg, borderColor: colors.border },
+                    ]}
+                >
                     <View style={[styles.statusDot, { backgroundColor: colors.primary }]} />
                     <Text style={[styles.headerPillText, { color: colors.text }]}>고스트 모드</Text>
                 </View>
 
-                <TouchableOpacity
-                    hitSlop={10}
-                    activeOpacity={0.85}
-                    style={[styles.headerIconBtn, { backgroundColor: colors.headerBg, borderColor: colors.border }]}
-                    onPress={() => setIsSoundOn((v) => !v)}
-                >
-                    <Ionicons
-                        name={(isSoundOn ? "volume-high-outline" : "volume-mute-outline") as IoniconName}
-                        size={22}
-                        color={colors.text}
-                    />
-                </TouchableOpacity>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                    <TouchableOpacity
+                        onPress={() => setIsMale((v) => !v)}
+                        style={[
+                            styles.headerMiniPill,
+                            { backgroundColor: colors.headerBg, borderColor: colors.primary },
+                        ]}
+                        activeOpacity={0.85}
+                    >
+                        <Text style={{ fontSize: 12, fontWeight: "800", color: colors.primary }}>
+                            {isMale ? "남성" : "여성"}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={toggleVoice}
+                        style={[
+                            styles.headerMiniPill,
+                            {
+                                backgroundColor: isVoiceEnabled ? colors.primary : colors.headerBg,
+                                borderColor: isVoiceEnabled ? colors.primary : colors.border,
+                            },
+                        ]}
+                        activeOpacity={0.85}
+                    >
+                        <Ionicons
+                            name={(isVoiceEnabled ? "volume-high" : "volume-mute") as IoniconName}
+                            size={14}
+                            color={isVoiceEnabled ? "#FFF" : colors.mutedText}
+                        />
+                        <Text
+                            style={{
+                                fontSize: 12,
+                                fontWeight: "800",
+                                marginLeft: 5,
+                                color: isVoiceEnabled ? "#FFF" : colors.mutedText,
+                            }}
+                        >
+                            {isVoiceEnabled ? "음성 ON" : "음성 OFF"}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <ScrollView
@@ -438,7 +411,9 @@ export default function GhostRunScreen() {
                     <View style={styles.cardTopRow}>
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
                             <Ionicons name={"medal-outline" as IoniconName} size={18} color={colors.text} />
-                            <Text style={[styles.cardTitle, { color: colors.text, marginLeft: 8 }]}>실시간 경쟁</Text>
+                            <Text style={[styles.cardTitle, { color: colors.text, marginLeft: 8 }]}>
+                                실시간 경쟁
+                            </Text>
                         </View>
 
                         <View style={[styles.badge, { backgroundColor: colors.primary }]}>
@@ -485,23 +460,31 @@ export default function GhostRunScreen() {
                     </View>
                 </View>
 
-                <View style={styles.metricsRow}>
-                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>시간</Text>
-                        <Text style={[styles.metricValue, { color: colors.text2 }]}>{formatTime(time)}</Text>
-                    </View>
-
-                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 }]}>
-                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>거리</Text>
-                        <Text style={[styles.metricValue, { color: colors.text2 }]}>{youKmText}</Text>
-                        <Text style={[styles.metricUnit, { color: colors.mutedText }]}>km</Text>
-                    </View>
-
-                    <View style={[styles.metric, { backgroundColor: colors.card, borderColor: colors.border, marginLeft: 10 }]}>
-                        <Text style={[styles.metricLabel, { color: colors.mutedText }]}>페이스</Text>
-                        <Text style={[styles.metricValue, { color: colors.text2 }]}>{formatPace(currentPaceSec)}</Text>
-                        <Text style={[styles.metricUnit, { color: colors.mutedText }]}>/km</Text>
-                    </View>
+                <View style={styles.statsContainer}>
+                    <StatBox
+                        icon={<Ionicons name="time-outline" size={24} color={colors.primary} />}
+                        label="시간"
+                        value={formatTime(time)}
+                    />
+                    <StatBox
+                        icon={<MaterialCommunityIcons name="flag-checkered" size={24} color={colors.primary} />}
+                        label="거리"
+                        value={(distanceM / 1000).toFixed(2)}
+                        unit="km"
+                        highlight
+                    />
+                    <StatBox
+                        icon={<MaterialCommunityIcons name="run" size={24} color={colors.primary} />}
+                        label="페이스"
+                        value={formatPace(currentPaceSec)}
+                        unit="/km"
+                    />
+                    <StatBox
+                        icon={<MaterialCommunityIcons name="shoe-print" size={24} color={colors.primary} />}
+                        label="케이던스"
+                        value={String(cadence)}
+                        unit="spm"
+                    />
                 </View>
 
                 <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -534,47 +517,38 @@ export default function GhostRunScreen() {
                             현재 페이스: {formatPace(currentPaceSec)}/km
                         </Text>
                     </View>
-
-                    <StatBox
-                        icon={<MaterialCommunityIcons name="shoe-print" size={24} color="#4A6EA9" />}
-                        label="케이던스"
-                        value={String(cadence)}
-                        unit="spm"
-                    />
                 </View>
             </ScrollView>
 
             <View style={[styles.controls, { backgroundColor: colors.card, borderColor: colors.border }]}>
-                <Pressable
-                    disabled={isFinished}
-                    onPress={isPaused ? resumeRun : pauseRun}
-                    style={({ pressed }) => [
-                        styles.controlBtn,
-                        {
-                            backgroundColor: colors.card,
-                            borderColor: colors.border,
-                            opacity: isFinished ? 0.6 : pressed ? 0.75 : 1,
-                            transform: [{ scale: pressed ? 0.96 : 1 }],
-                        },
-                    ]}
+                <TouchableOpacity
+                    style={styles.pauseBtn}
+                    onPress={() => {
+                        if (isFinished) return;
+                        if (isPaused) resumeRun();
+                        else pauseRun();
+                    }}
+                    activeOpacity={0.85}
                 >
-                    <Ionicons name={(isPaused ? "play" : "pause") as IoniconName} size={26} color={colors.text} />
-                </Pressable>
+                    <Ionicons
+                        name={(isPaused ? "play" : "pause") as IoniconName}
+                        size={36}
+                        color={colors.primary}
+                    />
+                </TouchableOpacity>
 
                 <TouchableOpacity
                     style={[
                         styles.stopBtn,
-                        { backgroundColor: colors.danger, marginLeft: 14, opacity: isFinished ? 0.6 : 1 },
+                        { backgroundColor: colors.danger, opacity: isFinished ? 0.6 : 1 },
                     ]}
-                    onPress={() => {
-                        speak("종료하려면 3초 이상 길게 누르세요.");
-                    }}
-                    onLongPress={handleStopPress}
-                    delayLongPress={3000}
+                    onPress={() => Alert.alert("알림", "종료하려면 길게 누르세요.")}
+                    onLongPress={handleStopLongPress}
+                    delayLongPress={1000}
                     activeOpacity={0.85}
                     disabled={isFinished}
                 >
-                    <Ionicons name={"stop" as IoniconName} size={22} color={colors.primaryButtonText} />
+                    <View style={styles.stopSquare} />
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -627,13 +601,13 @@ export const getStyles = (scheme: "light" | "dark") => {
         },
         headerPillText: { fontWeight: "800", fontSize: 13, marginLeft: 6, marginRight: 6 },
 
-        headerIconBtn: {
-            width: 44,
-            height: 40,
-            borderRadius: 13,
-            borderWidth: 1,
+        headerMiniPill: {
+            flexDirection: "row",
             alignItems: "center",
-            justifyContent: "center",
+            paddingHorizontal: 10,
+            paddingVertical: 7,
+            borderRadius: 999,
+            borderWidth: 1,
             ...shadow,
         },
 
@@ -655,30 +629,19 @@ export const getStyles = (scheme: "light" | "dark") => {
         rankLabel: { fontSize: 12, fontWeight: "700" },
         rankValue: { fontSize: 12, fontWeight: "700" },
 
-        gaugeTrack: {
-            height: 10,
-            borderRadius: 999,
-            overflow: "hidden",
-            marginTop: 10,
-        },
+        gaugeTrack: { height: 10, borderRadius: 999, overflow: "hidden", marginTop: 10 },
         gaugeFill: { height: "100%", borderRadius: 999 },
 
         progressMarks: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
         mark: { fontSize: 11, fontWeight: "700" },
 
-        metricsRow: { flexDirection: "row", marginBottom: 12 },
-
-        metric: {
-            flex: 1,
-            borderWidth: 1,
-            borderRadius: 16,
-            padding: 12,
-            ...shadow2,
+        statsContainer: {
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 12,
         },
-
-        metricLabel: { fontSize: 12, fontWeight: "700", textAlign: "center" },
-        metricValue: { fontSize: 20, fontWeight: "900", marginTop: 6, textAlign: "center" },
-        metricUnit: { fontSize: 12, marginTop: 2, fontWeight: "600", textAlign: "center" },
 
         small: { fontSize: 11, fontWeight: "700" },
 
@@ -695,13 +658,15 @@ export const getStyles = (scheme: "light" | "dark") => {
             borderTopWidth: 2,
         },
 
-        controlBtn: {
+        pauseBtn: {
             width: 72,
             height: 72,
             borderRadius: 22,
             borderWidth: 1,
+            borderColor: Colors[scheme].border ?? "#E5E7EB",
             alignItems: "center",
             justifyContent: "center",
+            backgroundColor: Colors[scheme].card ?? "#FFF",
             ...shadow2,
         },
 
@@ -711,7 +676,15 @@ export const getStyles = (scheme: "light" | "dark") => {
             borderRadius: 22,
             alignItems: "center",
             justifyContent: "center",
+            marginLeft: 14,
             ...shadow2,
+        },
+
+        stopSquare: {
+            width: 24,
+            height: 24,
+            backgroundColor: "#FFF",
+            borderRadius: 4,
         },
 
         countdownOverlay: {
