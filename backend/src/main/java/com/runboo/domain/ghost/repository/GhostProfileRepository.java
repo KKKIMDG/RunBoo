@@ -13,4 +13,7 @@ public interface GhostProfileRepository extends JpaRepository<GhostProfile, Long
 
     // 유저의 “최근 프로필 1개” (필요할 때 유용)
     Optional<GhostProfile> findTopByUserIdOrderByCreatedAtDesc(Long userId);
+
+    // runRecordId 여러 개로 고스트 가져오고, 최신순 정렬
+    List<GhostProfile> findByRunRecordIdInOrderByCreatedAtDesc(List<Long> runRecordIds);
 }
