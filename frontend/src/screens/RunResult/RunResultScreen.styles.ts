@@ -1,12 +1,12 @@
 import { Dimensions, StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
-import {FontSizeSetting} from "@/utils/fontScale";
+import { FontSizeSetting } from "@/utils/fontScale";
 
 const { width } = Dimensions.get("window");
 
 export const getStyles = (
-    scheme: "light" | "dark",
-    fontSize: FontSizeSetting
+  scheme: "light" | "dark",
+  fontSize: FontSizeSetting
 ) =>
   StyleSheet.create({
     container: {
@@ -85,10 +85,13 @@ export const getStyles = (
       position: "absolute",
       top: 25,
       left: 20,
+      right: 20,
+      flexDirection: "row",
+      justifyContent: "space-around",
       zIndex: 10,
     },
     overlayItem: {
-      marginBottom: 20,
+      alignItems: "center",
     },
     overlayLabel: {
       fontSize: 12,

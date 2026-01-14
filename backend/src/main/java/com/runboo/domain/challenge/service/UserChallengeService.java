@@ -3,32 +3,33 @@ package com.runboo.domain.challenge.service;
 import com.runboo.domain.badge.dto.BadgeDto;
 import com.runboo.domain.badge.entity.Badge;
 import com.runboo.domain.badge.entity.UserBadge;
+import com.runboo.domain.badge.repository.BadgeRepository;
 import com.runboo.domain.badge.repository.UserBadgeRepository;
 import com.runboo.domain.challenge.dto.ChallengeDto;
 import com.runboo.domain.challenge.dto.UserChallengeDto;
 import com.runboo.domain.challenge.entity.Challenge;
 import com.runboo.domain.challenge.entity.UserChallenge;
+import com.runboo.domain.challenge.repository.ChallengeRepository;
 import com.runboo.domain.challenge.repository.UserChallengeRepository;
 import com.runboo.domain.user.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor // 추가
+@RequiredArgsConstructor
 public class UserChallengeService {
 
     private final UserChallengeRepository userChallengeRepository;
-    private final UserBadgeRepository userBadgeRepository; // 뱃지 부여를 위한 레포지토리 추가
+    private final UserBadgeRepository userBadgeRepository;
+    private final ChallengeRepository challengeRepository;
+    private final BadgeRepository badgeRepository; // ✅ 뱃지 전용 레포지토리 추가
 
     // 도전과제 조회 서비스
     public List<UserChallengeDto> getUserChallengeListByStatus(Long userId, String status){
@@ -71,7 +72,7 @@ public class UserChallengeService {
                     challenge.getStartedAt(),
                     challenge.getEndedAt(),
                     bDto
-                    );
+            );
 
             // 1. 퍼센트 계산 (기초 문법 버전)
             int target = challenge.getTargetValue(); // 목표치
@@ -92,7 +93,7 @@ public class UserChallengeService {
                 days = ChronoUnit.DAYS.between(LocalDate.now(), challenge.getEndedAt().toLocalDate());
             }
             // days가 음수(종료일 지남)가 나오는 것이 싫다면 아래 한 줄 추가
-                        days = Math.max(0, days);
+            days = Math.max(0, days);
 
             // 4. 최종적으로 UserChallengeDto를 만들어 리스트에 추가한다.
             UserChallengeDto ucDto = new UserChallengeDto(
@@ -112,47 +113,111 @@ public class UserChallengeService {
         return dtos;
     }
 
-    // 챌린지 타입에 따른 벨류를 받아 진행도 갱신 / 배지 부여
+    /* ===============================
+       진행도 갱신
+       =============================== */
     @Transactional
-    public void updateProgress(Long userId, String type, int value){
-        // 1. 유저가 진행 중인 챌린지 중 해당 타입(TOTAL_DISTANCE 또는 STREAK_DAYS)만 가져온다.
-        List<UserChallenge> ongoingList = userChallengeRepository.findAllByUserIdAndStatus(userId, "IN_PROGRESS");
+    public void updateProgress(Long userId, String type, int value) {
+
+        List<UserChallenge> ongoingList =
+                userChallengeRepository.findAllByUserIdAndStatus(userId, "IN_PROGRESS");
 
         for (UserChallenge uc : ongoingList) {
+
             Challenge challenge = uc.getChallenge();
 
-            // 챌린지 타입이 맞는지 확인 (예: 타입이 TOTAL_DISTANCE인 것만 거리 업데이트) | 타입이 일치하는 경우에만 수치 갱신
-            if(challenge.getTargetType().equals(type)){
+            if (!challenge.getTargetType().equals(type)) {
+                continue;
+            }
 
-                // 2. 현재 진행도 업데이트
-                int newProgress = uc.getProgressValue() + value;
+            int newProgress = uc.getProgressValue() + value;
+            newProgress = Math.min(newProgress, challenge.getTargetValue());
 
-                // 합산된 결과가 목표치보다 크면 목표치로 고정
-                if (newProgress > challenge.getTargetValue()) {
-                    newProgress = challenge.getTargetValue();
-                }
-                uc.setProgressValue(newProgress);
+            uc.setProgressValue(newProgress);
 
-                // 4. 목표 달성 시 상태 변경
-                if(newProgress >= challenge.getTargetValue()){
-                    uc.setStatus("COMPLETED");
-                    uc.setCompletedAt(LocalDateTime.now());
-
-                    Badge badge = challenge.getBadge();
-                    if (badge != null) {
-                        giveBadgeToUser(uc.getUser(), badge);
-                    }
-                }
+            if (newProgress >= challenge.getTargetValue()) {
+                completeAndCreateNextChallenge(uc);
             }
         }
     }
-    // 뱃지 부여 내부 메서드
+
+    /* ===============================
+       완료 처리 + 다음 난이도 생성
+       =============================== */
+    private void completeAndCreateNextChallenge(UserChallenge uc) {
+
+        Challenge challenge = uc.getChallenge();
+        User user = uc.getUser();
+
+        // 1. 현재 챌린지 완료
+        uc.setStatus("COMPLETED");
+        uc.setCompletedAt(LocalDateTime.now());
+
+        // 2. 현재 뱃지 지급
+        if (challenge.getBadge() != null) {
+            giveBadgeToUser(user, challenge.getBadge());
+        }
+
+        // 3. 다음 난이도 계산
+        String nextDifficulty = getNextDifficulty(challenge.getDifficulty());
+        if (nextDifficulty == null) {
+            return; // EXPERT 완료 시 종료
+        }
+
+        // 4. 다음 챌린지 조회
+        Challenge nextChallenge = (Challenge) challengeRepository
+                .findByTargetTypeAndDifficulty(
+                        challenge.getTargetType(),
+                        nextDifficulty
+                )
+                .orElseThrow(() ->
+                        new IllegalStateException("다음 난이도 챌린지가 존재하지 않습니다.")
+                );
+
+        // 5. 다음 뱃지 조회 (ID + 1)
+        Badge nextBadge = null;
+        if (challenge.getBadge() != null) {
+            Long nextBadgeId = challenge.getBadge().getId() + 1;
+
+            nextBadge = badgeRepository.findById(nextBadgeId)
+                    .orElseThrow(() ->
+                            new IllegalStateException("다음 뱃지가 존재하지 않습니다.")
+                    );
+        }
+
+        // 6. 새로운 UserChallenge 생성
+        UserChallenge nextUserChallenge = UserChallenge.builder()
+                .user(user)
+                .challenge(nextChallenge)
+                .badge(nextBadge)
+                .progressValue(0)
+                .status("IN_PROGRESS")
+                .startedAt(LocalDateTime.now())
+                .build();
+
+        userChallengeRepository.save(nextUserChallenge);
+    }
+
+    /* ===============================
+       난이도 승급 규칙
+       =============================== */
+    private String getNextDifficulty(String current) {
+        return switch (current) {
+            case "EASY" -> "NORMAL";
+            case "NORMAL" -> "HARD";
+            case "HARD" -> "EXPERT";
+            case "EXPERT" -> null;
+            default -> null;
+        };
+    }
+
+    /* ===============================
+       뱃지 지급
+       =============================== */
     private void giveBadgeToUser(User user, Badge badge) {
-        // 이미 해당 뱃지를 가지고 있는지 체크 (선택 사항)
         if (!userBadgeRepository.existsByUserAndBadge(user, badge)) {
             UserBadge userBadge = new UserBadge(user, badge);
             userBadgeRepository.save(userBadge);
-            System.out.println(">>> [뱃지 획득] 유저: " + user.getNickname() + ", 뱃지: " + badge.getName());
         }
     }
 }
