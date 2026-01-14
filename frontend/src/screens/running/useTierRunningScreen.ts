@@ -3,29 +3,25 @@ import { Alert } from "react-native";
 import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Location from "expo-location";
-import { Coordinate, encodePath } from "@/utils/runUtils";
+import { Coordinate } from "@/utils/runUtils";
 import { RootStackParamList } from "@/navigation/root/RootNavigator";
 import { evaluateTier } from "@/services/tier/tierService";
-import { createRecord, fetchMyRecords } from "@/services/record/recordsService";
 import { useRecordStore } from "@/stores/recordStore";
-import { LOCATION_TASK_NAME } from "@/services/record/locationTask";
 import { useKeepAwake } from "expo-keep-awake";
 import { useUserMe } from "@/contexts/UserMeContext";
+import {
+  toIsoPlus9,
+  useCadence,
+  useRunTimer,
+  makeStartLocationTracking,
+  stopBackgroundLocation,
+  saveRecord,
+  formatTime,
+  formatPace,
+} from "./useRunCore";
 
 type TierRunningRouteProp = RouteProp<RootStackParamList, "TierRunning">;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
-
-const toIsoPlus9 = (d: Date) =>
-  new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString();
-
-/** ✅ 케이던스 샘플 필터 (40~260 범위) */
-function normalizeCadence(spm: number): number | null {
-  const v = Number(spm);
-  if (!Number.isFinite(v)) return null;
-  const r = Math.round(v);
-  if (r < 40 || r > 260) return null;
-  return r;
-}
 
 export const useTierRunningScreen = () => {
   useKeepAwake();
@@ -58,50 +54,22 @@ export const useTierRunningScreen = () => {
   } = useRecordStore();
 
   const [remainingDistance, setRemainingDistance] = useState(targetDistance);
-  const [paceHistory, setPaceHistory] = useState<number[]>([]);
   const [initialLocation, setInitialLocation] = useState<Coordinate | null>(
     null
   );
-  const [displayTime, setDisplayTime] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ✅ 케이던스 평균 누적을 위한 Ref (dev 브랜치 방식)
-  const cadenceSumRef = useRef(0);
-  const cadenceCountRef = useRef(0);
-
-  const pushCadenceSample = (spm: number) => {
-    const v = normalizeCadence(spm);
-    if (v == null) return;
-    cadenceSumRef.current += v;
-    cadenceCountRef.current += 1;
-  };
-
-  const resetCadenceAgg = () => {
-    cadenceSumRef.current = 0;
-    cadenceCountRef.current = 0;
-  };
-
-  const avgCadence = () => {
-    const n = cadenceCountRef.current;
-    if (n <= 0) return 0;
-    return Math.round(cadenceSumRef.current / n);
-  };
+  const { pushCadenceSample, resetCadenceAgg, avgCadence } = useCadence();
+  const { displayTime, paceHistory } = useRunTimer(
+    isRunning,
+    isPaused,
+    startTime,
+    pausedTime,
+    currentPace
+  );
 
   const utils = {
-    formatTime: (s: number) => {
-      const h = Math.floor(s / 3600);
-      const m = Math.floor((s % 3600) / 60);
-      const sec = s % 60;
-      return `${h > 0 ? h + ":" : ""}${m < 10 ? "0" + m : m}:${
-        sec < 10 ? "0" + sec : sec
-      }`;
-    },
-    formatPace: (p: number) => {
-      if (p === 0 || !isFinite(p) || p > 3600) return "-'--\"";
-      const m = Math.floor(p / 60);
-      const s = Math.floor(p % 60);
-      return `${m}'${s < 10 ? "0" + s : s}"`;
-    },
+    formatTime,
+    formatPace,
   };
 
   // 1. 초기화
@@ -120,28 +88,13 @@ export const useTierRunningScreen = () => {
       });
       updateLocation(loc);
     })();
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
   }, []);
 
   // 2. 백그라운드 트래킹 시작
-  const startLocationTracking = async () => {
-    await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-      accuracy: Location.Accuracy.BestForNavigation,
-      timeInterval: 1000,
-      distanceInterval: 1,
-      foregroundService: {
-        notificationTitle: "RunBoo Tier Challenge",
-        notificationBody: "티어 측정 중입니다. 힘내세요!",
-        notificationColor: "#4A6EA9",
-      },
-      showsBackgroundLocationIndicator: true,
-      pausesUpdatesAutomatically: false,
-      activityType: Location.ActivityType.Fitness,
-    });
-  };
+  const startLocationTracking = makeStartLocationTracking(
+    "RunBoo Tier Challenge",
+    "티어 측정 중입니다. 힘내세요!"
+  );
 
   // 3. 거리 계산 및 자동 종료 체크
   useEffect(() => {
@@ -165,34 +118,13 @@ export const useTierRunningScreen = () => {
     }
   }, [isReady, countdown]);
 
-  // 5. 타이머 및 페이스 기록
-  useEffect(() => {
-    if (isRunning && !isPaused && startTime) {
-      timerRef.current = setInterval(() => {
-        const now = Date.now();
-        const durationSec = Math.floor((now - startTime - pausedTime) / 1000);
-        const currentSec = durationSec >= 0 ? durationSec : 0;
-        setDisplayTime(currentSec);
-
-        if (currentSec % 5 === 0 && currentPace > 0) {
-          setPaceHistory((prev) => [...prev, currentPace / 60]);
-        }
-      }, 1000);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isRunning, isPaused, startTime, pausedTime, currentPace]);
+  // 타이머 및 페이스 기록은 공통 훅(useRunTimer)에서 처리합니다.
 
   // ✅ 완료 처리 (정상 종료 / 중단 종료)
   const handleComplete = async (isStopped: boolean = false) => {
-    const hasStarted = await Location.hasStartedLocationUpdatesAsync(
-      LOCATION_TASK_NAME
-    );
-    if (hasStarted) await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+    await stopBackgroundLocation();
 
     stopStoreRun();
-    if (timerRef.current) clearInterval(timerRef.current);
 
     // 100m 미만 기록 방지
     if (distance < 100) {
@@ -208,30 +140,19 @@ export const useTierRunningScreen = () => {
     const avgPaceSec = finalDist > 0 ? displayTime / (finalDist / 1000) : 0;
     const currentAvgCadence = avgCadence(); // 최종 평균 케이던스 산출
 
-    const data = {
-      userId: userId ? Number(userId) : 0,
-      mode: "TIER" as const,
-      distanceM: Math.floor(finalDist),
-      durationSec: displayTime,
-      avgPace: Math.floor(avgPaceSec),
-      calories: Math.floor(finalDist * 0.05),
-      cadence: currentAvgCadence, // 서버 저장용
-      routePolyline: encodePath(routeCoordinates),
-      startedAt: startTime
-        ? toIsoPlus9(new Date(startTime))
-        : new Date().toISOString(),
-      endedAt: toIsoPlus9(new Date()),
-    };
-
     try {
-      const response = await createRecord(data);
-
-      // recordId 확보 로직
-      let finalRecordId = response?.id;
-      if (!finalRecordId) {
-        const records = await fetchMyRecords();
-        finalRecordId = Math.max(...records.map((r: any) => Number(r.id)));
-      }
+      const { recordId: finalRecordId } = await saveRecord({
+        userId: userId ? Number(userId) : 0,
+        mode: "TIER",
+        distanceM: Math.floor(finalDist),
+        durationSec: displayTime,
+        avgPaceSec: avgPaceSec,
+        calories: Math.floor(finalDist * 0.05),
+        cadence: currentAvgCadence,
+        routeCoordinates,
+        startedAtIso: startTime ? toIsoPlus9(new Date(startTime)) : undefined,
+        endedAtIso: toIsoPlus9(new Date()),
+      });
 
       if (isStopped) {
         // 중도 포기 -> 일반 결과 화면
@@ -241,24 +162,24 @@ export const useTierRunningScreen = () => {
           avgPaceSec,
           calories: Math.floor(finalDist * 0.05),
           routeCoordinates,
-          recordId: finalRecordId,
+          recordId: finalRecordId ?? 0,
           cadenceSpm: currentAvgCadence, // 결과 화면 표시용
         });
       } else {
         // 목표 달성 -> 티어 평가 및 결과 화면
         const tierData = await evaluateTier({
-          recordId: finalRecordId,
+          recordId: finalRecordId ?? 0,
           distanceType: distanceTypeKey,
         });
 
         navigation.navigate("TierResult", {
           userId,
-          recordId: finalRecordId,
+          recordId: finalRecordId ?? 0,
           distanceType: distanceTypeKey,
           stats: {
             distance: (finalDist / 1000).toFixed(2),
-            time: utils.formatTime(displayTime),
-            pace: utils.formatPace(avgPaceSec),
+            time: formatTime(displayTime),
+            pace: formatPace(avgPaceSec),
           },
           achievedTier: tierData.displayName,
           distanceM: finalDist,

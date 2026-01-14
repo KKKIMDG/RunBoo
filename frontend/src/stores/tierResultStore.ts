@@ -1,10 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import create from 'zustand';
-import { persist } from 'zustand/middleware';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 // 1. 저장할 데이터 타입 정의
 export interface TierMeasurementResult {
-  type: '5K' | '10K'; // 측정 종류
+  type: "5K" | "10K"; // 측정 종류
   time: number; // 걸린 시간 (초)
   distance: number; // 달린 거리 (미터)
   date: string; // 측정 날짜 (ISO 8601 형식)
@@ -18,8 +18,8 @@ interface TierResultState {
 }
 
 // 3. Zustand Store 생성 (persist 미들웨어 적용)
-export const useTierResultStore = create(
-  persist<TierResultState>(
+export const useTierResultStore = create<TierResultState>()(
+  persist(
     (set) => ({
       unsyncedResults: [],
       // 새 측정 결과를 배열에 추가하는 액션
@@ -31,8 +31,8 @@ export const useTierResultStore = create(
       clearResults: () => set({ unsyncedResults: [] }),
     }),
     {
-      name: 'tier-result-storage', // AsyncStorage에 저장될 고유 키
-      getStorage: () => AsyncStorage,
-    },
-  ),
+      name: "tier-result-storage", // AsyncStorage에 저장될 고유 키
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
 );

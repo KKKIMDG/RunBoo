@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Platform,
+  useColorScheme,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -23,8 +24,8 @@ import * as Sharing from "expo-sharing";
 
 import { getStyles } from "./RunResultScreen.styles";
 import { Coordinate } from "@/utils/runUtils";
-import {useSettings} from "@/screens/Settings/useSettings";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import { useSettings } from "@/screens/Settings/useSettings";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 
 type RunResultRouteParams = {
   distanceM: number;
@@ -49,10 +50,14 @@ const RunResultScreen = () => {
     cadenceSpm,
   } = route.params;
   const { settings } = useSettings();
+  const systemColorScheme = useColorScheme();
   const resolvedTheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
     return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
   }, [resolvedTheme, settings?.fontSize]);
+
+  // 지도 위 통계만 시스템 테마 따라가기
+  const isSystemDark = systemColorScheme === "dark";
 
   const storyRef = useRef<any>(null);
   const mapRef = useRef<MapView>(null);
@@ -230,25 +235,68 @@ const RunResultScreen = () => {
                 {/* ✅ 지도 위에 겹쳐진 요약 통계 영역 */}
                 <View style={styles.statsOverlay}>
                   <View style={styles.overlayItem}>
-                    <Text style={styles.overlayLabel}>거리</Text>
+                    <Text
+                      style={[
+                        styles.overlayLabel,
+                        { color: isSystemDark ? "#AAAAAA" : "#666666" },
+                      ]}
+                    >
+                      거리
+                    </Text>
                     <View style={styles.overlayValueRow}>
-                      <Text style={styles.overlayValue}>
+                      <Text
+                        style={[
+                          styles.overlayValue,
+                          { color: isSystemDark ? "#FFFFFF" : "#1A1A1A" },
+                        ]}
+                      >
                         {(distanceM / 1000).toFixed(2)}
                       </Text>
-                      <Text style={styles.overlayUnit}>km</Text>
+                      <Text
+                        style={[
+                          styles.overlayUnit,
+                          { color: isSystemDark ? "#AAAAAA" : "#666666" },
+                        ]}
+                      >
+                        km
+                      </Text>
                     </View>
                   </View>
 
                   <View style={styles.overlayItem}>
-                    <Text style={styles.overlayLabel}>시간</Text>
-                    <Text style={styles.overlayValue}>
+                    <Text
+                      style={[
+                        styles.overlayLabel,
+                        { color: isSystemDark ? "#AAAAAA" : "#666666" },
+                      ]}
+                    >
+                      시간
+                    </Text>
+                    <Text
+                      style={[
+                        styles.overlayValue,
+                        { color: isSystemDark ? "#FFFFFF" : "#1A1A1A" },
+                      ]}
+                    >
                       {formatTime(durationSec)}
                     </Text>
                   </View>
 
                   <View style={styles.overlayItem}>
-                    <Text style={styles.overlayLabel}>페이스</Text>
-                    <Text style={styles.overlayValue}>
+                    <Text
+                      style={[
+                        styles.overlayLabel,
+                        { color: isSystemDark ? "#AAAAAA" : "#666666" },
+                      ]}
+                    >
+                      페이스
+                    </Text>
+                    <Text
+                      style={[
+                        styles.overlayValue,
+                        { color: isSystemDark ? "#FFFFFF" : "#1A1A1A" },
+                      ]}
+                    >
                       {formatPace(avgPaceSec)}
                     </Text>
                   </View>
@@ -267,9 +315,20 @@ const RunResultScreen = () => {
                 </TouchableOpacity>
               </>
             ) : (
-              <Text style={styles.mapPlaceholderText}>
-                경로 정보가 없습니다.
-              </Text>
+              <View style={styles.mapPlaceholderContainer}>
+                <Ionicons
+                  name="map-outline"
+                  size={40}
+                  color={styles.placeholderSubtitle.color}
+                />
+                <Text style={styles.placeholderTitle}>
+                  경로 정보가 없습니다
+                </Text>
+                <Text style={styles.placeholderSubtitle}>
+                  기록 중 위치 정보가 저장되지 않았습니다. GPS 권한이나 연결
+                  상태를 확인해 주세요.
+                </Text>
+              </View>
             )}
           </View>
 
