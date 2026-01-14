@@ -268,7 +268,7 @@ export default function RunRecordDetailScreen() {
 
                         {/* ✅ 코스 공유 버튼 */}
                         <TouchableOpacity
-                            style={[styles.card, { backgroundColor: colors.tint, justifyContent: 'center', alignItems: 'center', borderColor: colors.tint }]}
+                            style={[styles.card, { backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center', borderColor: colors.primary }]}
                             onPress={handleOpenShare}
                         >
                             <Ionicons name="share-social" size={26} color="#fff" />
