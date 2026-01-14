@@ -1,3 +1,4 @@
+/*
 // services/notification/fcmToken.ts
 import messaging from '@react-native-firebase/messaging';
 
@@ -20,3 +21,4 @@ export async function getFcmToken(): Promise<string> {
 
   return token; // ✅ 서버로 보내야 하는 진짜 FCM 토큰
 }
+*/
