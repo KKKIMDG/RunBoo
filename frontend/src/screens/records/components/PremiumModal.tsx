@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getStyles } from "@/screens/records/components/PremiumModal.styles";
-import {useSettings} from "@/screens/Settings/useSettings";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import { useSettings } from "@/screens/Settings/useSettings";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 
 const { width } = Dimensions.get("window");
 
@@ -25,7 +25,6 @@ const PremiumModal = ({
   onClose,
   onStartPremium,
 }: PremiumModalProps) => {
-
   const { settings } = useSettings();
   const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
@@ -34,7 +33,7 @@ const PremiumModal = ({
 
   const features = [
     {
-      title: "무제한 AI 분석",
+      title: "AI 분석 월 최대횟수 10회로 Up!",
       desc: "언제든지 상세한 러닝 분석",
       icon: "checkmark-circle",
     },
