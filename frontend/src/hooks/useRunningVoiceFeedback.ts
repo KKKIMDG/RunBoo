@@ -2,7 +2,8 @@
 import { useRef, useEffect, useState } from "react";
 import { Platform } from "react-native";
 import * as Speech from "expo-speech";
-import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
+import { setAudioModeAsync, AudioMode } from "expo-audio";
+import { Audio } from "expo-av"; // Sound 생성용으로만 유지
 
 interface VoiceFeedbackProps {
   isMale: boolean;
@@ -195,63 +196,54 @@ export const useRunningVoiceFeedback = ({
 
     const setDuckMode = async () => {
       try {
-        if (Platform.OS === "ios") {
-          // iOS는 DuckOthers 설정 시 playsInSilentModeIOS 가 true여야 실패하지 않음
-          await Audio.setAudioModeAsync({
-            interruptionModeIOS: InterruptionModeIOS.DuckOthers,
-            playsInSilentModeIOS: true,
-            staysActiveInBackground: false,
-          });
-        } else {
-          // Android는 duck 플래그로 제어
-          await Audio.setAudioModeAsync({
-            interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-            shouldDuckAndroid: true,
-          });
-        }
-      } catch (e) {
-        // ignore
-      }
+        await setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: true,
+
+          // iOS: MixWithOthers (음악과 동시 재생, 볼륨 줄임)
+          interruptionModeIOS: AudioMode.InterruptionModeIOS.DuckOthers,
+
+          // Android: DuckOthers (음악 볼륨 줄임)
+          interruptionModeAndroid: AudioMode.InterruptionModeAndroid.DuckOthers,
+          shouldDuckAndroid: true,
+        });
+      } catch {}
     };
 
     const restoreAudioMode = async () => {
       try {
-        if (Platform.OS === "ios") {
-          await Audio.setAudioModeAsync({
-            interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
-            playsInSilentModeIOS: false,
-            staysActiveInBackground: false,
-          });
-        } else {
-          await Audio.setAudioModeAsync({
-            interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-            shouldDuckAndroid: true,
-          });
-        }
-      } catch (e) {
-        throw e;
-      }
+        // 음성 안내 종료 후 기본 모드로 복원
+        await setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: false,
+
+          // iOS: DoNotMix (오디오 세션 비활성화)
+          interruptionModeIOS: AudioMode.InterruptionModeIOS.MixWithOthers,
+
+          // Android: DoNotMix
+          interruptionModeAndroid:
+            AudioMode.InterruptionModeAndroid.MixWithOthers,
+          shouldDuckAndroid: false,
+        });
+      } catch {}
     };
 
     // 무음 오디오 재생으로 오디오 포커스 확보 (iOS Apple Music 등에서 더 안정적)
-    let silentSound: any = null;
+    let silentSound: Audio.Sound | null = null;
+
     try {
       await Speech.stop();
 
       await setDuckMode();
 
       if (duckWithSilentAudio) {
-        try {
-          const soundSource = require("../assets/sounds/silence-100ms.m4a");
-          const { sound } = await Audio.Sound.createAsync(soundSource, {
-            shouldPlay: true,
-            volume: 0.001,
-            isLooping: true,
-          });
-          silentSound = sound;
-        } catch (e) {
-          // ignore
-        }
+        const source = require("@/assets/sounds/silence-100ms.m4a");
+        const { sound } = await Audio.Sound.createAsync(source, {
+          shouldPlay: true,
+          isLooping: true,
+          volume: 0.001,
+        });
+        silentSound = sound;
       }
 
       const options = getSpeechOptions();
