@@ -19,12 +19,15 @@ import {
 } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useNearbyRunners } from "@/hooks/useNearbyRunners";
 import { useMe } from "@/hooks/useMe";
 
 // ✅ 서비스 함수 Import
 import { fetchTargetUserBestGhost } from "@/services/ghost/ghostService";
+import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles";
+import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import {FontSizeSetting} from "@/utils/fontScale";
 
 interface RunnerProfile {
   userId: number;
@@ -58,11 +61,14 @@ export default function MapFullScreen() {
   const route = useRoute<any>();
   const { location } = route.params || {};
 
-  const colorScheme = useColorScheme() ?? "light";
+  const { settings } = useSettings();
+  const colorScheme = useResolvedTheme(settings?.themeMode);
+  const styles = useMemo(() => {
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
+
   const colors = Colors[colorScheme];
 
-  // ✅ [수정] 스타일 동적 생성 (다크모드 완벽 대응)
-  const styles = useMemo(() => getStyles(colorScheme), [colorScheme]);
 
   const isFocused = useIsFocused();
   const { nearbyRunners } = useNearbyRunners(isFocused);
@@ -183,7 +189,10 @@ export default function MapFullScreen() {
             showsMyLocationButton={false}
             showsCompass={false}
             onPress={handleMapPress}
-            // ✅ [선택] 다크모드일 때 지도 스타일도 어둡게 하려면 여기에 customMapStyle 추가 필요
+
+            customMapStyle={
+              colorScheme === "dark" ? darkMapStyle : lightMapStyle
+            }
         >
           {nearbyRunners.map((runner) => (
               <Marker
@@ -328,7 +337,10 @@ export default function MapFullScreen() {
 }
 
 // ✅ 스타일 생성 함수 (여기에 모든 테마 로직 집중)
-const getStyles = (scheme: "light" | "dark") => {
+const getStyles = (
+    scheme: "light" | "dark",
+    fontSize: FontSizeSetting
+) => {
   const colors = Colors[scheme];
   const isDark = scheme === 'dark';
 

@@ -20,7 +20,8 @@ import { useMe } from '@/hooks/useMe';
 import { useColorScheme } from '@/hooks/use-color-scheme'; // hooks 경로 확인
 import { useSettings } from "@/screens/Settings/useSettings";
 import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
-import { Course } from '@/types/course'; // ✅ 타입 import (donggun 브랜치 기준)
+import { Course } from '@/types/course';
+import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles"; // ✅ 타입 import (donggun 브랜치 기준)
 
 export default function CourseDetailScreen({ route, navigation }: any) {
     const { course }: { course: Course } = route.params || {};
@@ -169,6 +170,9 @@ export default function CourseDetailScreen({ route, navigation }: any) {
                             latitudeDelta: 0.015,
                             longitudeDelta: 0.015,
                         }}
+                        customMapStyle={
+                            colorScheme === "dark" ? darkMapStyle : lightMapStyle
+                        }
                     >
                         {/* 시작점 마커 */}
                         <Marker

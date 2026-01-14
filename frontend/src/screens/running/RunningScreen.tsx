@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
   Dimensions,
   Alert,
   StyleSheet,
@@ -13,7 +12,6 @@ import {
 } from "react-native";
 import MapView, {
   PROVIDER_GOOGLE,
-  MapStyleElement,
   PROVIDER_DEFAULT,
 } from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
@@ -22,7 +20,6 @@ import {
   MaterialCommunityIcons,
   FontAwesome5,
 } from "@expo/vector-icons";
-import * as Location from "expo-location";
 
 import "@/services/record/locationTask";
 import { useRunningScreen } from "./useRunningScreen";
@@ -36,6 +33,7 @@ import * as Speech from "expo-speech";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useSettings } from "@/screens/Settings/useSettings";
+import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles";
 
 const { width } = Dimensions.get("window");
 
@@ -154,34 +152,6 @@ const RunningScreen = () => {
     prevIsPaused.current = isPaused;
   }, [isPaused, isReady, isVoiceEnabled]);
 
-  const blurredMapStyle: MapStyleElement[] = [
-    {
-      featureType: "all",
-      elementType: "labels",
-      stylers: [{ visibility: "off" }],
-    },
-    {
-      featureType: "poi",
-      elementType: "all",
-      stylers: [{ visibility: "off" }],
-    },
-    {
-      featureType: "transit",
-      elementType: "all",
-      stylers: [{ visibility: "off" }],
-    },
-    {
-      featureType: "road",
-      elementType: "geometry",
-      stylers: [{ color: isDarkMode ? "#2c2c2c" : "#f1f1f1" }],
-    },
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: isDarkMode ? "#17263c" : "#c9d1d9" }],
-    },
-  ];
-
   const renderedMap = useMemo(
     () => (
       <View style={StyleSheet.absoluteFill}>
@@ -193,7 +163,9 @@ const RunningScreen = () => {
           }
           showsUserLocation={true}
           loadingEnabled={true}
-          customMapStyle={blurredMapStyle}
+          customMapStyle={
+            colorScheme === "dark" ? darkMapStyle : lightMapStyle
+          }
           showsMyLocationButton={false}
           onPanDrag={() => {
             if (isFollowing) {
