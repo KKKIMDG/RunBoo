@@ -12,9 +12,16 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 import { useSettings } from "@/screens/Settings/useSettings";
 import { scaleFont } from "@/utils/fontScale";
+import FilterChip from '@/components/FilterChip';
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 
 // 탭 타입 정의
 type TabType = 'FRIENDS' | 'REQUESTS';
+
+const FRIEND_TABS: { label: string; type: TabType }[] = [
+    { label: "👥 내 친구", type: 'FRIENDS' },
+    { label: "📩 받은 요청", type: 'REQUESTS' },
+];
 
 export default function FriendScreen() {
     const [activeTab, setActiveTab] = useState<TabType>('FRIENDS');
@@ -31,7 +38,7 @@ export default function FriendScreen() {
     const [searching, setSearching] = useState(false);
 
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const colors = Colors[colorScheme];
 
     const styles = useMemo(() => getStyles(colorScheme, settings?.fontSize || "MEDIUM"), [colorScheme, settings?.fontSize]);
@@ -92,39 +99,6 @@ export default function FriendScreen() {
     };
 
     // ✅ [추가] 친구 삭제 핸들러
-    const handleDeleteFriend = (friendId: number, nickname: string) => {
-        Alert.alert(
-            "친구 삭제",
-            `'${nickname}'님을 친구 목록에서 삭제하시겠습니까?`,
-            [
-                { text: "취소", style: "cancel" },
-                {
-                    text: "삭제",
-                    style: "destructive", // 빨간색 강조 (iOS)
-                    onPress: async () => {
-                        try {
-                            await FriendService.deleteFriend(friendId);
-                            Alert.alert("삭제 완료", "친구가 삭제되었습니다.");
-                            fetchData(true); // 목록 갱신
-                        } catch (e) {
-                            Alert.alert("오류", "삭제에 실패했습니다.");
-                        }
-                    }
-                }
-            ]
-        );
-    };
-
-    const renderTab = (tab: TabType, label: string) => (
-        <TouchableOpacity
-            style={[styles.tabButton, activeTab === tab && styles.activeTabButton]}
-            onPress={() => setActiveTab(tab)}
-        >
-            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-                {label}
-            </Text>
-        </TouchableOpacity>
-    );
 
     const renderItem = ({ item }: { item: Friend }) => (
         <View style={styles.itemContainer}>
@@ -159,15 +133,31 @@ export default function FriendScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>친구</Text>
+                <View style={styles.headerText}>
+                    <Text style={styles.mainHeader}>친구</Text>
+                    <Text style={styles.subHeader}>함께 달리는 즐거움</Text>
+                </View>
                 <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addButton}>
                     <Ionicons name="person-add" size={24} color={colors.primary} />
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.tabContainer}>
-                {renderTab('FRIENDS', '내 친구')}
-                {renderTab('REQUESTS', '받은 요청')}
+            <View style={styles.filterContainer}>
+                <FlatList
+                    horizontal
+                    data={FRIEND_TABS}
+                    keyExtractor={(item) => item.type}
+                    showsHorizontalScrollIndicator={false}
+                    renderItem={({ item }) => (
+                        <FilterChip
+                            label={item.label}
+                            isActive={activeTab === item.type}
+                            onPress={() => setActiveTab(item.type)}
+                            scheme={colorScheme}
+                        />
+                    )}
+                    contentContainerStyle={{ paddingHorizontal: 24 }}
+                />
             </View>
 
             {isLoading && !isRefreshing && (friends.length === 0 && requests.length === 0) ? (
@@ -179,7 +169,7 @@ export default function FriendScreen() {
                     data={activeTab === 'FRIENDS' ? friends : requests}
                     keyExtractor={(item) => String(item.id)}
                     renderItem={renderItem}
-                    contentContainerStyle={{ padding: 16 }}
+                    contentContainerStyle={styles.listContent}
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyText}>
@@ -267,16 +257,15 @@ export default function FriendScreen() {
 const getStyles = (scheme: "light" | "dark", fontSize: any) => {
     const colors = Colors[scheme];
     return StyleSheet.create({
-        container: { flex: 1, backgroundColor: colors.background },
-        header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
-        headerTitle: { fontSize: scaleFont(24, fontSize), fontWeight: 'bold', color: colors.text },
+        container: { flex: 1, backgroundColor: colors.background, paddingTop: 20 },
+        header: { paddingHorizontal: 32, marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
+        headerText: { flex: 1 },
+        mainHeader: { fontSize: scaleFont(24, fontSize), fontWeight: '700', color: colors.text, lineHeight: 32 },
+        subHeader: { fontSize: scaleFont(14, fontSize), color: colors.icon, marginTop: 4 },
         addButton: { padding: 8 },
 
-        tabContainer: { flexDirection: 'row', paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: colors.border },
-        tabButton: { marginRight: 20, paddingVertical: 10 },
-        activeTabButton: { borderBottomWidth: 2, borderBottomColor: colors.text },
-        tabText: { fontSize: scaleFont(16, fontSize), color: colors.icon },
-        activeTabText: { color: colors.text, fontWeight: 'bold' },
+        filterContainer: { marginBottom: 16 },
+        listContent: { paddingHorizontal: 20, paddingBottom: 80, paddingTop: 8 },
 
         itemContainer: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: colors.border },
         profileImage: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#eee' },
@@ -305,7 +294,7 @@ const getStyles = (scheme: "light" | "dark", fontSize: any) => {
         smallProfile: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#ccc', marginRight: 10 },
         searchName: { color: colors.text, fontWeight: '600' },
         searchEmail: { color: colors.icon, fontSize: 12 },
-        requestButton: { backgroundColor: colors.tint, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+        requestButton: { backgroundColor: colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
         requestButtonText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
     });
 };
