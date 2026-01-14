@@ -35,6 +35,7 @@ export function BottomNavBar({
     { name: "홈", icon: "home", outline: "home-outline" },
     { name: "코스", icon: "map", outline: "map-outline" },
     { name: "도전", icon: "trophy", outline: "trophy-outline" },
+    { name: "친구", icon: "people", outline: "people-outline" },
     { name: "통계", icon: "stats-chart", outline: "stats-chart-outline" },
   ];
 

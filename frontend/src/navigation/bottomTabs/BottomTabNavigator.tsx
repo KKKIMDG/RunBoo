@@ -6,6 +6,7 @@ import HomeScreen from '@/screens/Home/HomeScreen';
 import RecordScreen from '@/screens/records/RecordsScreen';
 import CourseScreen from '@/screens/Course/CourseScreen';
 import ChallengeScreen from '@/screens/Challenge';
+import FriendScreen from '@/screens/friend/FriendScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -29,6 +30,8 @@ export default function BottomTabNavigator() {
                             return '통계';
                         case 'Challenge':
                             return '도전';
+                        case 'Friend':
+                            return '친구';
                         default:
                             return '홈';
                     }
@@ -44,6 +47,8 @@ export default function BottomTabNavigator() {
                             return 'Record';
                         case '도전':
                             return 'Challenge';
+                        case '친구':
+                            return 'Friend';
                         default:
                             return 'Home';
                     }
@@ -63,6 +68,7 @@ export default function BottomTabNavigator() {
             <Tab.Screen name="Record" component={RecordScreen} />
             <Tab.Screen name="Course" component={CourseScreen} />
             <Tab.Screen name="Challenge" component={ChallengeScreen} />
+            <Tab.Screen name="Friend" component={FriendScreen} />
         </Tab.Navigator>
     );
 }
