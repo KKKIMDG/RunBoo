@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
   Dimensions,
   Alert,
   StyleSheet,
@@ -13,7 +12,6 @@ import {
 } from "react-native";
 import MapView, {
   PROVIDER_GOOGLE,
-  MapStyleElement,
   PROVIDER_DEFAULT,
 } from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
@@ -22,7 +20,6 @@ import {
   MaterialCommunityIcons,
   FontAwesome5,
 } from "@expo/vector-icons";
-import * as Location from "expo-location";
 
 import "@/services/record/locationTask";
 import { useRunningScreen } from "./useRunningScreen";
@@ -36,6 +33,7 @@ import * as Speech from "expo-speech";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useSettings } from "@/screens/Settings/useSettings";
+import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles";
 
 const { width } = Dimensions.get("window");
 
@@ -93,7 +91,7 @@ const RunningScreen = () => {
   // (cadence는 route param으로 절대 안 넘김)
   useEffect(() => {
     if (cadence > 0) {
-      console.log("[RunningScreen] Pushing cadence sample:", cadence);
+      console.log("[RunningScreen] 케이던스 샘플 추가:", cadence);
     }
     actions.pushCadenceSample(cadence);
   }, [cadence]);
@@ -110,7 +108,7 @@ const RunningScreen = () => {
     });
 
   const toggleVoice = () => {
-    console.log("[RunningScreen] Toggling voice:", !isVoiceEnabled);
+    console.log("[RunningScreen] 음성 토글:", !isVoiceEnabled);
     if (isVoiceEnabled) Speech.stop();
     setIsVoiceEnabled(!isVoiceEnabled);
   };
@@ -124,7 +122,7 @@ const RunningScreen = () => {
   const prevIsReady = useRef(isReady);
   useEffect(() => {
     if (isVoiceEnabled && prevIsReady.current === true && isReady === false) {
-      console.log("[RunningScreen] Speaking start announcement");
+      console.log("[RunningScreen] 시작 안내 음성 재생");
       speakStart();
     }
     prevIsReady.current = isReady;
@@ -132,10 +130,7 @@ const RunningScreen = () => {
 
   useEffect(() => {
     if (isVoiceEnabled && !isPaused && !isReady && distance > 0) {
-      console.log(
-        "[RunningScreen] Checking for voice announcement at distance:",
-        distance
-      );
+      console.log("[RunningScreen] 음성 안내 확인 - 거리:", distance);
       checkAndSpeak(distance);
     }
   }, [distance, isPaused, isReady, isVoiceEnabled, isMale]);
@@ -144,43 +139,15 @@ const RunningScreen = () => {
   useEffect(() => {
     if (isVoiceEnabled && !isReady && prevIsPaused.current !== isPaused) {
       if (isPaused) {
-        console.log("[RunningScreen] Speaking pause announcement");
+        console.log("[RunningScreen] 일시정지 안내 음성 재생");
         speakPause();
       } else {
-        console.log("[RunningScreen] Speaking resume announcement");
+        console.log("[RunningScreen] 재개 안내 음성 재생");
         speakResume();
       }
     }
     prevIsPaused.current = isPaused;
   }, [isPaused, isReady, isVoiceEnabled]);
-
-  const blurredMapStyle: MapStyleElement[] = [
-    {
-      featureType: "all",
-      elementType: "labels",
-      stylers: [{ visibility: "off" }],
-    },
-    {
-      featureType: "poi",
-      elementType: "all",
-      stylers: [{ visibility: "off" }],
-    },
-    {
-      featureType: "transit",
-      elementType: "all",
-      stylers: [{ visibility: "off" }],
-    },
-    {
-      featureType: "road",
-      elementType: "geometry",
-      stylers: [{ color: isDarkMode ? "#2c2c2c" : "#f1f1f1" }],
-    },
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: isDarkMode ? "#17263c" : "#c9d1d9" }],
-    },
-  ];
 
   const renderedMap = useMemo(
     () => (
@@ -193,11 +160,13 @@ const RunningScreen = () => {
           }
           showsUserLocation={true}
           loadingEnabled={true}
-          customMapStyle={blurredMapStyle}
+          customMapStyle={
+            colorScheme === "dark" ? darkMapStyle : lightMapStyle
+          }
           showsMyLocationButton={false}
           onPanDrag={() => {
             if (isFollowing) {
-              console.log("[RunningScreen] Map dragged, disabling auto-follow");
+              console.log("[RunningScreen] 지도 드래그됨, 자동 추적 비활성화");
               mapFocusing.setIsFollowing(false);
             }
           }}
@@ -263,9 +232,9 @@ const RunningScreen = () => {
 
   // ✅ 변경: stopRun()은 인자 없이 호출 (cadence는 훅에서 평균 계산 후 DB 저장)
   const handleStopLongPress = () => {
-    console.log("[RunningScreen] Stop button long pressed");
+    console.log("[RunningScreen] 정지 버튼 길게 누름");
     if (isVoiceEnabled) {
-      console.log("[RunningScreen] Speaking stop announcement");
+      console.log("[RunningScreen] 정지 안내 음성 재생");
       speakStop(distance);
       stopRun();
     } else {
@@ -305,8 +274,8 @@ const RunningScreen = () => {
             <TouchableOpacity
               onPress={() => {
                 console.log(
-                  "[RunningScreen] Gender toggle pressed:",
-                  !isMale ? "MALE" : "FEMALE"
+                  "[RunningScreen] 성별 토글 누름:",
+                  !isMale ? "남성" : "여성"
                 );
                 setIsMale(!isMale);
               }}
@@ -433,7 +402,7 @@ const RunningScreen = () => {
               isFollowing && customStyles.focusButtonActive,
             ]}
             onPress={() => {
-              console.log("[RunningScreen] Focus button pressed");
+              console.log("[RunningScreen] 포커스 버튼 누름");
               handleFocusPress();
             }}
             activeOpacity={0.7}
@@ -452,10 +421,10 @@ const RunningScreen = () => {
           style={styles.pauseButton}
           onPress={() => {
             if (isPaused) {
-              console.log("[RunningScreen] Resume button pressed");
+              console.log("[RunningScreen] 재개 버튼 누름");
               resumeRun();
             } else {
-              console.log("[RunningScreen] Pause button pressed");
+              console.log("[RunningScreen] 일시정지 버튼 누름");
               pauseRun();
             }
           }}

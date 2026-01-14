@@ -31,3 +31,24 @@ export async function fetchTargetUserBestGhost(targetUserId: number): Promise<Gh
         return null;
     }
 }
+
+// ✅ 친구별 best Tier 고스트 목록
+export type FriendTierGhostDto = {
+    friendUserId: number;
+    friendNickname: string;
+    friendProfileImageUrl: string | null;
+
+    runRecordId: number;
+    avgPace: number;
+    mode: string; // "Tier"
+
+    ghostProfileId: number;
+    type: string; // 서버의 GhostProfile.type
+    targetDistanceKm: number;
+    createdAt: string;
+};
+
+export async function fetchFriendTierBestGhosts(): Promise<FriendTierGhostDto[]> {
+    const res = await api.get(`/api/ghost-profiles/friends/tier-best`);
+    return (res ?? []) as FriendTierGhostDto[];
+}
