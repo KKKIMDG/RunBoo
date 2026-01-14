@@ -1,7 +1,7 @@
 package com.runboo.domain.ghost.controller;
 
-import com.runboo.domain.ghost.dto.FriendTierGhostDto;
-import com.runboo.domain.ghost.service.FriendTierGhostFetchService;
+import com.runboo.domain.ghost.dto.FriendTierBestRunRecordDto;
+import com.runboo.domain.ghost.service.FriendTierBestRunRecordService;
 import com.runboo.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,19 +14,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FriendTierGhostFetchController {
 
-    private final FriendTierGhostFetchService friendTierGhostFetchService;
+    private final FriendTierBestRunRecordService friendTierBestRunRecordService;
 
-    /**
-     * 친구별 best Tier 고스트
-     * - Tier 기록 없는 친구 제외
-     * - GhostProfile 없는 친구도 제외
-     *
-     * GET /api/ghost-profiles/friends/tier-best
-     */
     @GetMapping("/friends/tier-best")
-    public List<FriendTierGhostDto> getFriendsTierBest(
+    public List<FriendTierBestRunRecordDto> getFriendsTierBest(
             @AuthenticationPrincipal CustomUserDetails user
     ) {
-        return friendTierGhostFetchService.getFriendsBestTierGhosts(user.getUserId());
+        return friendTierBestRunRecordService.getFriendsBestTierRunRecords(user.getUserId());
     }
 }
