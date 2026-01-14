@@ -26,6 +26,7 @@ import { Colors } from "@/constants/theme";
 import {useSettings} from "@/screens/Settings/useSettings";
 import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles";
 
 export default function RecordCard({ item }: { item: RecordDto }) {
     const { settings } = useSettings();
@@ -185,7 +186,6 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                                 ref={mapRef}
                                 style={StyleSheet.absoluteFill}
                                 provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
-                                customMapStyle={blurredMapStyle}
                                 initialRegion={{
                                     latitude: midCoord.latitude,
                                     longitude: midCoord.longitude,
@@ -198,6 +198,9 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                                 pitchEnabled={false}
                                 toolbarEnabled={false}
                                 showsCompass={false}
+                                customMapStyle={
+                                    colorScheme === "dark" ? darkMapStyle : lightMapStyle
+                                }
                             >
                                 {/* 상세 화면 느낌 그대로 3겹 (색상만 테마 분기) */}
                                 <Polyline

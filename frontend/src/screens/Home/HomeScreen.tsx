@@ -32,6 +32,7 @@ import type { GhostProfileDto } from "@/types/ghost";
 import { fetchMyRecords } from "@/services/record/recordsService";
 import {useSettings} from "@/screens/Settings/useSettings";
 import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles";
 
 type HomeScreenProps = {
   navigation: { navigate: (screen: string, params?: any) => void };
@@ -46,10 +47,10 @@ const ModeTab: FC<{
 }> = ({ mode, activeMode, onPress, icon, scheme }) => {
 
   const { settings } = useSettings();
-  const resolvedTheme = useResolvedTheme(settings?.themeMode);
+  const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
-    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
-  }, [resolvedTheme, settings?.fontSize]);
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   const colors = Colors[scheme];
   return (
@@ -237,13 +238,13 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   const { settings } = useSettings();
-  const resolvedTheme = useResolvedTheme(settings?.themeMode);
+  const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
-    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
-  }, [resolvedTheme, settings?.fontSize]);
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
-  const colors = Colors[resolvedTheme];
-  const borderColor = resolvedTheme === "dark" ? "#333333" : "#E0E0E0";
+  const colors = Colors[colorScheme];
+  const borderColor = colorScheme === "dark" ? "#333333" : "#E0E0E0";
 
   /** 고스트 모드 상태 */
   const [ghostSheetOpen, setGhostSheetOpen] = useState(false);
@@ -364,21 +365,21 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
             activeMode={activeMode}
             onPress={handleModeChange}
             icon="timer-outline"
-            scheme={resolvedTheme}
+            scheme={colorScheme}
           />
           <ModeTab
             mode="티어"
             activeMode={activeMode}
             onPress={handleModeChange}
             icon="ribbon-outline"
-            scheme={resolvedTheme}
+            scheme={colorScheme}
           />
           <ModeTab
             mode="고스트"
             activeMode={activeMode}
             onPress={handleModeChange}
             icon="body-outline"
-            scheme={resolvedTheme}
+            scheme={colorScheme}
           />
         </View>
 
@@ -397,6 +398,10 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
               }}
               showsUserLocation={true}
               showsMyLocationButton={false}
+
+              customMapStyle={
+                colorScheme === "dark" ? darkMapStyle : lightMapStyle
+              }
             >
               {nearbyRunners.map((runner) => (
                 <Marker
@@ -626,7 +631,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
 
       <GhostSelectSheet
         visible={ghostSheetOpen}
-        scheme={resolvedTheme}
+        scheme={colorScheme}
         loading={ghostLoading}
         data={ghostProfiles}
         onClose={() => setGhostSheetOpen(false)}

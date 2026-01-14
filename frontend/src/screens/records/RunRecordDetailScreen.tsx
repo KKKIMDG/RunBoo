@@ -28,7 +28,8 @@ import { decodePolyline, LatLng } from "@/utils/polyline";
 import { Colors } from "@/constants/theme";
 import { useSettings } from "@/screens/Settings/useSettings";
 import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
-import { useResolvedTheme } from "@/hooks/useResolvedTheme"; // ✅ 테마 훅 (dev 브랜치)
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
+import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles"; // ✅ 테마 훅 (dev 브랜치)
 
 type Params = { recordId: number };
 type R = RouteProp<{ params: Params }, "params">;
@@ -36,13 +37,13 @@ type R = RouteProp<{ params: Params }, "params">;
 export default function RunRecordDetailScreen() {
     const { settings } = useSettings();
     // ✅ dev 브랜치의 테마 로직 적용
-    const resolvedTheme = useResolvedTheme(settings?.themeMode);
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     
     const styles = useMemo(() => {
-        return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
-    }, [resolvedTheme, settings?.fontSize]);
+        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+    }, [colorScheme, settings?.fontSize]);
 
-    const colors = Colors[resolvedTheme];
+    const colors = Colors[colorScheme];
 
     const navigation = useNavigation<any>();
     const route = useRoute<R>();
@@ -174,12 +175,6 @@ export default function RunRecordDetailScreen() {
         }
     };
 
-    const blurredMapStyle = [
-        { elementType: "geometry", stylers: [{ color: "#f0f0f0" }] },
-        { featureType: "road", elementType: "geometry", stylers: [{ visibility: "on" }, { color: "#ffffff" }, { weight: 1.5 }] },
-        { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9d1d9" }] },
-    ];
-
     if (loading) {
         return (
             <View style={styles.overlay}>
@@ -214,13 +209,15 @@ export default function RunRecordDetailScreen() {
                                 style={StyleSheet.absoluteFill}
                                 provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
                                 onMapReady={handleFocusRoute}
-                                customMapStyle={blurredMapStyle}
                                 initialRegion={{
                                     latitude: midCoord.latitude,
                                     longitude: midCoord.longitude,
                                     latitudeDelta: 0.015,
                                     longitudeDelta: 0.015,
                                 }}
+                                customMapStyle={
+                                    colorScheme === "dark" ? darkMapStyle : lightMapStyle
+                                }
                             >
                                 <Polyline coordinates={coords} strokeColor="rgba(0,0,0,0.1)" strokeWidth={16} />
                                 <Polyline coordinates={coords} strokeColor="rgba(74,110,169,0.4)" strokeWidth={10} />

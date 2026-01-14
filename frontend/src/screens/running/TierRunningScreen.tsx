@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo, useState } from "react";
+import React, { useRef, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import MapView, { PROVIDER_GOOGLE, MapStyleElement } from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
 import {
   Ionicons,
@@ -19,7 +19,6 @@ import {
   FontAwesome5,
 } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Location from "expo-location";
 
 import { useTierRunningScreen } from "./useTierRunningScreen";
 import { getStyles } from "./RunningScreen.styles";
@@ -28,17 +27,18 @@ import { useCadence } from "@/hooks/useCadence";
 import { useSettings } from "@/screens/Settings/useSettings";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useMapFocusing } from "./useRunCore";
+import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles";
 
 const { width } = Dimensions.get("window");
 
 const TierRunningScreen = () => {
   const { settings } = useSettings();
-  const resolvedTheme = useResolvedTheme(settings?.themeMode);
+  const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
-    return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
-  }, [resolvedTheme, settings?.fontSize]);
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
-  const isDarkMode = resolvedTheme === "dark";
+  const isDarkMode = colorScheme === "dark";
   const mapRef = useRef<MapView>(null);
 
   const { state, actions, utils } = useTierRunningScreen();
@@ -51,7 +51,6 @@ const TierRunningScreen = () => {
     paceHistory,
     isReady,
     countdown,
-    lastLocation,
     initialLocation,
     routeCoordinates,
   } = state;
@@ -72,7 +71,7 @@ const TierRunningScreen = () => {
     }
   }, [routeCoordinates]);
 
-  const { pauseRun, resumeRun, stopTierRunManual } = actions;
+  const { stopTierRunManual } = actions;
   const { formatTime, formatPace } = utils;
 
   const cadence = useCadence({
@@ -84,27 +83,6 @@ const TierRunningScreen = () => {
   useEffect(() => {
     actions.pushCadenceSample(cadence);
   }, [cadence]);
-
-  const blurredMapStyle: MapStyleElement[] = [
-    {
-      elementType: "geometry",
-      stylers: [{ color: isDarkMode ? "#242f3e" : "#f0f0f0" }],
-    },
-    {
-      featureType: "road",
-      elementType: "geometry",
-      stylers: [
-        { visibility: "on" },
-        { color: isDarkMode ? "#38414e" : "#ffffff" },
-        { weight: 1.5 },
-      ],
-    },
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: isDarkMode ? "#17263c" : "#c9d1d9" }],
-    },
-  ];
 
   const handleStopPress = () => {
     const msg = "종료하려면 버튼을 길게 눌러주세요.";
@@ -129,9 +107,11 @@ const TierRunningScreen = () => {
           style={StyleSheet.absoluteFill}
           provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
           showsUserLocation={true}
+
           customMapStyle={
-            Platform.OS === "android" ? blurredMapStyle : undefined
+            colorScheme === "dark" ? darkMapStyle : lightMapStyle
           }
+
           onPanDrag={() => mapFocusing.setIsFollowing(false)}
           initialRegion={
             initialLocation
