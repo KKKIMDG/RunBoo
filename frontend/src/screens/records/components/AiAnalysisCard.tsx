@@ -13,29 +13,31 @@ import { fetchAiStatus, analyzeRunRecords } from "@/services/ai/aiService";
 import Markdown from "react-native-markdown-display";
 import { Colors } from "@/constants/theme";
 import PremiumModal from "@/screens/records/components/PremiumModal";
-import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
-import {useSettings} from "@/screens/Settings/useSettings";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
+import { useSettings } from "@/screens/Settings/useSettings";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 
 export default function AiAnalysisCard() {
-
   const [premiumVisible, setPremiumVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
 
   // 무료 분석 횟수 상태
-    const [freeAnalysisCount, setFreeAnalysisCount] = useState<number | null>(null);
-    const [isSubscribed, setIsSubscribed] = useState(false);
-    const { settings } = useSettings();
-    const colorScheme = useResolvedTheme(settings?.themeMode);
+  const [freeAnalysisCount, setFreeAnalysisCount] = useState<number | null>(
+    null
+  );
+  const [remainingDays, setRemainingDays] = useState<number>(0);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const { settings } = useSettings();
+  const colorScheme = useResolvedTheme(settings?.themeMode);
 
-    const styles = useMemo(() => {
-        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-    }, [colorScheme, settings?.fontSize]);
+  const styles = useMemo(() => {
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
-    const markdownStyles = useMemo(() => {
-        return getMarkdownStyles(colorScheme, settings?.fontSize || "MEDIUM");
-    }, [colorScheme, settings?.fontSize]);
+  const markdownStyles = useMemo(() => {
+    return getMarkdownStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   useEffect(() => {
     loadStatus();
@@ -44,12 +46,19 @@ export default function AiAnalysisCard() {
   const loadStatus = async () => {
     try {
       const status = await fetchAiStatus();
+      console.log("[AiAnalysisCard] AI 상태 로드:", status);
+      console.log("[AiAnalysisCard] 남은 횟수:", status.remainingCount);
+      console.log("[AiAnalysisCard] 남은 일수:", status.remainingDays);
+      console.log("[AiAnalysisCard] 구독 여부:", status.subscribed);
+
       setFreeAnalysisCount(status.remainingCount);
-      setIsSubscribed(status.isSubscribed);
+      setRemainingDays(status.remainingDays);
+      setIsSubscribed(status.subscribed);
     } catch (error) {
-      console.error("AI Status Load Failed:", error);
+      console.error("[AiAnalysisCard] AI 상태 로드 실패:", error);
       // 에러 시 0으로 설정하여 무한 로딩 방지 및 잠금 처리
       setFreeAnalysisCount(0);
+      setRemainingDays(0);
     }
   };
 
@@ -63,13 +72,17 @@ export default function AiAnalysisCard() {
     try {
       setLoading(true);
       const response = await analyzeRunRecords();
-      
+      console.log("[AiAnalysisCard] 분석 응답:", response);
+      console.log("[AiAnalysisCard] 남은 횟수:", response.remainingCount);
+      console.log("[AiAnalysisCard] 남은 일수:", response.remainingDays);
+      console.log("[AiAnalysisCard] 구독 여부:", response.subscribed);
+
       if (response.markdownContent) {
         setAnalysisResult(response.markdownContent);
       }
       setFreeAnalysisCount(response.remainingCount);
-      setIsSubscribed(response.isSubscribed);
-      
+      setRemainingDays(response.remainingDays);
+      setIsSubscribed(response.subscribed);
     } catch (error: any) {
       console.error(error);
       Alert.alert("분석 실패", error?.message || "잠시 후 다시 시도해주세요.");
@@ -120,7 +133,8 @@ export default function AiAnalysisCard() {
           style={[
             styles.button,
             (loading || isStatusLoading) && styles.buttonDisabled,
-            isLocked && !loading && { backgroundColor: Colors[colorScheme].disabled },
+            isLocked &&
+              !loading && { backgroundColor: Colors[colorScheme].disabled },
           ]}
           onPress={handleAnalyze}
           disabled={loading || isStatusLoading}
@@ -128,7 +142,11 @@ export default function AiAnalysisCard() {
         >
           <View style={styles.buttonContent}>
             {isStatusLoading ? (
-               <ActivityIndicator size="small" color={Colors[colorScheme].subtext} style={{ marginRight: 6 }} />
+              <ActivityIndicator
+                size="small"
+                color={Colors[colorScheme].subtext}
+                style={{ marginRight: 6 }}
+              />
             ) : (
               isLocked && (
                 <Ionicons
@@ -141,12 +159,14 @@ export default function AiAnalysisCard() {
                 />
               )
             )}
-            
+
             <Text
               style={[
                 styles.buttonText,
                 isLocked && { color: Colors[colorScheme].disabledText },
-                (loading || isStatusLoading) && { color: Colors[colorScheme].subtext },
+                (loading || isStatusLoading) && {
+                  color: Colors[colorScheme].subtext,
+                },
               ]}
             >
               {loading
@@ -163,22 +183,16 @@ export default function AiAnalysisCard() {
         {/* 버튼 외부 하단 안내 문구 블록 */}
         {!loading && !isStatusLoading && (
           <View style={styles.subTextContainer}>
-            <Text
-              style={[
-                styles.subText,
-                !canAnalyze && { color: "#AEAEB2" },
-              ]}
-            >
+            <Text style={[styles.subText, !canAnalyze && { color: "#AEAEB2" }]}>
               {isSubscribed
                 ? "프리미엄 구독 중입니다"
                 : (freeAnalysisCount ?? 0) > 0
                 ? `이번 달 무료 분석 ${freeAnalysisCount}회 남음`
-                : "이번 달 무료 분석 횟수를 모두 소진했어요"}
+                : `무료 사용 횟수를 소진하였습니다.\n초기화까지 ${remainingDays}일 남음`}
             </Text>
           </View>
         )}
       </View>
-
 
       <PremiumModal
         visible={premiumVisible}
@@ -192,10 +206,7 @@ export default function AiAnalysisCard() {
   );
 }
 
-const getStyles = (
-    scheme: "light" | "dark",
-    fontSize: FontSizeSetting
-) =>
+const getStyles = (scheme: "light" | "dark", fontSize: FontSizeSetting) =>
   StyleSheet.create({
     container: {
       backgroundColor: Colors[scheme].secondaryBackground,
@@ -209,7 +220,11 @@ const getStyles = (
       marginBottom: 16,
       paddingHorizontal: 4,
     },
-    title: { fontSize: scaleFont(18, fontSize), fontWeight: "700", color: Colors[scheme].text },
+    title: {
+      fontSize: scaleFont(18, fontSize),
+      fontWeight: "700",
+      color: Colors[scheme].text,
+    },
     contentContainer: {
       backgroundColor: Colors[scheme].card,
       borderRadius: 16,
@@ -281,11 +296,15 @@ const getStyles = (
   });
 
 const getMarkdownStyles = (
-    scheme: "light" | "dark",
-    fontSize: FontSizeSetting
+  scheme: "light" | "dark",
+  fontSize: FontSizeSetting
 ) =>
   StyleSheet.create({
-    body: { fontSize: scaleFont(15, fontSize), color: Colors[scheme].text, lineHeight: 26 },
+    body: {
+      fontSize: scaleFont(15, fontSize),
+      color: Colors[scheme].text,
+      lineHeight: 26,
+    },
     strong: { fontWeight: "700", color: Colors[scheme].text },
     paragraph: { marginBottom: 12, marginTop: 0 },
     list_item: { marginBottom: 8 },
