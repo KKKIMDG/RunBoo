@@ -1,16 +1,13 @@
 package com.runboo.domain.ai.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Data
+@Getter
+@NoArgsConstructor
 @AllArgsConstructor
-public class AnalysisResponse {
-
-    /**
-     * AI 분석 결과 (마크다운)
-     */
-    private String markdownContent;
+public class AiStatusViewResponse {
 
     /**
      * 남은 무료 사용 횟수
@@ -23,8 +20,7 @@ public class AnalysisResponse {
     private boolean isSubscribed;
 
     /**
-     * 무료 사용 소진 시, 초기화까지 남은 일수
-     * 사용 가능 상태면 null
+     * 무료 사용 소진 시, 초기화까지 남은 일수 (사용 가능 시 null)
      */
     private Long remainingDays;
 }
