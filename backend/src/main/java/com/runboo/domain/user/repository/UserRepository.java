@@ -2,6 +2,7 @@ package com.runboo.domain.user.repository;
 
 import com.runboo.domain.user.entity.User;
 import com.runboo.domain.user.enums.SocialProvider;
+import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -36,4 +37,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("select u.id from User u where u.userState = com.runboo.domain.user.entity.UserState.ACTIVATION")
     List<Long> findAllActiveUserIds();
+
+    @Query("SELECT u FROM User u WHERE (u.email LIKE %:keyword% OR u.nickname LIKE %:keyword%) AND u.id != :myId")
+    List<User> searchUsers(@Param("keyword") String keyword, @Param("myId") Long myId);
+
+
 }

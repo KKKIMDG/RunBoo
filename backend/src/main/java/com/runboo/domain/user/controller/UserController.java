@@ -2,10 +2,14 @@ package com.runboo.domain.user.controller;
 
 import com.runboo.domain.user.dto.*;
 import com.runboo.domain.user.service.UserService;
+import com.runboo.global.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -94,5 +98,13 @@ public class UserController {
         // 서비스에 요청: "내 아이디의 블라인드 상태를 이걸로 바꿔줘"
         userService.updateBlindStatus(request.isBlind());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<UserDto>> searchUsers(
+            @RequestParam String keyword,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        return ResponseEntity.ok(userService.searchUsers(keyword, user.getUserId()));
     }
 }

@@ -2,6 +2,7 @@ package com.runboo.domain.user.service;
 
 import com.runboo.domain.auth.repository.RefreshTokenRepository;
 import com.runboo.domain.user.dto.PasswordChangeRequestDto;
+import com.runboo.domain.user.dto.UserDto;
 import com.runboo.domain.user.dto.UserMeResponseDto;
 import com.runboo.domain.user.dto.WithdrawRequest;
 import com.runboo.domain.user.entity.User;
@@ -18,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -138,5 +141,13 @@ public class UserService {
         if (isBlind) {
             redisTemplate.opsForGeo().remove(REDIS_RUNNER_KEY, user.getId().toString());
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserDto> searchUsers(String keyword, Long myId) {
+        return userRepository.searchUsers(keyword, myId)
+                .stream()
+                .map(UserDto::new)
+                .collect(Collectors.toList());
     }
 }
