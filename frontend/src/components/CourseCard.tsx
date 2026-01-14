@@ -5,6 +5,7 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Colors } from '@/constants/theme';
 import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
 import {useSettings} from "@/screens/Settings/useSettings";
+import {useResolvedTheme} from "@/hooks/useResolvedTheme";
 
 // ✅ [정품 설명서] 좌표(latitude, longitude)가 꼭 있어야 합니다!
 export interface CourseType {
@@ -30,7 +31,7 @@ export default React.memo(function CourseCard({ course, onToggle, onPress }: Cou
     if (!course) return null;
 
     const { settings } = useSettings();
-    const colorScheme = useColorScheme() ?? "light";
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);
