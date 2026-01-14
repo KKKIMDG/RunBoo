@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-import type { GhostProfileDto } from "@/types/ghost";
+import type { FriendTierGhostDto, GhostProfileDto } from "@/types/ghost";
 import type { RecordDto } from "@/types/record";
 import { formatPaceSecToText, formatKm } from "@/screens/ghost/format";
 import { fetchNationalRankingTop5 } from "@/services/record/recordsService";
@@ -55,7 +55,6 @@ function normalizeType(t: string): GhostType | "UNKNOWN" {
 }
 
 type SlotType = GhostType;
-
 type TabKey = "self" | "friend" | "ranking";
 
 type Row = {
@@ -69,7 +68,7 @@ type FriendRow = {
     key: string;
     title: string;
     subtitle: string;
-    gp: GhostProfileDto;
+    dto: FriendTierGhostDto;
 };
 
 function getTitleBySlot(slot: SlotType) {
@@ -193,7 +192,7 @@ export default function GhostSelectSheet({
 
     // ===== 친구 로딩(신규 추가) =====
     const [friendLocalLoading, setFriendLocalLoading] = useState(false);
-    const [friendLocal, setFriendLocal] = useState<GhostProfileDto[]>([]);
+    const [friendLocal, setFriendLocal] = useState<FriendTierGhostDto[]>([]);
 
     useEffect(() => {
         let alive = true;
@@ -206,26 +205,11 @@ export default function GhostSelectSheet({
                 if (alive) setFriendLocalLoading(true);
 
                 const list = await fetchFriendTierBestGhosts();
+                console.log("[FriendGhost] raw response:", list);
 
-                // 서버 DTO -> GhostProfileDto로 변환 (onSelect(gp) 유지)
-                const converted: GhostProfileDto[] = (list ?? []).map(
-                    (it: any, idx: number) =>
-                        ({
-                            id: -(3000 + idx + 1), // UI용 임시 id
-                            runRecordId: it.runRecordId,
-                            type: "FRIEND_TIER_BEST",
-                            targetDistanceKm: Number(it.targetDistanceKm ?? 0),
-                            avgPace: Number(it.avgPace ?? 0),
-                            createdAt: String(it.createdAt ?? ""),
-                            // 표시용 확장 필드들(타입에 없어도 UI에서 any로 읽음)
-                            friendUserId: it.friendUserId,
-                            friendNickname: it.friendNickname,
-                            friendProfileImageUrl: it.friendProfileImageUrl,
-                            ghostProfileId: it.ghostProfileId,
-                        } as any)
-                );
-
-                if (alive) setFriendLocal(converted);
+                if (alive) setFriendLocal((list ?? []) as FriendTierGhostDto[]);
+            } catch (e) {
+                console.error("[FriendGhost] fetch failed:", e);
             } finally {
                 if (alive) setFriendLocalLoading(false);
             }
@@ -285,14 +269,15 @@ export default function GhostSelectSheet({
 
     // ===== 친구 rows (신규) =====
     const friendRows: FriendRow[] = useMemo(() => {
-        return (friendLocal ?? []).map((gp: any) => {
-            const name = String(gp?.friendNickname ?? "친구");
-            const date = safeDate10(String(gp?.createdAt ?? ""));
+        return (friendLocal ?? []).map((dto) => {
+            const name = String(dto?.friendNickname ?? "친구");
+            const dateIso = String((dto as any)?.startedAt ?? dto?.createdAt ?? "");
+            const date = safeDate10(dateIso);
             return {
-                key: `friend-${gp?.friendUserId ?? gp?.id}`,
+                key: `friend-${dto.friendUserId}-${dto.runRecordId}`,
                 title: name,
                 subtitle: date,
-                gp: gp as GhostProfileDto,
+                dto,
             };
         });
     }, [friendLocal]);
@@ -365,10 +350,13 @@ export default function GhostSelectSheet({
                             <ActivityIndicator color={s.iconColor.color} />
                         </View>
                     ) : tab === "friend" ? (
-                        // ===== 친구 리스트 렌더 =====
                         friendRows.length === 0 ? (
                             <View style={s.emptyBox}>
-                                <Ionicons name="people-outline" size={22} color={s.itemSub.color} />
+                                <Ionicons
+                                    name="people-outline"
+                                    size={22}
+                                    color={s.itemSub.color}
+                                />
                                 <Text style={s.emptyText}>친구 고스트가 없어요</Text>
                                 <Text style={s.emptySubText}>
                                     친구 중 Tier 기록이 있는 사람만 표시돼요
@@ -380,23 +368,37 @@ export default function GhostSelectSheet({
                                 keyExtractor={(i) => i.key}
                                 contentContainerStyle={s.listContent}
                                 renderItem={({ item }) => {
-                                    const gp: any = item.gp;
-                                    const subtitle = item.subtitle;
-                                    const nickname = item.title;
+                                    const d = item.dto;
+
+                                    const distanceM = Number((d as any)?.distanceM ?? 0);
+                                    const km = distanceM / 1000;
+                                    const pace = Number(d.avgPace ?? 0);
 
                                     return (
                                         <TouchableOpacity
                                             style={s.item}
                                             onPress={() => {
+                                                // ✅ 기존 onSelect(gp: GhostProfileDto) 유지
+                                                const gpForSelect: GhostProfileDto = {
+                                                    id: d.runRecordId, // ghostProfileId가 없으니 runRecordId를 임시 id로 사용
+                                                    userId: d.friendUserId,
+                                                    runRecordId: d.runRecordId,
+                                                    type: "FRIEND_TIER_BEST",
+                                                    targetDistanceKm: km,
+                                                    avgPace: pace,
+                                                    createdAt: String(
+                                                        (d as any)?.startedAt ?? d.createdAt ?? ""
+                                                    ),
+                                                } as any;
+
                                                 onClose?.();
-                                                onSelect?.(item.gp);
+                                                onSelect?.(gpForSelect);
                                             }}
                                             activeOpacity={0.85}
                                         >
-                                            {/* 친구 프로필 이미지(있으면), 없으면 아이콘 */}
-                                            {gp?.friendProfileImageUrl ? (
+                                            {d.friendProfileImageUrl ? (
                                                 <Image
-                                                    source={{ uri: String(gp.friendProfileImageUrl) }}
+                                                    source={{ uri: String(d.friendProfileImageUrl) }}
                                                     style={s.friendAvatar}
                                                 />
                                             ) : (
@@ -410,16 +412,14 @@ export default function GhostSelectSheet({
                                             )}
 
                                             <View style={s.itemLeft}>
-                                                <Text style={s.itemTitle}>{nickname}</Text>
-                                                <Text style={s.itemSub}>{subtitle}</Text>
+                                                <Text style={s.itemTitle}>{item.title}</Text>
+                                                <Text style={s.itemSub}>{item.subtitle}</Text>
                                             </View>
 
                                             <View style={s.itemRight}>
-                                                <Text style={s.itemTitle}>
-                                                    {formatKm((gp as any).targetDistanceKm)}
-                                                </Text>
+                                                <Text style={s.itemTitle}>{formatKm(km)}</Text>
                                                 <Text style={s.itemSub}>
-                                                    {formatPaceSecToText((gp as any).avgPace)}/km
+                                                    {formatPaceSecToText(pace)}/km
                                                 </Text>
                                             </View>
                                         </TouchableOpacity>
@@ -428,7 +428,6 @@ export default function GhostSelectSheet({
                             />
                         )
                     ) : (
-                        // ===== 기존(내 기록/랭킹) 렌더 유지 =====
                         <FlatList
                             data={tab === "self" ? selfRows : rankingRows}
                             keyExtractor={(i) => i.key}
@@ -458,6 +457,7 @@ export default function GhostSelectSheet({
                                     item.slot === "SELF_WEEKLY_AVG"
                                         ? safeWeekRangeLabel(gp.createdAt)
                                         : safeDate10(gp.createdAt);
+
                                 return (
                                     <TouchableOpacity
                                         style={s.item}
