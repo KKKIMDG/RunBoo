@@ -14,7 +14,7 @@ export interface CourseType {
     name: string;
     address: string;
     lengthKm: number;
-    imageUrl: string | null;
+    imageUrl?: string | null;
     isSaved?: boolean;
     // ⚠️ 구글 맵을 위해 좌표 필수 추가
     latitude: number;
