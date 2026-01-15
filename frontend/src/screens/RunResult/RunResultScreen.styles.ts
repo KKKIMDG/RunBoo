@@ -1,5 +1,5 @@
 import { Dimensions, StyleSheet } from "react-native";
-import { Colors } from "@/constants/theme";
+import { Colors, Fonts } from "@/constants/theme";
 import { FontSizeSetting } from "@/utils/fontScale";
 
 const { width } = Dimensions.get("window");
@@ -14,48 +14,38 @@ export const getStyles = (
       backgroundColor: Colors[scheme].background,
     },
     scrollContainer: {
-      padding: 0, // 전체 패딩 해제 (이미지처럼 배경이 꽉 차게)
+      padding: 0,
       alignItems: "center",
     },
 
-    // --- 상단 프로필 영역 ---
-    profileContainer: {
+    // --- 로고 이미지 ---
+    logoContainer: {
+      position: "absolute",
+      left: 0,
       alignItems: "center",
-      marginTop: 40,
-      marginBottom: 20,
+      zIndex: 20,
+      pointerEvents: "none", // 터치 이벤트 통과
     },
-    profileImageContainer: {
-      width: 80,
-      height: 80,
-      borderRadius: 20, // 이미지처럼 살짝 각진 형태
-      backgroundColor: "#000",
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 10,
-      overflow: "hidden",
+    logoImage: {
+      width: 40,
+      height: 40,
+      borderRadius: 16,
     },
-    profileImage: {
-      width: "100%",
-      height: "100%",
-    },
-    titleText: {
-      fontSize: 28,
-      fontWeight: "bold",
+    timeText: {
+      fontSize: 13,
+      fontFamily: Fonts?.gmarketBold,
       color: Colors[scheme].text,
-      marginBottom: 5,
-    },
-    subtitleText: {
-      fontSize: 16,
-      color: Colors[scheme].text,
-      fontWeight: "bold",
+      position: "absolute",
+      top: 12,
+      left: 10,
     },
 
     // --- 지도 영역 및 오버레이 ---
     mapContainer: {
       width: width,
-      height: (width - 40) * 1.2, // 세로로 약간 긴 형태
+      height: width * 1.4,
       backgroundColor: "#EBEBEB",
-      borderRadius: 0, // 이미지처럼 라운드 없음
+      borderRadius: 0,
       overflow: "hidden",
       marginBottom: 20,
       position: "relative",
@@ -69,7 +59,7 @@ export const getStyles = (
     placeholderTitle: {
       marginTop: 8,
       fontSize: 18,
-      fontWeight: "700",
+      fontFamily: Fonts?.gmarketBold,
       color: Colors[scheme].text,
     },
     placeholderSubtitle: {
@@ -83,7 +73,7 @@ export const getStyles = (
     // ✅ 지도 위 스탯 오버레이 스타일
     statsOverlay: {
       position: "absolute",
-      top: 25,
+      top: 50,
       left: 20,
       right: 20,
       flexDirection: "row",
@@ -94,7 +84,7 @@ export const getStyles = (
       alignItems: "center",
     },
     overlayLabel: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: "bold",
       color: Colors[scheme].text,
       marginBottom: 2,
@@ -104,8 +94,9 @@ export const getStyles = (
       alignItems: "baseline",
     },
     overlayValue: {
-      fontSize: 28,
-      fontWeight: "900", // 아주 굵게
+      marginTop: 5,
+      fontSize: 25,
+      fontFamily: Fonts?.gmarketBold,
       color: Colors[scheme].text,
     },
     overlayUnit: {
@@ -143,7 +134,7 @@ export const getStyles = (
     bottomInfoLabel: {
       fontSize: 14,
       color: Colors[scheme].text,
-      marginBottom: 12,
+      marginBottom: 10,
       fontWeight: "bold",
     },
     bottomInfoValueRow: {
@@ -151,8 +142,8 @@ export const getStyles = (
       alignItems: "baseline",
     },
     bottomInfoValue: {
-      fontSize: 26,
-      fontWeight: "bold",
+      fontSize: 20,
+      fontFamily: Fonts?.gmarketBold,
       color: Colors[scheme].text,
     },
     bottomInfoUnit: {

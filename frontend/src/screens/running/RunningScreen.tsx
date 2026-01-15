@@ -10,10 +10,7 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
-import MapView, {
-  PROVIDER_GOOGLE,
-  PROVIDER_DEFAULT,
-} from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE, PROVIDER_DEFAULT } from "react-native-maps";
 import { LineChart } from "react-native-chart-kit";
 import {
   Ionicons,
@@ -33,7 +30,7 @@ import * as Speech from "expo-speech";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useSettings } from "@/screens/Settings/useSettings";
-import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles";
+import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
 
 const { width } = Dimensions.get("window");
 
@@ -160,9 +157,7 @@ const RunningScreen = () => {
           }
           showsUserLocation={true}
           loadingEnabled={true}
-          customMapStyle={
-            colorScheme === "dark" ? darkMapStyle : lightMapStyle
-          }
+          customMapStyle={colorScheme === "dark" ? darkMapStyle : lightMapStyle}
           showsMyLocationButton={false}
           onPanDrag={() => {
             if (isFollowing) {
@@ -439,7 +434,7 @@ const RunningScreen = () => {
           style={[styles.stopButton, { backgroundColor: "#FF3B30" }]}
           onPress={() => Alert.alert("알림", "종료하려면 길게 누르세요.")}
           onLongPress={handleStopLongPress}
-          delayLongPress={1000}
+          delayLongPress={500}
         >
           <View style={customStyles.stopSquare} />
         </TouchableOpacity>
