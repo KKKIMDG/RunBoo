@@ -98,7 +98,28 @@ export default function FriendScreen() {
         }
     };
 
-    // ✅ [추가] 친구 삭제 핸들러
+    const handleDeleteFriend = (friendshipId: number, nickname: string) => {
+        Alert.alert(
+            `${nickname}님과 작별하시겠어요?`,
+            "이 작업은 되돌릴 수 없습니다.",
+            [
+                { text: "아니요", style: 'cancel' },
+                {
+                    text: "네, 작별합니다",
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await FriendService.deleteFriend(friendshipId);
+                            Alert.alert("작별 인사", `${nickname}님과 친구 관계를 정리했습니다.`);
+                            fetchData(true);
+                        } catch (error) {
+                            Alert.alert("오류", "친구 삭제에 실패했습니다.");
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     const renderItem = ({ item }: { item: Friend }) => (
         <View style={styles.itemContainer}>
