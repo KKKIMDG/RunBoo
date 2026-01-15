@@ -1,12 +1,12 @@
 import { StyleSheet, Platform, Dimensions } from "react-native";
-import { Colors } from "@/constants/theme";
-import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import { Colors, Fonts } from "@/constants/theme";
+import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
 
 const { width } = Dimensions.get("window");
 
 export const getStyles = (
-    scheme: "light" | "dark",
-    fontSize: FontSizeSetting
+  scheme: "light" | "dark",
+  fontSize: FontSizeSetting
 ) => {
   // ✅ Colors 객체가 존재하는지 방어 코드 추가
   const activeColors = Colors?.[scheme] ??
@@ -27,8 +27,8 @@ export const getStyles = (
       backgroundColor: activeColors.background,
     },
     scrollContainer: {
-      padding: 20,
-      paddingBottom: 150,
+      paddingTop: 0,
+      paddingBottom: 0,
     },
 
     // --- 카운트다운 오버레이 ---
@@ -57,21 +57,15 @@ export const getStyles = (
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 20,
+      marginBottom: 5,
     },
     statusTag: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: activeColors.card,
       paddingVertical: 8,
       paddingHorizontal: 16,
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: activeColors.border,
-      ...Platform.select({
-        ios: { shadowColor, shadowOpacity: 0.1, shadowRadius: 5 },
-        android: { elevation: 3 },
-      }),
+      marginLeft: 4,
+      marginTop: 4,
     },
     statusDot: {
       width: 8,
@@ -80,9 +74,121 @@ export const getStyles = (
       marginRight: 8,
     },
     statusText: {
-      fontSize: scaleFont(16, fontSize),
+      fontSize: scaleFont(10, fontSize),
+      color: activeColors.text,
+      fontFamily: Fonts?.gmarketBold,
+    },
+
+    // --- 지도 영역 ---
+    mapContainer: {
+      height: 420,
+      borderRadius: 0,
+      overflow: "visible",
+      marginBottom: 0,
+      backgroundColor: activeColors.background,
+      position: "relative",
+    },
+
+    // --- 메인 통계 (지도 위 오버레이) ---
+    mainStatsContainer: {
+      position: "absolute",
+      top: 10,
+      left: 0,
+      right: 0,
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 20,
+      zIndex: 10,
+      pointerEvents: "none",
+    },
+    timeContainer: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 16,
+    },
+    timeLabel: {
+      fontSize: scaleFont(12, fontSize),
+      fontWeight: "bold",
+      color: subTextColor,
+      marginRight: 8,
+    },
+    timeValue: {
+      fontSize: scaleFont(20, fontSize),
       fontWeight: "bold",
       color: activeColors.text,
+      fontVariant: ["tabular-nums"],
+      letterSpacing: 2,
+    },
+    distanceContainer: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      paddingHorizontal: 24,
+      paddingVertical: 8,
+      borderRadius: 16,
+    },
+    distanceLabel: {
+      fontSize: scaleFont(12, fontSize),
+      color: subTextColor,
+      fontWeight: "bold",
+      marginRight: 8,
+    },
+    distanceValue: {
+      fontSize: scaleFont(30, fontSize),
+      fontWeight: "bold",
+      color: activeColors.secondary,
+      marginBottom: 20,
+      fontVariant: ["tabular-nums"],
+      fontFamily: Fonts?.mono,
+    },
+    distanceUnit: {
+      fontSize: scaleFont(20, fontSize),
+      color: activeColors.text,
+      marginLeft: 4,
+    },
+
+    // --- 지도 플레이스홀더 ---
+    mapPlaceholder: {
+      height: 200,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: activeColors.secondaryBackground,
+    },
+    mapPlaceholderText: {
+      fontSize: scaleFont(14, fontSize),
+      color: subTextColor,
+    },
+
+    // --- 페이스/케이던스 표시 ---
+    paceStatsContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      marginTop: 0,
+      marginBottom: 0,
+      paddingVertical: 16,
+      paddingHorizontal: 20,
+      backgroundColor: activeColors.background,
+    },
+    paceStatItem: {
+      flexDirection: "row",
+      alignItems: "baseline",
+    },
+    paceStatLabel: {
+      fontSize: scaleFont(12, fontSize),
+      color: subTextColor,
+      marginRight: 8,
+      fontWeight: "bold",
+    },
+    paceStatValue: {
+      fontSize: scaleFont(20, fontSize),
+      fontWeight: "bold",
+      color: activeColors.text,
+    },
+    paceStatUnit: {
+      fontSize: scaleFont(16, fontSize),
+      color: subTextColor,
     },
 
     // --- 정보 카드 컨테이너 ---
@@ -142,94 +248,82 @@ export const getStyles = (
 
     // --- 차트 영역 ---
     chartCard: {
-      backgroundColor: activeColors.card,
-      borderRadius: 24,
-      padding: 20,
-      marginBottom: 20,
-      borderWidth: 1,
+      backgroundColor: activeColors.background,
+      borderRadius: 0,
+      paddingVertical: 16,
+      paddingHorizontal: 20,
+      marginBottom: 0,
+      borderWidth: 0,
       borderColor: activeColors.border,
     },
     chartTitleContainer: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 15,
+      marginBottom: 8,
+      marginLeft: 0,
     },
     chartTitle: {
-      fontSize: scaleFont(16, fontSize),
+      fontSize: scaleFont(14, fontSize),
       fontWeight: "800",
       color: activeColors.text,
+      marginTop: 0,
       marginLeft: 8,
     },
     chart: {
-      marginVertical: 8,
+      marginVertical: 0,
       borderRadius: 16,
-      marginLeft: -15,
+      marginLeft: 0,
     },
     chartLabels: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginTop: 10,
+      marginTop: 8,
     },
     chartLabelText: {
       fontSize: scaleFont(12, fontSize),
       color: subTextColor,
+      marginLeft: 0,
+      marginRight: 0,
       fontWeight: "600",
-    },
-
-    // --- 지도 영역 ---
-    mapContainer: {
-      height: 300,
-      borderRadius: 24,
-      overflow: "hidden",
-      marginBottom: 20,
-      backgroundColor: activeColors.card,
-      borderWidth: 1,
-      borderColor: activeColors.border,
     },
 
     // --- 하단 컨트롤 버튼 ---
     controlContainer: {
       position: "absolute",
-      bottom: 0,
+      bottom: 20,
       left: 0,
       right: 0,
-      backgroundColor: activeColors.card,
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      paddingVertical: 30,
-      borderTopLeftRadius: 30,
-      borderTopRightRadius: 30,
-      borderTopWidth: 1,
-      borderTopColor: activeColors.border,
+      gap: 20,
+      zIndex: 15,
     },
     pauseButton: {
       backgroundColor: activeColors.background,
       width: 70,
-      height: 70,
-      borderRadius: 35,
+      height: 50,
+      borderRadius: 10,
       justifyContent: "center",
       alignItems: "center",
-      marginRight: 24,
-      borderWidth: 1,
+      borderWidth: 2,
       borderColor: activeColors.border,
     },
     stopButton: {
       backgroundColor: "#FF3B30",
-      width: 80,
-      height: 80,
-      borderRadius: 28,
+      width: 70,
+      height: 50,
+      borderRadius: 10,
       justifyContent: "center",
       alignItems: "center",
     },
     voiceSettingButton: {
       fontSize: scaleFont(12, fontSize),
-      color: "#4A6EA9"
+      color: "#4A6EA9",
     },
-    voiceOnOffButton:{
+    voiceOnOffButton: {
       fontSize: scaleFont(12, fontSize),
       marginLeft: 4,
-    }
-
+    },
   });
 };

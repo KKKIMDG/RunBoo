@@ -210,10 +210,11 @@ const RunningScreen = () => {
     [paceHistory]
   );
 
-  const chartConfig = useMemo(
-    () => ({
-      backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
-      backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
+  const chartConfig = useMemo(() => {
+    const bgColor = isDarkMode ? "#121212" : "#FFFFFF";
+    return {
+      backgroundGradientFrom: bgColor,
+      backgroundGradientTo: bgColor,
       decimalPlaces: 1,
       color: (opacity = 1) => `rgba(74,110,169,${opacity})`,
       labelColor: () => (isDarkMode ? "#FFF" : "#333"),
@@ -221,9 +222,8 @@ const RunningScreen = () => {
       propsForBackgroundLines: {
         strokeWidth: 0,
       },
-    }),
-    [isDarkMode]
-  );
+    };
+  }, [isDarkMode]);
 
   // ✅ 변경: stopRun()은 인자 없이 호출 (cadence는 훅에서 평균 계산 후 DB 저장)
   const handleStopLongPress = () => {
@@ -306,75 +306,23 @@ const RunningScreen = () => {
           </View>
         </View>
 
-        <View style={styles.statsContainer}>
-          <StatBox
-            icon={<Ionicons name="time-outline" size={24} color="#4A6EA9" />}
-            label="시간"
-            value={formatTime(time)}
-          />
-          <StatBox
-            icon={
-              <MaterialCommunityIcons
-                name="flag-checkered"
-                size={24}
-                color="#4A6EA9"
-              />
-            }
-            label="거리"
-            value={(distance / 1000).toFixed(2)}
-            unit="km"
-            highlight
-          />
-          <StatBox
-            icon={<FontAwesome5 name="running" size={22} color="#4A6EA9" />}
-            label="페이스"
-            value={formatPace(currentPace)}
-            unit="/km"
-          />
-          <StatBox
-            icon={
-              <MaterialCommunityIcons
-                name="shoe-print"
-                size={24}
-                color="#4A6EA9"
-              />
-            }
-            label="케이던스"
-            value={String(cadence)}
-            unit="spm"
-          />
-        </View>
-
-        <View style={styles.chartCard}>
-          <View style={styles.chartTitleContainer}>
-            <Ionicons
-              name="analytics-outline"
-              size={20}
-              color={isDarkMode ? "#FFF" : "#333"}
-            />
-            <Text style={styles.chartTitle}>페이스 변화</Text>
-          </View>
-          <LineChart
-            data={chartData}
-            width={width - 80}
-            height={150}
-            chartConfig={chartConfig}
-            bezier
-            style={styles.chart}
-            withInnerLines={false}
-            withOuterLines={false}
-            withVerticalLabels={false}
-            withHorizontalLabels={false}
-          />
-          <View style={styles.chartLabels}>
-            <Text style={styles.chartLabelText}>시작</Text>
-            <Text style={styles.chartLabelText}>
-              현재: {formatPace(currentPace)}/km
-            </Text>
-          </View>
-        </View>
-
+        {/* 지도 영역 */}
         <View style={styles.mapContainer}>
+          {/* 메인 통계: 시간과 거리 (지도 위 오버레이) */}
+          <View style={styles.mainStatsContainer}>
+            <View style={styles.timeContainer}>
+              <Text style={styles.timeLabel}>⏱ 시간:</Text>
+              <Text style={styles.timeValue}>{formatTime(time)}</Text>
+            </View>
+            <View style={styles.distanceContainer}>
+              <Text style={styles.distanceLabel}>🎯 거리:</Text>
+              <Text style={styles.distanceValue}>
+                {(distance / 1000).toFixed(2)}
+              </Text>
+              <Text style={styles.distanceUnit}>km</Text>
+            </View>
+          </View>
+
           {!initialLocation ? (
             <View
               style={[
@@ -408,37 +356,95 @@ const RunningScreen = () => {
               color={isFollowing ? "#FFF" : "#4A6EA9"}
             />
           </TouchableOpacity>
+
+          {/* 하단 컨트롤 버튼 */}
+          <View style={styles.controlContainer}>
+            <TouchableOpacity
+              style={styles.pauseButton}
+              onPress={() => {
+                if (isPaused) {
+                  console.log("[RunningScreen] 재개 버튼 누름");
+                  resumeRun();
+                } else {
+                  console.log("[RunningScreen] 일시정지 버튼 누름");
+                  pauseRun();
+                }
+              }}
+            >
+              <Ionicons
+                name={isPaused ? "play" : "pause"}
+                size={36}
+                color="#4A6EA9"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.stopButton, { backgroundColor: "#FF3B30" }]}
+              onPress={() => Alert.alert("알림", "종료하려면 길게 누르세요.")}
+              onLongPress={handleStopLongPress}
+              delayLongPress={500}
+            >
+              <View style={customStyles.stopSquare} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* 페이스 변화 차트 */}
+        <View style={styles.chartCard}>
+          <View style={styles.chartTitleContainer}>
+            <Ionicons
+              name="analytics-outline"
+              size={15}
+              style={{ marginLeft: 0 }}
+              color={isDarkMode ? "#FFF" : "#333"}
+            />
+            <Text style={styles.chartTitle}>페이스 변화</Text>
+          </View>
+          <LineChart
+            data={chartData}
+            width={width - 88}
+            height={150}
+            chartConfig={chartConfig}
+            bezier
+            style={styles.chart}
+            withInnerLines={true}
+            withOuterLines={true}
+            withVerticalLabels={false}
+            withHorizontalLabels={false}
+          />
+          <View style={styles.chartLabels}>
+            <Text style={styles.chartLabelText}>시작</Text>
+            <Text style={styles.chartLabelText}>
+              현재 페이스: {formatPace(currentPace)}/km
+            </Text>
+          </View>
+        </View>
+
+        {/* 페이스와 케이던스 */}
+        <View style={styles.paceStatsContainer}>
+          <View style={styles.paceStatItem}>
+            <MaterialCommunityIcons
+              name="run-fast"
+              size={20}
+              color="#4A6EA9"
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.paceStatLabel}>페이스</Text>
+            <Text style={styles.paceStatValue}>{formatPace(currentPace)}</Text>
+            <Text style={styles.paceStatUnit}>"/km</Text>
+          </View>
+          <View style={styles.paceStatItem}>
+            <MaterialCommunityIcons
+              name="shoe-print"
+              size={20}
+              color="#4A6EA9"
+              style={{ marginRight: 6 }}
+            />
+            <Text style={styles.paceStatLabel}>케이던스</Text>
+            <Text style={styles.paceStatValue}>{cadence}</Text>
+            <Text style={styles.paceStatUnit}>"/km</Text>
+          </View>
         </View>
       </ScrollView>
-
-      <View style={styles.controlContainer}>
-        <TouchableOpacity
-          style={styles.pauseButton}
-          onPress={() => {
-            if (isPaused) {
-              console.log("[RunningScreen] 재개 버튼 누름");
-              resumeRun();
-            } else {
-              console.log("[RunningScreen] 일시정지 버튼 누름");
-              pauseRun();
-            }
-          }}
-        >
-          <Ionicons
-            name={isPaused ? "play" : "pause"}
-            size={36}
-            color="#4A6EA9"
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.stopButton, { backgroundColor: "#FF3B30" }]}
-          onPress={() => Alert.alert("알림", "종료하려면 길게 누르세요.")}
-          onLongPress={handleStopLongPress}
-          delayLongPress={500}
-        >
-          <View style={customStyles.stopSquare} />
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
@@ -451,10 +457,20 @@ const customStyles = StyleSheet.create({
     backgroundColor: "white",
     padding: 10,
     borderRadius: 30,
-    elevation: 5,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
     borderWidth: 1,
     borderColor: "#E0E0E0",
-    zIndex: 10,
+    zIndex: 20,
   },
   focusButtonActive: { backgroundColor: "#4A6EA9", borderColor: "#4A6EA9" },
   stopSquare: {
@@ -469,7 +485,7 @@ const customStyles = StyleSheet.create({
     backgroundColor: "#FFF",
     paddingHorizontal: 8,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: "#4A6EA9",
   },
