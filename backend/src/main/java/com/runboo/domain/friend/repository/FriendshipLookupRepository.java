@@ -10,8 +10,8 @@ import java.util.List;
 public interface FriendshipLookupRepository extends JpaRepository<Friendship, Long> {
 
     @EntityGraph(attributePaths = {"requester", "receiver"})
-    List<Friendship> findByRequesterIdAndStatus(Long requesterId, FriendStatus status);
+    List<Friendship> findByRequester_IdAndStatus(Long userId, FriendStatus status);
 
     @EntityGraph(attributePaths = {"requester", "receiver"})
-    List<Friendship> findByReceiverIdAndStatus(Long receiverId, FriendStatus status);
+    List<Friendship> findByReceiver_IdAndStatus(Long userId, FriendStatus status);
 }

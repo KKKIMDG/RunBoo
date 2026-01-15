@@ -2,7 +2,25 @@
 import { useRef, useEffect, useState } from "react";
 import { Platform } from "react-native";
 import * as Speech from "expo-speech";
-import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
+import {
+  setAudioModeAsync,
+  setIsAudioActiveAsync,
+  AudioMode,
+} from "expo-audio";
+
+// 음성 안내 시 음악 볼륨 줄이기 모드
+const DUCK_MODE: Partial<AudioMode> = {
+  allowsRecording: false,
+  interruptionMode: "duckOthers",
+  playsInSilentMode: true,
+};
+
+// 음성 안내 종료 후 정상 모드
+const NORMAL_MODE: Partial<AudioMode> = {
+  allowsRecording: false,
+  interruptionMode: "mixWithOthers",
+  playsInSilentMode: false,
+};
 
 interface VoiceFeedbackProps {
   isMale: boolean;
@@ -188,162 +206,39 @@ export const useRunningVoiceFeedback = ({
   /** -----------------------------
    * 발화 함수
    * ----------------------------- */
-  // ✅ 다른 오디오(음악 등)를 잠깐 낮추고(TTS 도중 duck) 재생 후 복원하는 speak
   const speak = async (text: string, onDone?: () => void) => {
     if (speakingLock.current) return;
     speakingLock.current = true;
 
-    const setDuckMode = async () => {
-      try {
-        if (Platform.OS === "ios") {
-          // iOS는 DuckOthers 설정 시 playsInSilentModeIOS 가 true여야 실패하지 않음
-          await Audio.setAudioModeAsync({
-            interruptionModeIOS: InterruptionModeIOS.DuckOthers,
-            playsInSilentModeIOS: true,
-            staysActiveInBackground: false,
-          });
-        } else {
-          // Android는 duck 플래그로 제어
-          await Audio.setAudioModeAsync({
-            interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-            shouldDuckAndroid: true,
-          });
-        }
-      } catch (e) {
-        // ignore
-      }
-    };
-
-    const restoreAudioMode = async () => {
-      try {
-        if (Platform.OS === "ios") {
-          await Audio.setAudioModeAsync({
-            interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
-            playsInSilentModeIOS: false,
-            staysActiveInBackground: false,
-          });
-        } else {
-          await Audio.setAudioModeAsync({
-            interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
-            shouldDuckAndroid: true,
-          });
-        }
-      } catch (e) {
-        throw e;
-      }
-    };
-
-    // 무음 오디오 재생으로 오디오 포커스 확보 (iOS Apple Music 등에서 더 안정적)
-    let silentSound: any = null;
     try {
       await Speech.stop();
 
-      await setDuckMode();
-
-      if (duckWithSilentAudio) {
-        try {
-          const soundSource = require("../assets/sounds/silence-100ms.m4a");
-          const { sound } = await Audio.Sound.createAsync(soundSource, {
-            shouldPlay: true,
-            volume: 0.001,
-            isLooping: true,
-          });
-          silentSound = sound;
-        } catch (e) {
-          // ignore
-        }
-      }
+      // TTS 시작 전: 덕킹 모드 설정 (음악 볼륨 줄임)
+      await setAudioModeAsync(DUCK_MODE);
 
       const options = getSpeechOptions();
 
       Speech.speak(text, {
         ...options,
         onDone: () => {
+          // TTS 종료: 오디오 세션만 비활성화 (재활성화 안 함)
+          setIsAudioActiveAsync(false).catch(() => {});
           speakingLock.current = false;
-          (async () => {
-            try {
-              if (silentSound) {
-                try {
-                  if (typeof silentSound.stopAsync === "function") {
-                    await silentSound.stopAsync();
-                  }
-                } catch (e) {
-                  // ignore
-                }
-                await silentSound.unloadAsync();
-                silentSound = null;
-              }
-            } catch (e) {
-              // ignore
-            }
-
-            try {
-              await restoreAudioMode();
-            } catch (e) {
-              // ignore
-            }
-          })();
           onDone?.();
         },
         onStopped: () => {
+          setIsAudioActiveAsync(false).catch(() => {});
           speakingLock.current = false;
-          (async () => {
-            try {
-              if (silentSound) {
-                try {
-                  if (typeof silentSound.stopAsync === "function") {
-                    await silentSound.stopAsync();
-                  }
-                } catch (e) {
-                  // ignore
-                }
-                await silentSound.unloadAsync();
-                silentSound = null;
-              }
-            } catch (e) {
-              // ignore
-            }
-            try {
-              await restoreAudioMode();
-            } catch (e) {
-              // ignore
-            }
-          })();
         },
         onError: () => {
+          setIsAudioActiveAsync(false).catch(() => {});
           speakingLock.current = false;
-          (async () => {
-            try {
-              if (silentSound) {
-                try {
-                  if (typeof silentSound.stopAsync === "function") {
-                    await silentSound.stopAsync();
-                  }
-                } catch (e) {
-                  // ignore
-                }
-                await silentSound.unloadAsync();
-                silentSound = null;
-              }
-            } catch (e) {
-              // ignore
-            }
-            try {
-              await restoreAudioMode();
-            } catch (e) {
-              // ignore
-            }
-          })();
         },
       });
     } catch (e) {
+      // 에러 발생 시도 오디오 비활성화
+      setIsAudioActiveAsync(false).catch(() => {});
       speakingLock.current = false;
-      if (silentSound) {
-        try {
-          await silentSound.unloadAsync();
-        } catch (e) {}
-      }
-      restoreAudioMode().catch(() => {});
     }
   };
 

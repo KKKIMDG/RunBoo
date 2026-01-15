@@ -9,5 +9,6 @@ import java.util.Optional;
 public interface RunRecordRepository extends JpaRepository<RunRecord, Long> {
     Optional<RunRecord> findTopByUserIdAndAvgPaceGreaterThanOrderByAvgPaceAsc(Long userId, Integer minPace);
 
-    List<RunRecord> findByUserIdInAndModeOrderByAvgPaceAsc(List<Long> userIds, String mode);
+    // ✅ 친구들 user.id IN (...) + mode = 'TIER'(대소문자 무시) + avgPace 빠른 순
+    List<RunRecord> findByUser_IdInAndModeIgnoreCaseOrderByAvgPaceAsc(List<Long> userIds, String mode);
 }

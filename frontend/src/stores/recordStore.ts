@@ -133,8 +133,8 @@ export const useRecordStore = create<RecordState>((set, get) => ({
     const state = get();
     const { latitude, longitude, accuracy, speed } = location.coords;
 
-    // 1. 정확도 필터 (15m 이상 오차 무시)
-    if (accuracy && accuracy > 15) return;
+    // 1. 정확도 필터 (30m 이상 오차 무시)
+    if (accuracy && accuracy > 30) return;
 
     // 2. 일시정지 상태라면 위치 표시만 하고 종료
     if (!state.isRunning || state.isPaused) {
@@ -203,16 +203,9 @@ export const useRecordStore = create<RecordState>((set, get) => ({
       );
 
       // 재개 후 두 번째 위치는 거리 체크 완화 (바로 측정 시작)
-      const minDist = state.secondPointAfterResume ? 0.5 : 1.5;
-      const maxDist = state.secondPointAfterResume ? 20 : 10;
-
-      console.log(
-        `[거리측정] 이동 거리: ${rawDist.toFixed(
-          2
-        )}m (기준: ${minDist}m~${maxDist}m${
-          state.secondPointAfterResume ? " - 재개 후 첫 측정" : ""
-        })`
-      );
+      // 최소 거리: 휴대폰 흔들림(0.3m 이하)은 무시, 걷기(0.6~0.8m)부터 인정
+      const minDist = state.secondPointAfterResume ? 0.5 : 0.8;
+      const maxDist = state.secondPointAfterResume ? 100 : 50;
 
       // 거리 체크 (재개 직후는 완화된 범위)
       if (rawDist >= minDist && rawDist < maxDist) {
@@ -238,9 +231,8 @@ export const useRecordStore = create<RecordState>((set, get) => ({
         newCoordinates.push(smoothedCoords);
         newDisplayedLocation = smoothedCoords;
 
-        console.log(
-          `[거리측정] ✅ 인정 - 누적 거리: ${newDistance.toFixed(2)}m`
-        );
+        console.log(`🏃 [Runner] 이동 거리: ${rawDist.toFixed(2)}m`);
+        console.log(`📍 누적 거리: ${newDistance.toFixed(2)}m`);
 
         set({
           distance: newDistance,
@@ -253,9 +245,9 @@ export const useRecordStore = create<RecordState>((set, get) => ({
         });
       } else {
         console.log(
-          `[거리측정] ❌ 무시 - 범위 벗어남 (${
+          `⚠️  [Runner] 무시됨: ${rawDist.toFixed(2)}m (${
             rawDist < minDist ? "너무 가까움" : "너무 멂"
-          })`
+          }, 기준: ${minDist}~${maxDist}m)`
         );
       }
     } else {

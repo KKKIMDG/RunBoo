@@ -3,7 +3,8 @@ import { api } from "@/services/api";
 export interface AnalysisResponse {
   markdownContent: string | null;
   remainingCount: number;
-  isSubscribed: boolean;
+  remainingDays: number;
+  subscribed: boolean;
 }
 
 export async function fetchAiStatus(): Promise<AnalysisResponse> {
