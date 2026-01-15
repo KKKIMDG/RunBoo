@@ -117,16 +117,31 @@ export const Fonts = Platform.select({
     sans: "System",
     serif: "Georgia",
     mono: "Menlo",
+    juache: "BMJUA", // 배달의민족 주아체
+    gmarketBold: "GmarketSansBold", // 지마켓 산스 Bold
+    chab: "Chab", // Chab 폰트
+    samliphopangche: "SDSamliphopangcheTTFOutline", // 삼립호빵체 아웃라인
+    keriskedu: "KERISKEDU_B", // KERISKEDU Bold
   },
   android: {
     sans: "Roboto",
     serif: "serif",
     mono: "monospace",
+    juache: "BMJUA", // 배달의민족 주아체
+    gmarketBold: "GmarketSansBold", // 지마켓 산스 Bold
+    chab: "Chab", // Chab 폰트
+    samliphopangche: "SDSamliphopangcheTTFOutline", // 삼립호빵체 아웃라인
+    keriskedu: "KERISKEDU_B", // KERISKEDU Bold
   },
   default: {
     sans: "sans-serif",
     serif: "serif",
     mono: "monospace",
+    juache: "BMJUA", // 배달의민족 주아체
+    gmarketBold: "GmarketSansBold", // 지마켓 산스 Bold
+    chab: "Chab", // Chab 폰트
+    samliphopangche: "SDSamliphopangcheTTFOutline", // 삼립호빵체 아웃라인
+    keriskedu: "KERISKEDU_B", // KERISKEDU Bold
   },
 });
 

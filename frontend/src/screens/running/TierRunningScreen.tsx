@@ -27,7 +27,7 @@ import { useCadence } from "@/hooks/useCadence";
 import { useSettings } from "@/screens/Settings/useSettings";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useMapFocusing } from "./useRunCore";
-import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles";
+import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
 
 const { width } = Dimensions.get("window");
 
@@ -107,11 +107,7 @@ const TierRunningScreen = () => {
           style={StyleSheet.absoluteFill}
           provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
           showsUserLocation={true}
-
-          customMapStyle={
-            colorScheme === "dark" ? darkMapStyle : lightMapStyle
-          }
-
+          customMapStyle={colorScheme === "dark" ? darkMapStyle : lightMapStyle}
           onPanDrag={() => mapFocusing.setIsFollowing(false)}
           initialRegion={
             initialLocation
@@ -277,7 +273,7 @@ const TierRunningScreen = () => {
             style={styles.stopButton}
             onPress={handleStopPress}
             onLongPress={stopTierRunManual}
-            delayLongPress={1000}
+            delayLongPress={500}
           >
             <View style={customStyles.stopSquare} />
           </TouchableOpacity>

@@ -140,19 +140,14 @@ const RunResultScreen = () => {
             backgroundColor: styles.container.backgroundColor,
           }}
         >
-          {/* --- 상단 프로필 영역 --- */}
-          <View style={styles.profileContainer}>
-            <View style={styles.profileImageContainer}>
-              <Image
-                source={require("@/assets/images/runboo.png")}
-                style={styles.profileImage}
-                resizeMode="contain"
-              />
-            </View>
-            <Text style={styles.titleText}>러닝 완료!</Text>
-            <Text style={styles.subtitleText}>Run Boo!</Text>
+          {/* --- 로고 이미지 --- */}
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("@/assets/images/runboo.png")}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
           </View>
-
           {/* --- 지도 및 요약 통계(겹침) --- */}
           <View style={styles.mapContainer}>
             {routeCoordinates && routeCoordinates.length > 0 && midCoord ? (
