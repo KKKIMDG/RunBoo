@@ -16,11 +16,6 @@ export default function IntroStatsSection() {
 
                 {/* 우측 문구 + 라벨 */}
                 <div className="statsRight">
-                    <div className="statsLabelWrap" aria-hidden="true">
-                        <span className="statsLabelText">다운로드</span>
-                        <span className="statsLabelLine" />
-                    </div>
-
                     <p className="statsRightText">
                         주간과 월간 기록의
                         <br />

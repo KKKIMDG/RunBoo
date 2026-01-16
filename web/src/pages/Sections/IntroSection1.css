@@ -5,8 +5,7 @@
     align-items: center;
     justify-content: center;
     padding: 64px 0;
-    background: radial-gradient(1200px 600px at 70% 40%, rgba(88, 120, 255, 0.10), rgba(0,0,0,0) 60%),
-    linear-gradient(to bottom, #060a13, #050712);
+    background-color: #000514;
     overflow: hidden;
 }
 
