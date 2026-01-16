@@ -2,12 +2,12 @@
 // - 스타일 정의: 레이아웃, 입력창, 버튼, 소셜아이콘 등.
 // - 필요 시 theme/토큰으로 추상화하세요.
 import { StyleSheet } from "react-native";
-import { Colors } from "@/constants/theme";
-import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import { Colors, Fonts } from "@/constants/theme";
+import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
 
 export const getStyles = (
-    scheme: "light" | "dark",
-    fontSize: FontSizeSetting
+  scheme: "light" | "dark",
+  fontSize: FontSizeSetting
 ) =>
   StyleSheet.create({
     root: {
@@ -53,9 +53,10 @@ export const getStyles = (
     },
 
     logoText: {
-      fontFamily: "FugazOne_400Regular",
-      fontSize: scaleFont(24, fontSize),
-      letterSpacing: 0.8,
+      fontFamily: Fonts?.keriskedu,
+      marginTop: 5,
+      fontSize: scaleFont(25, fontSize),
+      letterSpacing: 1.0,
       color: Colors[scheme].text,
     },
 

@@ -7,6 +7,7 @@ import {
 } from "@react-navigation/native";
 import * as WebBrowser from "expo-web-browser";
 import * as SplashScreen from "expo-splash-screen";
+import * as Font from "expo-font";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import PermissionGuard from "@/components/auth/PermissionGuard";
@@ -21,8 +22,8 @@ import {
   registerPushDevice,
 } from "@/services/notification/notificationService";
 import { getFcmToken } from "@/services/notification/fcmToken";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
-import {useSettings} from "@/screens/Settings/useSettings";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
+import { useSettings } from "@/screens/Settings/useSettings";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -68,6 +69,7 @@ export default function App() {
 
   /**
    * 앱 초기 부트스트랩
+   * - 폰트 로딩
    * - 자동 로그인 복원
    * - FCM 토큰 등록
    * - 모든 준비가 끝난 뒤 스플래시 종료
@@ -75,6 +77,14 @@ export default function App() {
   useEffect(() => {
     const bootstrap = async () => {
       try {
+        // 폰트 로딩
+        await Font.loadAsync({
+          BMJUA: require("@/assets/fonts/BMJUA_ttf.ttf"),
+          GmarketSansBold: require("@/assets/fonts/GmarketSansTTFBold.ttf"),
+          Chab: require("@/assets/fonts/chab.ttf"),
+          KERISKEDU_B: require("@/assets/fonts/KERISKEDU_B.ttf"),
+        });
+
         const token = await AsyncStorage.getItem("accessToken");
 
         if (token) {
@@ -149,10 +159,10 @@ export default function App() {
   //   },
   // };
   function AppInner({
-                      isLoggedIn,
-                      onLoginSuccess,
-                      onLogout,
-                    }: {
+    isLoggedIn,
+    onLoginSuccess,
+    onLogout,
+  }: {
     isLoggedIn: boolean;
     onLoginSuccess: (token: string) => void;
     onLogout: () => void;
@@ -161,30 +171,29 @@ export default function App() {
     const resolvedTheme = useResolvedTheme(settings?.themeMode);
 
     return (
-        <NavigationContainer
-            theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <PermissionGuard>
-            <RootNavigator
-                isLoggedIn={isLoggedIn}
-                onLoginSuccess={onLoginSuccess}
-                onLogout={onLogout}
-            />
-          </PermissionGuard>
-        </NavigationContainer>
+      <NavigationContainer
+        theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
+      >
+        <PermissionGuard>
+          <RootNavigator
+            isLoggedIn={isLoggedIn}
+            onLoginSuccess={onLoginSuccess}
+            onLogout={onLogout}
+          />
+        </PermissionGuard>
+      </NavigationContainer>
     );
   }
 
-
   return (
-      <UserSettingProvider>
-        <UserMeProvider>
-          <AppInner
-              isLoggedIn={isLoggedIn}
-              onLoginSuccess={handleLoginSuccess}
-              onLogout={handleLogout}
-          />
-        </UserMeProvider>
-      </UserSettingProvider>
+    <UserSettingProvider>
+      <UserMeProvider>
+        <AppInner
+          isLoggedIn={isLoggedIn}
+          onLoginSuccess={handleLoginSuccess}
+          onLogout={handleLogout}
+        />
+      </UserMeProvider>
+    </UserSettingProvider>
   );
 }
