@@ -1,0 +1,142 @@
+/* =========================
+   Container
+   ========================= */
+.scrollNav {
+    position: fixed;
+    right: max(24px, calc(50% - 600px));
+    top: 20%;
+    z-index: 1000;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 14px;
+
+    padding: 10px 12px;
+    min-width: 100px;
+
+    background: transparent;
+    transition:
+            background 0.15s ease,
+            padding 0.15s ease;
+}
+
+/* hover 시에만 배경 */
+.scrollNav:hover {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 14px;
+    padding: 14px 18px;
+}
+
+/* =========================
+   Nav Item
+   ========================= */
+.navItem {
+    position: relative;                 /* bar/text 기준 */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;          /* 오른쪽 정렬 */
+    height: 22px;
+
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: right;
+}
+
+/* 클릭 포커스 제거 */
+.navItem,
+.navItem:focus,
+.navItem:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+/* =========================
+   Bar (기본 모드)
+   ========================= */
+.bar {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+
+    height: 4px;
+    border-radius: 4px;
+    background: #4f66ff;
+
+    width: 16px;
+    opacity: 1;
+
+    transition:
+            width 0.15s ease,
+            opacity 0.12s ease;
+}
+
+/* 현재 섹션 = 긴 막대 */
+.navItem.active .bar {
+    width: 40px;
+}
+
+/* =========================
+   Text (hover 모드)
+   ========================= */
+.navText {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translate(6px, -50%);
+
+    white-space: nowrap;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.85);
+
+    opacity: 0;
+    pointer-events: none;
+
+    transition:
+            opacity 0.15s ease,
+            transform 0.15s ease;
+}
+
+/* =========================
+   Hover Transition Logic
+   ========================= */
+
+/* hover 시작: bar 먼저 제거 */
+.scrollNav:hover .bar {
+    opacity: 0;
+    width: 0;
+}
+
+/* bar가 사라진 뒤 text 등장 */
+.scrollNav:hover .navText {
+    opacity: 1;
+    transform: translate(0, -50%);
+    pointer-events: auto;
+    transition-delay: 0.12s;
+}
+
+/* 현재 섹션 강조 */
+.scrollNav:hover .navItem.active .navText {
+    font-size: 18px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 1);
+}
+
+/* 다른 섹션 hover 시 더 진하게 */
+.scrollNav:hover .navItem:not(.active):hover .navText {
+    color: rgba(255, 255, 255, 1);
+    font-weight: 600;
+}
+
+/* =========================
+   Mobile
+   ========================= */
+@media (max-width: 768px) {
+    .scrollNav {
+        display: none;
+    }
+}

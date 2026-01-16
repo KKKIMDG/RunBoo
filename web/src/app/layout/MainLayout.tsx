@@ -1,11 +1,13 @@
 import Header from "@/components/header/Header";
+import { Outlet } from "react-router-dom";
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+export default function MainLayout() {
     return (
         <>
             <Header />
-            {/* 헤더 높이만큼 밀기 */}
-            <main>{children}</main>
+            <main>
+                <Outlet />
+            </main>
         </>
     );
 }
