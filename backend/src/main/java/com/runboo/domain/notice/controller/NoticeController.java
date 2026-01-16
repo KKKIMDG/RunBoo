@@ -6,6 +6,7 @@ import com.runboo.domain.notice.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,13 +14,23 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/notices")
-@RequiredArgsConstructor
 public class NoticeController {
 
     private final NoticeRepository noticeRepository;
 
+    public NoticeController(NoticeRepository noticeRepository) {
+        this.noticeRepository = noticeRepository;
+    }
+
     @GetMapping
     public ResponseEntity<List<Notice>> getNotices() {
         return ResponseEntity.ok(noticeRepository.findAllByOrderByCreatedAtDesc());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Notice> getNoticeDetail(@PathVariable Long id) {
+        return noticeRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
