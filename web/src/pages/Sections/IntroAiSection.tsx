@@ -17,13 +17,6 @@ export default function IntroAiSection() {
                     <img className="aiPhone" src="/phone6.png" alt="RunBoo AI 분석 리포트 화면" />
                 </div>
 
-                {/* 우측 라벨(상단) */}
-                <div className="aiRight" aria-hidden="true">
-                    <div className="aiLabelWrap">
-                        <span className="aiLabelText">다운로드</span>
-                        <span className="aiLabelLine" />
-                    </div>
-                </div>
             </div>
         </section>
     );

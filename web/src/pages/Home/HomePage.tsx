@@ -21,12 +21,12 @@ export default function HomePage() {
 
                     <div className="heroCtas">
                         <a className="storeBtn" href="#" aria-label="App Store">
-                            <span className="storeIcon"></span>
+                            <img src="/appleLogo.png" alt="runboo" className="storeIcon" />
                             <span className="storeText">App Store</span>
                         </a>
 
                         <a className="storeBtn" href="#" aria-label="Google Play">
-                            <span className="playIcon" />
+                            <img src="/googlePlayLogo.png" alt="runboo" className="playIcon" />
                             <span className="storeText">Google Play</span>
                         </a>
                     </div>

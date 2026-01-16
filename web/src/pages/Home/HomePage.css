@@ -1,91 +1,67 @@
-/* =========================
-   ✅ A방법: main이 스크롤 컨테이너
-   ========================= */
-
-/* main이 직접 스크롤을 가지도록 만든다 */
-.homeScroll {
-    height: 100vh;
-    overflow-y: auto;
-
-    /* 스크롤 스냅 */
-    scroll-snap-type: y mandatory;
-
-    /* 링크 이동/내부 이동 부드럽게 */
-    scroll-behavior: smooth;
-
-    /* iOS 관성 스크롤 */
-    -webkit-overflow-scrolling: touch;
-}
-
-/* 각 섹션이 스냅되는 단위 */
-.snapSection {
-    scroll-snap-align: start;
-    scroll-snap-stop: always; /* ✅ 스냅 “확” 붙는 느낌 강화 */
-}
-
-/* 헤더가 fixed(64px)라면 스냅 시 가려지는 것 방지 */
-.snapSection {
-    scroll-margin-top: 64px;
-}
-
-/* =========================
-   Hero(다운로드)
-   ========================= */
-
 .hero {
-    width: 100vw;
     position: relative;
-
-    /* ✅ main이 100vh를 차지하므로, hero는 100vh로 맞춰주는 게 스냅에 더 안정적 */
+    width: 100vw;
     min-height: 100vh;
+
+    /* 1️⃣ 기본 배경은 흰색 */
+    background-color: #ffffff;
 
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+}
 
-    /* 배경 이미지 */
+/* 2️⃣ 반투명 이미지 레이어 */
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
     background-image: url("/hero-bg.png");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+
+    opacity: 0.30;           /* ← 이미지 투명도 */
+    pointer-events: none;
 }
 
-/* 상단 어두움 + 하단 흰 페이드까지 한 번에 */
-.heroOverlay {
+/* 3️⃣ 위 → 아래로 점점 밝아지는 명암 */
+.hero::after {
+    content: "";
     position: absolute;
     inset: 0;
-    pointer-events: none;
 
-    background:
-            linear-gradient(
-                    to bottom,
-                    rgba(0, 0, 0, 0.72),
-                    rgba(0, 0, 0, 0.25) 55%,
-                    rgba(255, 255, 255, 0.9) 100%
-            ),
-            radial-gradient(
-                    ellipse at center,
-                    rgba(0, 0, 0, 0.15),
-                    rgba(0, 0, 0, 0.55)
-            );
+    background: linear-gradient(
+            to bottom,
+            rgba(0, 5, 20, 1) 10%,   /* 위: 어둠 */
+            rgba(0, 5, 20, 0.8) 30%,
+            rgba(0, 5, 20, 0.60) 50%,
+            rgba(0, 5, 20, 0.40) 80%,
+            rgba(255, 255, 255, 0.0) 100% /* 아래: 완전 밝음 */
+    );
+
+    pointer-events: none;
 }
 
+/* 실제 콘텐츠는 최상단 */
 .heroInner {
     position: relative;
     z-index: 1;
     text-align: center;
-    padding: 0 16px;
+    transform: translateY(-80px);
 }
 
+
 .heroTitle {
-    color: #fff;
+    color: #f9f9f9;
     font-weight: 800;
-    font-size: clamp(28px, 4vw, 46px);
-    line-height: 1.18;
+    font-size: clamp(30px, 6vw, 50px);
+    line-height: 1.4;
     letter-spacing: -0.5px;
     margin: 0 0 22px;
-    text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    text-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
 }
 
 .heroCtas {
@@ -93,18 +69,22 @@
     gap: 14px;
     flex-wrap: wrap;
     justify-content: center;
+    margin-top : 20px;
 }
 
 .storeBtn {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 5px;
 
-    height: 46px;
-    padding: 0 18px;
-    border-radius: 12px;
+    height: 60px;
+    width: 130px;
+    padding: 0 5px;
 
-    background: rgba(0, 0, 0, 0.55);
+    border-radius: 16px;
+
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 
@@ -112,8 +92,12 @@
     color: #fff;
     text-decoration: none;
 
+    font-size: 14px;
+    font-weight: 600;
+
     transition: transform 0.15s ease, background 0.15s ease;
 }
+
 
 .storeBtn:hover {
     transform: translateY(-1px);
@@ -121,23 +105,16 @@
 }
 
 .storeIcon {
-    font-size: 18px;
-    line-height: 1;
+    width: 24px;
 }
 
 .storeText {
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: -0.2px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
 }
 
 /* 구글 플레이 느낌 아이콘(간단 버전) */
 .playIcon {
-    width: 16px;
-    height: 16px;
-    display: inline-block;
-
-    background: linear-gradient(135deg, #00d2ff, #3a7bd5);
-    clip-path: polygon(20% 10%, 90% 50%, 20% 90%, 35% 50%);
-    border-radius: 3px;
+    width: 30px;
 }

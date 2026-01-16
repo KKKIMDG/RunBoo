@@ -17,14 +17,6 @@ export default function IntroDarkSection() {
                 <div className="darkIntroCenter">
                     <img className="darkPhone" src="/phone4.png" alt="RunBoo 다크 모드 화면" />
                 </div>
-
-                {/* 우측 상단 라벨 */}
-                <div className="darkIntroRight" aria-hidden="true">
-                    <div className="darkLabelWrap">
-                        <span className="darkLabelText">다운로드</span>
-                        <span className="darkLabelLine" />
-                    </div>
-                </div>
             </div>
         </section>
     );

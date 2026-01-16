@@ -11,11 +11,6 @@ export default function IntroLightSection() {
 
                 {/* 우측: 텍스트 + 라벨 */}
                 <div className="lightIntroRight">
-                    <div className="lightLabelWrap" aria-hidden="true">
-                        <span className="lightLabelText">다운로드</span>
-                        <span className="lightLabelLine" />
-                    </div>
-
                     <p className="lightCopy">
                         평소에는 편안하게
                         <br />
