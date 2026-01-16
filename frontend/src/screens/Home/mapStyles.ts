@@ -1,7 +1,11 @@
 export const lightMapStyle = [
+
+    // 기본
     { "elementType": "geometry", "stylers": [{ "color": "#f6f3ec" }] },
     { "elementType": "labels.text.fill", "stylers": [{ "color": "#4f4f4f" }] },
     { "elementType": "labels.text.stroke", "stylers": [{ "color": "#f6f3ec" }, { "weight": 2 }] },
+
+    // 자연
     {
         "featureType": "landscape",
         "elementType": "geometry",
@@ -12,6 +16,8 @@ export const lightMapStyle = [
         "elementType": "geometry",
         "stylers": [{ "color": "#e6efe3" }]
     },
+
+    // 자연
     {
         "featureType": "poi",
         "elementType": "geometry",
@@ -22,6 +28,8 @@ export const lightMapStyle = [
         "elementType": "geometry",
         "stylers": [{ "color": "#cfe8cf" }]
     },
+
+    // 도로
     {
         "featureType": "road",
         "elementType": "geometry",
@@ -32,6 +40,8 @@ export const lightMapStyle = [
         "elementType": "geometry.stroke",
         "stylers": [{ "color": "#e9e5d7" }]
     },
+
+    // 고속도로
     {
         "featureType": "road.highway",
         "elementType": "geometry",
@@ -42,6 +52,8 @@ export const lightMapStyle = [
         "elementType": "geometry.stroke",
         "stylers": [{ "color": "#e9bc77" }]
     },
+
+    // 물
     {
         "featureType": "water",
         "elementType": "geometry",
