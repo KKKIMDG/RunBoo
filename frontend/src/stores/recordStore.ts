@@ -204,7 +204,7 @@ export const useRecordStore = create<RecordState>((set, get) => ({
 
       // 재개 후 두 번째 위치는 거리 체크 완화 (바로 측정 시작)
       // 최소 거리: 휴대폰 흔들림(0.3m 이하)은 무시, 걷기(0.6~0.8m)부터 인정
-      const minDist = state.secondPointAfterResume ? 0.5 : 0.8;
+      const minDist = state.secondPointAfterResume ? 0.6 : 0.8;
       const maxDist = state.secondPointAfterResume ? 100 : 50;
 
       // 거리 체크 (재개 직후는 완화된 범위)
