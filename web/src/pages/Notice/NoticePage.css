@@ -1,0 +1,85 @@
+/* 전체 페이지 배경 (다크 테마) */
+.noticePage {
+    width: 100vw;
+    min-height: 100vh;
+    background-color: #050814; /* IntroDarkSection과 유사한 딥 네이비/블랙 */
+    color: #fff;
+    padding-top: 120px; /* 헤더 높이만큼 여백 */
+    padding-bottom: 80px;
+    display: flex;
+    justify-content: center;
+}
+
+.noticeInner {
+    width: min(1000px, 92vw);
+    display: flex;
+    flex-direction: column;
+}
+
+/* 제목 */
+.noticeTitle {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 40px;
+}
+
+/* 리스트 컨테이너 */
+.noticeList {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+/* 리스트 아이템 */
+.noticeItem {
+    padding: 24px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.noticeItem:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.noticeItemTitle {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0 0 8px 0;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.noticeItemDate {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+}
+
+/* 페이지네이션 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 60px;
+    gap: 16px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.pageBtn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 8px;
+}
+
+.pageBtn:hover {
+    color: #fff;
+}
+
+.pageBtn.active {
+    color: #fff;
+    font-weight: 700;
+}

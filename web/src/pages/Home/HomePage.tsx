@@ -4,6 +4,7 @@ import IntroLightSection from "../Sections/IntroLightSection";
 import IntroDarkSection from "../Sections/IntroDarkSection";
 import IntroStatsSection from "../Sections/IntroStatsSection";
 import IntroAiSection from "../Sections/IntroAiSection";
+import NoticePage from "../Notice/NoticePage";
 
 export default function HomePage() {
     return (
@@ -33,11 +34,16 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <IntroSection1 />
-            <IntroLightSection />
-            <IntroDarkSection />
-            <IntroStatsSection />
-            <IntroAiSection />
+            <section id="service">
+                <IntroSection1 />
+                <IntroLightSection />
+                <IntroDarkSection />
+                <IntroStatsSection />
+                <IntroAiSection />
+            </section>
+            <section id="notice">
+                <NoticePage />
+            </section>
         </main>
     );
 }
