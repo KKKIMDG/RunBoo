@@ -1,0 +1,102 @@
+/* 흰 배경 섹션 */
+.lightIntro {
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ffffff;
+    overflow: hidden;
+}
+
+/* 내부 레이아웃 */
+.lightIntroInner {
+    width: min(1200px, 92vw);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+}
+
+/* 좌측 이미지 */
+.lightIntroLeft {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lightPhone {
+    width: min(320px, 70vw);
+    height: auto;
+    display: block;
+
+    /* 스샷처럼 살짝 떠 있는 느낌 */
+    filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.18));
+}
+
+/* 우측 텍스트 */
+.lightIntroRight {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* 우측 상단 작은 라벨(다운로드 + 라인) */
+.lightLabelWrap {
+    position: absolute;
+    top: -18px;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.9;
+}
+
+.lightLabelText {
+    font-size: 14px;
+    font-weight: 700;
+    color: #333;
+}
+
+.lightLabelLine {
+    width: 34px;
+    height: 2px;
+    background: #2f66ff;
+    border-radius: 999px;
+}
+
+/* 카피 */
+.lightCopy {
+    margin: 0;
+    color: #1b1b1b;
+    font-size: clamp(22px, 2.6vw, 34px);
+    line-height: 1.35;
+    letter-spacing: -0.6px;
+    font-weight: 500;
+}
+
+.lightCopyStrong {
+    font-weight: 900;
+    color: #000;
+}
+
+/* 반응형: 모바일은 위(폰) 아래(텍스트) */
+@media (max-width: 920px) {
+    .lightIntroInner {
+        grid-template-columns: 1fr;
+        gap: 28px;
+        text-align: center;
+    }
+
+    .lightIntroRight {
+        align-items: center;
+    }
+
+    .lightLabelWrap {
+        position: static;
+        margin-bottom: 10px;
+        justify-content: center;
+    }
+}

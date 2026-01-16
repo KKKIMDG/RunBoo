@@ -1,0 +1,122 @@
+.intro1 {
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 0;
+    background: radial-gradient(1200px 600px at 70% 40%, rgba(88, 120, 255, 0.10), rgba(0,0,0,0) 60%),
+    linear-gradient(to bottom, #060a13, #050712);
+    overflow: hidden;
+}
+
+.intro1Inner {
+    width: min(1200px, 92vw);
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 48px;
+    align-items: center;
+}
+
+/* ===== 왼쪽: 폰 스택 ===== */
+.intro1Left {
+    display: flex;
+    justify-content: center;
+}
+
+.phoneStack {
+    position: relative;
+
+    /* ✅ 대각선으로 아래로 내려가는 배치라 캔버스를 크게 */
+    width: min(560px, 86vw);
+    height: 760px;
+}
+
+/* 공통 폰 */
+.phone {
+    position: absolute;
+
+    /* ✅ 스샷 느낌: 세로 긴 이미지 */
+    height: 640px;
+    width: auto;
+
+    filter: drop-shadow(0 28px 38px rgba(0,0,0,0.45));
+    border-radius: 26px;
+    user-select: none;
+    pointer-events: none;
+}
+
+/**
+ * ✅ 네가 말한 “오른쪽 + 아래로 과감하게 쭉 내려가는” 배치
+ * - back: 가장 위/왼쪽
+ * - mid : 오른쪽 + 아래로 크게 이동
+ * - front: 더 오른쪽 + 더 아래로 더 크게 이동 (맨 앞)
+ */
+.phoneBack {
+    left: 0px;
+    top: 0px;
+    transform: scale(0.92);
+    opacity: 0.92;
+    z-index: 1;
+}
+
+.phoneMid {
+    left: 110px;
+    top: 120px;        /* ✅ 아래로 과감 */
+    transform: scale(0.96);
+    opacity: 0.96;
+    z-index: 2;
+}
+
+.phoneFront {
+    left: 220px;
+    top: 250px;        /* ✅ 더 아래로 확 */
+    transform: scale(1);
+    opacity: 1;
+    z-index: 3;
+}
+
+/* ===== 오른쪽: 문구 ===== */
+.intro1Right {
+    color: #fff;
+}
+
+.intro1Line {
+    margin: 0 0 18px;
+    font-size: clamp(18px, 2.2vw, 26px);
+    font-weight: 200;
+    line-height: 1.35;
+    letter-spacing: -0.4px;
+    opacity: 0.92;
+}
+
+.intro1Strong {
+    font-weight: 900;
+    opacity: 1;
+}
+
+.lineBreak {
+    display: block;
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 920px) {
+    .intro1Inner {
+        grid-template-columns: 1fr;
+        gap: 28px;
+        text-align: center;
+    }
+
+    .phoneStack {
+        width: min(560px, 92vw);
+        height: 720px;
+    }
+
+    .phone {
+        height: 600px;
+    }
+
+    .phoneBack  { left: 0px;   top: 0px;   }
+    .phoneMid   { left: 90px;  top: 110px; }
+    .phoneFront { left: 180px; top: 230px; }
+}
