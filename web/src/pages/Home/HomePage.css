@@ -1,7 +1,44 @@
+/* =========================
+   ✅ A방법: main이 스크롤 컨테이너
+   ========================= */
+
+/* main이 직접 스크롤을 가지도록 만든다 */
+.homeScroll {
+    height: 100vh;
+    overflow-y: auto;
+
+    /* 스크롤 스냅 */
+    scroll-snap-type: y mandatory;
+
+    /* 링크 이동/내부 이동 부드럽게 */
+    scroll-behavior: smooth;
+
+    /* iOS 관성 스크롤 */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 각 섹션이 스냅되는 단위 */
+.snapSection {
+    scroll-snap-align: start;
+    scroll-snap-stop: always; /* ✅ 스냅 “확” 붙는 느낌 강화 */
+}
+
+/* 헤더가 fixed(64px)라면 스냅 시 가려지는 것 방지 */
+.snapSection {
+    scroll-margin-top: 64px;
+}
+
+/* =========================
+   Hero(다운로드)
+   ========================= */
+
 .hero {
     width: 100vw;
     position: relative;
-    min-height: calc(100vh - 64px);
+
+    /* ✅ main이 100vh를 차지하므로, hero는 100vh로 맞춰주는 게 스냅에 더 안정적 */
+    min-height: 100vh;
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -21,10 +58,17 @@
     pointer-events: none;
 
     background:
-            /* 상단 어둡게 */
-            linear-gradient(to bottom, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.25) 55%, rgba(255, 255, 255, 0.9) 100%),
-                /* 살짝 비네팅 */
-            radial-gradient(ellipse at center, rgba(0,0,0,0.15), rgba(0,0,0,0.55));
+            linear-gradient(
+                    to bottom,
+                    rgba(0, 0, 0, 0.72),
+                    rgba(0, 0, 0, 0.25) 55%,
+                    rgba(255, 255, 255, 0.9) 100%
+            ),
+            radial-gradient(
+                    ellipse at center,
+                    rgba(0, 0, 0, 0.15),
+                    rgba(0, 0, 0, 0.55)
+            );
 }
 
 .heroInner {
@@ -41,7 +85,6 @@
     line-height: 1.18;
     letter-spacing: -0.5px;
     margin: 0 0 22px;
-
     text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
@@ -94,7 +137,6 @@
     height: 16px;
     display: inline-block;
 
-    /* 삼각형 느낌(간단) */
     background: linear-gradient(135deg, #00d2ff, #3a7bd5);
     clip-path: polygon(20% 10%, 90% 50%, 20% 90%, 35% 50%);
     border-radius: 3px;
