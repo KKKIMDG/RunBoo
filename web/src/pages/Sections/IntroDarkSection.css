@@ -1,0 +1,110 @@
+/* 다크 배경 섹션 */
+.darkIntro {
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 스샷 느낌: 아주 진한 네이비 + 살짝 라디얼 */
+    background:
+            radial-gradient(900px 500px at 40% 40%, rgba(72, 96, 255, 0.10), rgba(0,0,0,0) 60%),
+            linear-gradient(to bottom, #050814, #050712);
+    overflow: hidden;
+}
+
+/* 3컬럼(왼쪽 문구 / 가운데 폰 / 오른쪽 라벨) */
+.darkIntroInner {
+    width: min(1200px, 92vw);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 28px;
+    align-items: center;
+}
+
+/* 왼쪽 카피 */
+.darkIntroLeft {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.darkCopy {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: clamp(22px, 2.6vw, 36px);
+    line-height: 1.35;
+    letter-spacing: -0.7px;
+    font-weight: 500;
+}
+
+.darkCopyStrong {
+    color: #fff;
+    font-weight: 900;
+}
+
+/* 가운데 폰 */
+.darkIntroCenter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.darkPhone {
+    width: min(360px, 70vw);
+    height: auto;
+    display: block;
+
+    filter: drop-shadow(0 22px 32px rgba(0, 0, 0, 0.55));
+}
+
+/* 오른쪽: 라벨을 우측 상단에 */
+.darkIntroRight {
+    position: relative;
+    height: 100%;
+}
+
+.darkLabelWrap {
+    position: absolute;
+    top: 8px;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.9;
+}
+
+.darkLabelText {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.darkLabelLine {
+    width: 34px;
+    height: 2px;
+    background: #2f66ff;
+    border-radius: 999px;
+}
+
+/* 반응형: 모바일은 위에서 아래로 정렬 */
+@media (max-width: 920px) {
+    .darkIntroInner {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        text-align: center;
+    }
+
+    .darkIntroLeft {
+        justify-content: center;
+    }
+
+    .darkIntroRight {
+        height: auto;
+    }
+
+    .darkLabelWrap {
+        position: static;
+        justify-content: center;
+    }
+}
