@@ -1,0 +1,101 @@
+.hero {
+    width: 100vw;
+    position: relative;
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+
+    /* 배경 이미지 */
+    background-image: url("/hero-bg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* 상단 어두움 + 하단 흰 페이드까지 한 번에 */
+.heroOverlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    background:
+            /* 상단 어둡게 */
+            linear-gradient(to bottom, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.25) 55%, rgba(255, 255, 255, 0.9) 100%),
+                /* 살짝 비네팅 */
+            radial-gradient(ellipse at center, rgba(0,0,0,0.15), rgba(0,0,0,0.55));
+}
+
+.heroInner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 0 16px;
+}
+
+.heroTitle {
+    color: #fff;
+    font-weight: 800;
+    font-size: clamp(28px, 4vw, 46px);
+    line-height: 1.18;
+    letter-spacing: -0.5px;
+    margin: 0 0 22px;
+
+    text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.heroCtas {
+    display: inline-flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.storeBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    height: 46px;
+    padding: 0 18px;
+    border-radius: 12px;
+
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #fff;
+    text-decoration: none;
+
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.storeBtn:hover {
+    transform: translateY(-1px);
+    background: rgba(0, 0, 0, 0.65);
+}
+
+.storeIcon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.storeText {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+}
+
+/* 구글 플레이 느낌 아이콘(간단 버전) */
+.playIcon {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+
+    /* 삼각형 느낌(간단) */
+    background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+    clip-path: polygon(20% 10%, 90% 50%, 20% 90%, 35% 50%);
+    border-radius: 3px;
+}

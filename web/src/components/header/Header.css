@@ -1,0 +1,105 @@
+
+/* =========================
+   RunBoo Header (Glass + Scroll Hide)
+   ========================= */
+
+/* 헤더 전체 */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+
+    /* 반투명 배경 + 블러 */
+    background: rgba(60, 60, 60, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    /* 하단 경계 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+
+    z-index: 1000;
+
+    /* 접힘 / 펼침 애니메이션 */
+    transition:
+            transform 0.35s ease,
+            opacity 0.25s ease;
+}
+
+/* 스크롤 ↓ 시 숨김 */
+.header--hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+/* 내부 컨테이너 */
+.header-inner {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* =========================
+   Logo
+   ========================= */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.logo-icon {
+    font-size: 13px;
+    line-height: 1;
+    height: 22px;
+    display: block;
+}
+
+.logo-text {
+    line-height: 1;
+}
+
+/* =========================
+   Navigation
+   ========================= */
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.nav a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+
+    transition: color 0.2s ease;
+}
+
+.nav a:hover {
+    color: #ffffff;
+}
+
+/* =========================
+   Responsive (optional)
+   ========================= */
+@media (max-width: 768px) {
+    .header {
+        height: 56px;
+    }
+
+    .header-inner {
+        padding: 0 16px;
+    }
+
+    .nav {
+        gap: 16px;
+    }
+}
