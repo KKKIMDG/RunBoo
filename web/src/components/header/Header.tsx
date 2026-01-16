@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Header.css";
+import { Link } from "react-router-dom";
 
 export default function Header() {
     const [hidden, setHidden] = useState(false);
@@ -33,8 +34,8 @@ export default function Header() {
                 </div>
 
                 <nav className="nav">
-                    <a href="#service">서비스 소개</a>
-                    <a href="#notice">공지사항</a>
+                    <a href="/">서비스 소개</a>
+                    <Link to="/notice">공지사항</Link>
                 </nav>
             </div>
         </header>

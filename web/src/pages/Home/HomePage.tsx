@@ -4,13 +4,15 @@ import IntroLightSection from "../Sections/IntroLightSection";
 import IntroDarkSection from "../Sections/IntroDarkSection";
 import IntroStatsSection from "../Sections/IntroStatsSection";
 import IntroAiSection from "../Sections/IntroAiSection";
-import NoticePage from "../Notice/NoticePage";
+import ScrollNavigator from "@/components/common/scrollNavigator/ScrollNavigator.tsx";
 
 export default function HomePage() {
     return (
         <main className="homeScroll">
+
+            <ScrollNavigator />
             {/* ===== Hero / 다운로드 ===== */}
-            <section className="hero snapSection" id="top">
+            <section className="hero snapSection" id="top" data-title="다운로드" data-index="0 ">
                 <div className="heroOverlay" />
 
                 <div className="heroInner">
@@ -34,15 +36,12 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <section id="service">
+            <section id="service" data-title="서비스 소개" data-index="1" >
                 <IntroSection1 />
                 <IntroLightSection />
                 <IntroDarkSection />
                 <IntroStatsSection />
                 <IntroAiSection />
-            </section>
-            <section id="notice">
-                <NoticePage />
             </section>
         </main>
     );
