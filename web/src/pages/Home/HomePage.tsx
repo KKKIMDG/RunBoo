@@ -2,7 +2,8 @@ import "./HomePage.css";
 import IntroSection1 from "../Sections/IntroSection1";
 import IntroLightSection from "../Sections/IntroLightSection";
 import IntroDarkSection from "../Sections/IntroDarkSection";
-
+import IntroStatsSection from "../Sections/IntroStatsSection";
+import IntroAiSection from "../Sections/IntroAiSection";
 
 export default function HomePage() {
     return (
@@ -35,6 +36,8 @@ export default function HomePage() {
             <IntroSection1 />
             <IntroLightSection />
             <IntroDarkSection />
+            <IntroStatsSection />
+            <IntroAiSection />
         </main>
     );
 }

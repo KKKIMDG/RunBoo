@@ -1,0 +1,115 @@
+.aiIntro {
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+            radial-gradient(900px 500px at 60% 40%, rgba(72, 96, 255, 0.10), rgba(0,0,0,0) 60%),
+            linear-gradient(to bottom, #050814, #050712);
+    overflow: hidden;
+}
+
+.aiIntroInner {
+    width: min(1200px, 92vw);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    gap: 28px;
+}
+
+/* 좌측 문구 */
+.aiLeft {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.aiLineTop {
+    margin: 0 0 10px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: clamp(22px, 2.4vw, 34px);
+    font-weight: 500;
+    letter-spacing: -0.6px;
+}
+
+.aiLineBottom {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: clamp(22px, 2.4vw, 34px);
+    font-weight: 500;
+    letter-spacing: -0.6px;
+}
+
+.aiStrong {
+    color: #fff;
+    font-weight: 900;
+}
+
+/* 가운데 폰 */
+.aiCenter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.aiPhone {
+    width: min(300px, 64vw);
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 22px 32px rgba(0, 0, 0, 0.55));
+}
+
+/* 우측 라벨 */
+.aiRight {
+    position: relative;
+    height: 100%;
+}
+
+.aiLabelWrap {
+    position: absolute;
+    top: -18px;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0.9;
+}
+
+.aiLabelText {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.aiLabelLine {
+    width: 34px;
+    height: 2px;
+    background: #2f66ff;
+    border-radius: 999px;
+}
+
+/* 반응형 */
+@media (max-width: 920px) {
+    .aiIntroInner {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        text-align: center;
+    }
+
+    .aiLeft {
+        align-items: center;
+    }
+
+    .aiRight {
+        height: auto;
+    }
+
+    .aiLabelWrap {
+        position: static;
+        margin-bottom: 10px;
+        justify-content: center;
+    }
+}
