@@ -81,7 +81,7 @@ export const getStyles = (
 
     // --- 지도 영역 ---
     mapContainer: {
-      height: 420,
+      height: 340,
       borderRadius: 0,
       overflow: "visible",
       marginBottom: 0,
@@ -194,7 +194,7 @@ export const getStyles = (
     // --- 정보 카드 컨테이너 ---
     statsContainer: {
       backgroundColor: scheme === "light" ? "#FFFFFF" : activeColors.card,
-      borderRadius: 25,
+      borderRadius: 15,
       padding: 20,
       flexDirection: "row",
       flexWrap: "wrap",
@@ -296,7 +296,7 @@ export const getStyles = (
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      gap: 20,
+      gap: 10,
       zIndex: 15,
     },
     pauseButton: {

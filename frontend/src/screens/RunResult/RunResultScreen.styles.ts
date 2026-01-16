@@ -43,11 +43,10 @@ export const getStyles = (
     // --- 지도 영역 및 오버레이 ---
     mapContainer: {
       width: width,
-      height: width * 1.4,
+      height: width * 1.38,
       backgroundColor: "#EBEBEB",
       borderRadius: 0,
       overflow: "hidden",
-      marginBottom: 20,
       position: "relative",
     },
     mapPlaceholderContainer: {
