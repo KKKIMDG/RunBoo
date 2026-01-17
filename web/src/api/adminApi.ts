@@ -113,4 +113,18 @@ export const adminApi = {
 
     return response.text();
   },
+
+  // 세션 확인 (인증 체크)
+  checkAuth: async (): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notices`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      return response.ok;
+    } catch {
+      return false;
+    }
+  },
 };

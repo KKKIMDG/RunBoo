@@ -6,6 +6,7 @@ import NoticeDetailPage from "@/pages/Notice/NoticeDetailPage";
 import AdminLoginPage from "@/pages/Admin/AdminLoginPage";
 import AdminNoticeListPage from "@/pages/Admin/AdminNoticeListPage";
 import AdminNoticeFormPage from "@/pages/Admin/AdminNoticeFormPage";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
@@ -22,14 +23,26 @@ export const router = createBrowserRouter([
   },
   {
     path: "/admin/notices",
-    element: <AdminNoticeListPage />,
+    element: (
+      <ProtectedRoute>
+        <AdminNoticeListPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/notices/create",
-    element: <AdminNoticeFormPage />,
+    element: (
+      <ProtectedRoute>
+        <AdminNoticeFormPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/notices/edit/:id",
-    element: <AdminNoticeFormPage />,
+    element: (
+      <ProtectedRoute>
+        <AdminNoticeFormPage />
+      </ProtectedRoute>
+    ),
   },
 ]);
