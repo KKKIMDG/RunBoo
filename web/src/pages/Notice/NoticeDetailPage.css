@@ -1,0 +1,85 @@
+.noticeDetailPage {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #050814;
+  color: #fff;
+  padding-top: 120px;
+  padding-bottom: 80px;
+  display: flex;
+  justify-content: center;
+}
+
+.noticeDetailInner {
+  width: min(1000px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.2s;
+  text-align: left;
+}
+
+.backButton:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.noticeDetail {
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.noticeDetailHeader {
+  margin-bottom: 40px;
+}
+
+.noticeDetailTitle {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.4;
+}
+
+.noticeDetailDate {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+.noticeDetailContent {
+  font-size: 16px;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.loading,
+.error {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 60px 20px;
+  font-size: 16px;
+}
+
+.error {
+  color: rgba(255, 100, 120, 0.95);
+}
+
+@media (max-width: 768px) {
+  .noticeDetailTitle {
+    font-size: 24px;
+  }
+
+  .noticeDetailContent {
+    font-size: 15px;
+  }
+}

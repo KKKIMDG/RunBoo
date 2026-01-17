@@ -1,118 +1,118 @@
 .statsIntro {
-    width: 100vw;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #000514;
-    overflow: hidden;
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000514;
+  overflow: hidden;
 }
 
 .statsIntroInner {
-    width: min(1200px, 92vw);
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    align-items: center;
-    gap: 28px;
+  width: min(1200px, 92vw);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  gap: 28px;
 }
 
 /* 좌측 */
 .statsLeft {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .statsLeftText {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: clamp(22px, 2.4vw, 34px);
-    font-weight: 500;
-    letter-spacing: -0.6px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(22px, 2.4vw, 34px);
+  font-weight: 500;
+  letter-spacing: -0.6px;
 }
 
 /* 가운데 */
 .statsCenter {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .statsPhone {
-    width: min(300px, 64vw);
-    height: auto;
-    display: block;
-    filter: drop-shadow(0 22px 32px rgba(0, 0, 0, 0.55));
+  width: min(360px, 70vw);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 22px 32px rgba(0, 0, 0, 0.55));
 }
 
 /* 우측 */
 .statsRight {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-end;
-    text-align: left;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  text-align: left;
 }
 
 /* 우측 상단 라벨 */
 .statsLabelWrap {
-    position: absolute;
-    top: -18px;
-    right: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    opacity: 0.9;
+  position: absolute;
+  top: -18px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0.9;
 }
 
 .statsLabelText {
-    font-size: 14px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .statsLabelLine {
-    width: 34px;
-    height: 2px;
-    background: #2f66ff;
-    border-radius: 999px;
+  width: 34px;
+  height: 2px;
+  background: #2f66ff;
+  border-radius: 999px;
 }
 
 .statsRightText {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.85);
-    font-size: clamp(22px, 2.4vw, 34px);
-    font-weight: 500;
-    letter-spacing: -0.6px;
-    line-height: 1.35;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: clamp(22px, 2.4vw, 34px);
+  font-weight: 500;
+  letter-spacing: -0.6px;
+  line-height: 1.35;
 }
 
 .statsStrong {
-    font-weight: 900;
-    color: #fff;
+  font-weight: 900;
+  color: #fff;
 }
 
 /* 반응형 */
 @media (max-width: 920px) {
-    .statsIntroInner {
-        grid-template-columns: 1fr;
-        gap: 18px;
-        text-align: center;
-    }
+  .statsIntroInner {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    text-align: center;
+  }
 
-    .statsLeft {
-        justify-content: center;
-    }
+  .statsLeft {
+    justify-content: center;
+  }
 
-    .statsRight {
-        align-items: center;
-        text-align: center;
-    }
+  .statsRight {
+    align-items: center;
+    text-align: center;
+  }
 
-    .statsLabelWrap {
-        position: static;
-        margin-bottom: 10px;
-        justify-content: center;
-    }
+  .statsLabelWrap {
+    position: static;
+    margin-bottom: 10px;
+    justify-content: center;
+  }
 }

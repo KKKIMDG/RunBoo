@@ -1,0 +1,179 @@
+.admin-notice-page {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #050814;
+  padding: 120px 20px 80px;
+}
+
+.admin-header {
+  max-width: 1600px;
+  margin: 0 auto 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 24px 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.logout-button {
+  padding: 12px 24px;
+  background-color: rgba(220, 53, 69, 0.8);
+  color: white;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.logout-button:hover {
+  background-color: rgba(220, 53, 69, 1);
+  border-color: rgba(220, 53, 69, 0.5);
+}
+
+.admin-content {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.notice-list-section {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.notice-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.notice-list-section h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.create-notice-button {
+  padding: 10px 16px;
+  background: rgba(100, 100, 100, 0.2);
+  color: rgba(249, 249, 249, 1);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.create-notice-button:hover {
+  background-color: rgba(100, 100, 100, 0.4);
+}
+
+.error-message {
+  background-color: rgba(220, 53, 69, 0.15);
+  color: rgba(255, 100, 120, 0.95);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 700px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notice-item {
+  padding: 24px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.notice-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.notice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.notice-title-wrapper {
+  flex: 1;
+}
+
+.notice-header h3 {
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 8px 0;
+}
+
+.notice-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.notice-item:hover .notice-actions {
+  opacity: 1;
+}
+
+.notice-actions button {
+  padding: 6px 12px;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: none;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.edit-button:hover {
+  color: rgba(40, 167, 69, 1);
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+.delete-button:hover {
+  color: rgba(220, 53, 69, 1);
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.notice-date {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 6px;
+}
+
+@media (max-width: 768px) {
+  .admin-header h1 {
+    font-size: 24px;
+  }
+
+  .notice-list-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+}

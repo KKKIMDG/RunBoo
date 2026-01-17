@@ -1,0 +1,176 @@
+.admin-notice-page {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #050814;
+  padding: 120px 20px 80px;
+}
+
+.admin-header {
+  max-width: 1600px;
+  margin: 0 auto 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 24px 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.logout-button {
+  padding: 12px 24px;
+  background-color: rgba(220, 53, 69, 0.8);
+  color: white;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.logout-button:hover {
+  background-color: rgba(220, 53, 69, 1);
+  border-color: rgba(220, 53, 69, 0.5);
+}
+
+.admin-content {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.notice-form-section {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.notice-form-section h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 40px;
+}
+
+.notice-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  transition: all 0.3s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: rgba(102, 126, 234, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 400px;
+}
+
+.error-message {
+  background-color: rgba(220, 53, 69, 0.15);
+  color: rgba(255, 100, 120, 0.95);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.submit-button,
+.cancel-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.submit-button {
+  background: rgba(102, 126, 234, 0.6);
+  color: white;
+}
+
+.submit-button:hover {
+  background: rgba(102, 126, 234, 0.8);
+}
+
+.cancel-button {
+  background: rgba(108, 117, 125, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.cancel-button:hover {
+  background: rgba(108, 117, 125, 0.6);
+}
+
+.loading {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 40px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .admin-header h1 {
+    font-size: 24px;
+  }
+
+  .notice-form-section {
+    padding: 30px 20px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+}

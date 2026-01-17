@@ -1,0 +1,130 @@
+.admin-login-page {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #050814;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+/* 반투명 이미지 레이어 */
+.admin-login-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/hero-bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.admin-login-container {
+  position: relative;
+  z-index: 1;
+  width: min(600px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 60px 80px;
+  backdrop-filter: blur(20px);
+}
+
+.admin-login-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.admin-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.form-group input {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 16px;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.form-group input:disabled {
+  background-color: rgba(255, 255, 255, 0.02);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.error-message {
+  background-color: rgba(255, 100, 120, 0.15);
+  color: rgba(255, 100, 120, 0.95);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  border: 1px solid rgba(255, 100, 120, 0.3);
+}
+
+.login-button {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.login-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 1);
+}
+
+.login-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .admin-login-title {
+    font-size: 28px;
+  }
+}

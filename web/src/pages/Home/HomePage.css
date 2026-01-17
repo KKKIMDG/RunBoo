@@ -1,120 +1,148 @@
 .hero {
-    position: relative;
-    width: 100vw;
-    min-height: 100vh;
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
 
-    /* 1️⃣ 기본 배경은 흰색 */
-    background-color: #ffffff;
+  /* 1️⃣ 기본 배경은 흰색 */
+  background-color: #ffffff;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 /* 2️⃣ 반투명 이미지 레이어 */
 .hero::before {
-    content: "";
-    position: absolute;
-    inset: 0;
+  content: "";
+  position: absolute;
+  inset: 0;
 
-    background-image: url("/hero-bg.png");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+  background-image: url("/hero-bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 
-    opacity: 0.30;           /* ← 이미지 투명도 */
-    pointer-events: none;
+  opacity: 0.3; /* ← 이미지 투명도 */
+  pointer-events: none;
 }
 
 /* 3️⃣ 위 → 아래로 점점 밝아지는 명암 */
 .hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
+  content: "";
+  position: absolute;
+  inset: 0;
 
-    background: linear-gradient(
-            to bottom,
-            rgba(0, 5, 20, 1) 10%,   /* 위: 어둠 */
-            rgba(0, 5, 20, 0.8) 30%,
-            rgba(0, 5, 20, 0.60) 50%,
-            rgba(0, 5, 20, 0.40) 80%,
-            rgba(255, 255, 255, 0.0) 100% /* 아래: 완전 밝음 */
-    );
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 5, 20, 1) 10%,
+    /* 위: 어둠 */ rgba(0, 5, 20, 0.8) 30%,
+    rgba(0, 5, 20, 0.6) 50%,
+    rgba(0, 5, 20, 0.4) 80%,
+    rgba(255, 255, 255, 0) 100% /* 아래: 완전 밝음 */
+  );
 
-    pointer-events: none;
+  pointer-events: none;
 }
 
 /* 실제 콘텐츠는 최상단 */
 .heroInner {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    transform: translateY(-80px);
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  transform: translateY(-80px);
 }
 
-
 .heroTitle {
-    color: #f9f9f9;
-    font-weight: 800;
-    font-size: clamp(30px, 6vw, 50px);
-    line-height: 1.4;
-    letter-spacing: -0.5px;
-    margin: 0 0 22px;
-    text-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  color: #f9f9f9;
+  font-weight: 800;
+  font-size: clamp(30px, 6vw, 50px);
+  line-height: 1.4;
+  letter-spacing: -0.5px;
+  margin: 0 0 22px;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
 }
 
 .heroCtas {
-    display: inline-flex;
-    gap: 14px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top : 20px;
+  display: inline-flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .storeBtn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
 
-    height: 60px;
-    width: 130px;
-    padding: 0 5px;
+  height: 60px;
+  width: 130px;
+  padding: 0 5px;
 
-    border-radius: 16px;
+  border-radius: 16px;
 
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    color: #fff;
-    text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  text-decoration: none;
 
-    font-size: 14px;
-    font-weight: 600;
+  font-size: 14px;
+  font-weight: 600;
 
-    transition: transform 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease;
 }
 
-
 .storeBtn:hover {
-    transform: translateY(-1px);
-    background: rgba(0, 0, 0, 0.65);
+  transform: translateY(-1px);
+  background: rgba(0, 0, 0, 0.65);
 }
 
 .storeIcon {
-    width: 24px;
+  width: 24px;
 }
 
 .storeText {
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: -0.4px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
 }
 
 /* 구글 플레이 느낌 아이콘(간단 버전) */
 .playIcon {
-    width: 30px;
+  width: 30px;
+}
+
+/* 섹션 스크롤 애니메이션 - 부드럽고 자연스러운 효과 */
+.animate-section {
+  opacity: 0;
+  transform: translateY(30px);
+  filter: blur(3px);
+  transition:
+    opacity 1s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.6s ease-out;
+  will-change: opacity, transform, filter;
+}
+
+.animate-section.section-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* 섹션 간격 조정 */
+#service > div {
+  position: relative;
+}
+
+/* 부드러운 스크롤 */
+.homeScroll {
+  scroll-behavior: smooth;
 }
