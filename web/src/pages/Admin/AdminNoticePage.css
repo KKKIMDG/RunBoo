@@ -1,0 +1,229 @@
+.admin-notice-page {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #050814;
+  padding: 120px 20px 80px;
+}
+
+.admin-header {
+  max-width: 1600px;
+  margin: 0 auto 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 24px 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.logout-button {
+  padding: 12px 24px;
+  background-color: rgba(220, 53, 69, 0.8);
+  color: white;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.logout-button:hover {
+  background-color: rgba(220, 53, 69, 1);
+  border-color: rgba(220, 53, 69, 0.5);
+}
+
+.admin-content {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.notice-list-section {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notice-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notice-list-section h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.create-notice-button {
+  padding: 10px 20px;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.8) 0%,
+    rgba(118, 75, 162, 0.8) 100%
+  );
+  color: white;
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.create-notice-button:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 1) 0%,
+    rgba(118, 75, 162, 1) 100%
+  );
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 700px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.notice-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.notice-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.notice-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.notice-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.notice-item {
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.3s;
+}
+
+.notice-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.notice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.notice-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  flex: 1;
+}
+
+.notice-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-button,
+.delete-button {
+  padding: 6px 12px;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.edit-button {
+  background-color: rgba(40, 167, 69, 0.5);
+  color: white;
+  border-color: rgba(40, 167, 69, 0.3);
+}
+
+.edit-button:hover {
+  background-color: rgba(40, 167, 69, 0.8);
+  border-color: rgba(40, 167, 69, 0.5);
+}
+
+.delete-button {
+  background-color: rgba(220, 53, 69, 0.5);
+  color: white;
+  border-color: rgba(220, 53, 69, 0.3);
+}
+
+.delete-button:hover {
+  background-color: rgba(220, 53, 69, 0.8);
+  border-color: rgba(220, 53, 69, 0.5);
+}
+
+.notice-content {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin-bottom: 12px;
+}
+
+.notice-date {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: right;
+}
+
+.loading,
+.empty-message {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 40px;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .admin-header h1 {
+    font-size: 24px;
+  }
+
+  .notice-list-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+}
