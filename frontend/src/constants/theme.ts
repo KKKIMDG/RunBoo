@@ -24,7 +24,7 @@ export const Colors = {
     card: "#FFFFFF", // 카드 배경
     primary: "#3A4A98", // 주요 브랜드 색상 (버튼, 강조)
     primaryButtonText: "#FFFFFF", // 프라이머리 버튼 텍스트
-    secondary: "#5C7CFA", // 보조 브랜드 색상
+    secondary: "#2741a8", // 보조 브랜드 색상
     disabled: "#ADB5BD", // 비활성화 상태 (버튼, 입력창)
     border: "#E9ECEF", // 경계선
     error: "#FF6467", // 에러 (빨강)
@@ -120,7 +120,6 @@ export const Fonts = Platform.select({
     juache: "BMJUA", // 배달의민족 주아체
     gmarketBold: "GmarketSansBold", // 지마켓 산스 Bold
     chab: "Chab", // Chab 폰트
-    samliphopangche: "SDSamliphopangcheTTFOutline", // 삼립호빵체 아웃라인
     keriskedu: "KERISKEDU_B", // KERISKEDU Bold
   },
   android: {
@@ -130,7 +129,6 @@ export const Fonts = Platform.select({
     juache: "BMJUA", // 배달의민족 주아체
     gmarketBold: "GmarketSansBold", // 지마켓 산스 Bold
     chab: "Chab", // Chab 폰트
-    samliphopangche: "SDSamliphopangcheTTFOutline", // 삼립호빵체 아웃라인
     keriskedu: "KERISKEDU_B", // KERISKEDU Bold
   },
   default: {
