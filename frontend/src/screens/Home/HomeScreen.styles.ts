@@ -153,14 +153,14 @@ export const getStyles = (
 
     // ✅ [MapFullScreen과 동일하게 맞춘 마커 스타일]
     markerContainer: {
-      width: 44,
-      height: 44,
+      width: 38,
+      height: 38,
       borderRadius: 22,
       backgroundColor: "white",
       justifyContent: "center",
       alignItems: "center",
       borderWidth: 2,
-      borderColor: "#4A6EA9", // 파란 테두리
+      borderColor: "#4A6EA9",
       overflow: "hidden",
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
@@ -169,8 +169,8 @@ export const getStyles = (
       elevation: 5,
     },
     markerImage: {
-      width: 40,
-      height: 40,
+      width: 38,
+      height: 38,
       borderRadius: 20,
       resizeMode: "cover",
     },

@@ -167,7 +167,6 @@ export default function App() {
     const insets = useSafeAreaInsets();
     const { settings } = useSettings();
     const resolvedTheme = useResolvedTheme(settings?.themeMode);
-    const adjustedBottomInset  = Math.max(0, insets.bottom - 12);
 
     if (Platform.OS !== 'android') {
       return <>{children}</>;
@@ -180,7 +179,7 @@ export default function App() {
               backgroundColor:
                   resolvedTheme === "dark" ? "#000000" : "#ffffff",
               paddingBottom: Platform.OS === 'android'
-                  ? adjustedBottomInset
+                  ? insets.bottom
                   : 0,
             }}
         >
