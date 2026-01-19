@@ -34,8 +34,8 @@ export default function IntroSection1({
             뽐내고
           </p>
           <p className="intro1Line">
-            <span className="intro1Strong">고스트 모드</span>를 통해 과거의 나,
-            그리고 다른 이들과의 대결
+            <span className="intro1Strong">고스트 모드</span>를 통해 <br />
+              과거의 나, 그리고 다른 이들과의 대결
           </p>
         </div>
       </div>

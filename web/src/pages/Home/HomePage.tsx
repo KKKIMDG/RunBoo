@@ -4,6 +4,8 @@ import IntroLightSection from "../Sections/IntroLightSection";
 import IntroDarkSection from "../Sections/IntroDarkSection";
 import IntroStatsSection from "../Sections/IntroStatsSection";
 import IntroAiSection from "../Sections/IntroAiSection";
+import IntroNearbyGhostSection from "@/pages/Sections/IntroNearbyGhostSection.tsx";
+import FinalCtaSection from "@/pages/Sections/FinalCtaSection.tsx";
 import ScrollNavigator from "@/components/common/scrollNavigator/ScrollNavigator.tsx";
 import { useEffect } from "react";
 
@@ -76,6 +78,8 @@ export default function HomePage() {
         <IntroDarkSection />
         <IntroStatsSection />
         <IntroAiSection />
+        <IntroNearbyGhostSection />
+        <FinalCtaSection />
       </section>
     </main>
   );
