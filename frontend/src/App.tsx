@@ -11,6 +11,7 @@ import * as Font from "expo-font";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import PermissionGuard from "@/components/auth/PermissionGuard";
+import ErrorBoundary from "@/components/auth/ErrorBoundary";
 import RootNavigator from "./navigation/root/RootNavigator";
 import { setAccessToken } from "@/services/api";
 import { AuthService } from "@/services/auth/authService";
@@ -186,14 +187,20 @@ export default function App() {
   }
 
   return (
-    <UserSettingProvider>
-      <UserMeProvider>
-        <AppInner
-          isLoggedIn={isLoggedIn}
-          onLoginSuccess={handleLoginSuccess}
-          onLogout={handleLogout}
-        />
-      </UserMeProvider>
-    </UserSettingProvider>
+    <ErrorBoundary
+      fallbackMessage="앱에 문제가 발생했어요"
+      showRetryButton={true}
+      showHomeButton={true}
+    >
+      <UserSettingProvider>
+        <UserMeProvider>
+          <AppInner
+            isLoggedIn={isLoggedIn}
+            onLoginSuccess={handleLoginSuccess}
+            onLogout={handleLogout}
+          />
+        </UserMeProvider>
+      </UserSettingProvider>
+    </ErrorBoundary>
   );
 }
