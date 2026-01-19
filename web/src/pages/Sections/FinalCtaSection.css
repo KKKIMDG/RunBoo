@@ -1,6 +1,6 @@
 .finalHero {
     width: 100vw;
-    height: 100vh; /* ✅ min-height 말고 height */
+    height: 100vh;
     background:
             radial-gradient(
                     900px 520px at 50% 50%,
@@ -50,6 +50,8 @@
     position: relative;
     padding: 6px 0;
 
+    animation: softBounce 1.15s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+
     transition: color 0.2s ease;
 }
 
@@ -67,10 +69,23 @@
 }
 
 .finalHeroBtn:hover {
+    animation-play-state: paused;
     color: #fff;
 }
 
 .finalHeroBtn:hover::after {
     width: 180px;
     background: rgba(80, 120, 255, 0.6);
+}
+
+@keyframes softBounce {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+    100% {
+        transform: translateY(0);
+    }
 }
