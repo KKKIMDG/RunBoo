@@ -1,9 +1,9 @@
 export type FontSizeSetting = "SMALL" | "MEDIUM" | "LARGE";
 
 const FONT_SCALE: Record<FontSizeSetting, number> = {
-    SMALL: 1,
-    MEDIUM: 1.2,
-    LARGE: 1.4,
+    SMALL: 0.8,
+    MEDIUM: 1.0,
+    LARGE: 1.2,
 };
 
 export function scaleFont(

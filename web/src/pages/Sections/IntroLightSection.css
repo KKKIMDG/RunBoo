@@ -27,7 +27,7 @@
 }
 
 .lightPhone {
-    width: min(320px, 70vw);
+    width: min(300px, 60vw);
     height: auto;
     display: block;
 

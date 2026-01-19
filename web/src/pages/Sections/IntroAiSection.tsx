@@ -6,7 +6,7 @@ export default function IntroAiSection() {
       <div className="aiIntroInner">
         {/* 좌측 문구 (두 줄 구성) */}
         <div className="aiLeft animate-section">
-          <p className="aiLineTop">여기에</p>
+          <p className="aiLineTop">더욱 잘 뛰고 싶은 당신을 위해</p>
           <p className="aiLineBottom">
             <span className="aiStrong">AI 분석 리포트</span>까지
           </p>
