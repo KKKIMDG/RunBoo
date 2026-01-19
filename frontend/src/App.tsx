@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import { Platform, View } from "react-native";
 import {
   NavigationContainer,
@@ -9,7 +9,6 @@ import * as WebBrowser from "expo-web-browser";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import PermissionGuard from "@/components/auth/PermissionGuard";
 import RootNavigator from "./navigation/root/RootNavigator";
 import { setAccessToken } from "@/services/api";
@@ -24,6 +23,9 @@ import {
 import { getFcmToken } from "@/services/notification/fcmToken";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useSettings } from "@/screens/Settings/useSettings";
+import {SafeAreaProvider, useSafeAreaInsets} from "react-native-safe-area-context";
+import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -158,11 +160,39 @@ export default function App() {
   //     text: Colors[colorScheme === "dark" ? "dark" : "light"].text,
   //   },
   // };
+
+  function AndroidSafeAreaRoot({ children }: { children: React.ReactNode }) {
+    const insets = useSafeAreaInsets();
+    const { settings } = useSettings();
+    const resolvedTheme = useResolvedTheme(settings?.themeMode);
+    const adjustedBottomInset  = Math.max(0, insets.bottom - 12);
+
+    if (Platform.OS !== 'android') {
+      return <>{children}</>;
+    }
+
+    return (
+        <View
+            style={{
+              flex: 1,
+              backgroundColor:
+                  resolvedTheme === "dark" ? "#000000" : "#ffffff",
+              paddingBottom: Platform.OS === 'android'
+                  ? adjustedBottomInset
+                  : 0,
+            }}
+        >
+          {children}
+        </View>
+    );
+  }
+
+
   function AppInner({
-    isLoggedIn,
-    onLoginSuccess,
-    onLogout,
-  }: {
+                      isLoggedIn,
+                      onLoginSuccess,
+                      onLogout,
+                    }: {
     isLoggedIn: boolean;
     onLoginSuccess: (token: string) => void;
     onLogout: () => void;
@@ -170,30 +200,54 @@ export default function App() {
     const { settings } = useSettings();
     const resolvedTheme = useResolvedTheme(settings?.themeMode);
 
+    // 🔹 시스템 바(상단 / 하단) 테마 동기화
+    useEffect(() => {
+      if (Platform.OS !== "android") return;
+
+      NavigationBar.setButtonStyleAsync(
+          resolvedTheme === "dark" ? "light" : "dark"
+      );
+    }, [resolvedTheme]);
+
+
+
+
     return (
-      <NavigationContainer
-        theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
-      >
-        <PermissionGuard>
-          <RootNavigator
-            isLoggedIn={isLoggedIn}
-            onLoginSuccess={onLoginSuccess}
-            onLogout={onLogout}
+        <>
+          {/* 🔹 상단 StatusBar */}
+          <StatusBar
+              style={resolvedTheme === "dark" ? "light" : "dark"}
+              backgroundColor={resolvedTheme === "dark" ? "#000000" : "#ffffff"}
           />
-        </PermissionGuard>
-      </NavigationContainer>
+
+          <AndroidSafeAreaRoot>
+            <NavigationContainer
+                theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <PermissionGuard>
+                <RootNavigator
+                    isLoggedIn={isLoggedIn}
+                    onLoginSuccess={onLoginSuccess}
+                    onLogout={onLogout}
+                />
+              </PermissionGuard>
+            </NavigationContainer>
+          </AndroidSafeAreaRoot>
+        </>
     );
   }
-
   return (
-    <UserSettingProvider>
-      <UserMeProvider>
-        <AppInner
-          isLoggedIn={isLoggedIn}
-          onLoginSuccess={handleLoginSuccess}
-          onLogout={handleLogout}
-        />
-      </UserMeProvider>
-    </UserSettingProvider>
+      <SafeAreaProvider>
+        <UserSettingProvider>
+          <UserMeProvider>
+            <AppInner
+                isLoggedIn={isLoggedIn}
+                onLoginSuccess={handleLoginSuccess}
+                onLogout={handleLogout}
+            />
+          </UserMeProvider>
+        </UserSettingProvider>
+      </SafeAreaProvider>
   );
+
 }
