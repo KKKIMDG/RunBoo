@@ -35,9 +35,8 @@
 .phone {
     position: absolute;
 
-    /* ✅ 스샷 느낌: 세로 긴 이미지 */
-    height: 640px;
-    width: auto;
+    width: min(280px, 50vw);
+    height: auto;
 
     filter: drop-shadow(0 28px 38px rgba(0,0,0,0.45));
     border-radius: 26px;
