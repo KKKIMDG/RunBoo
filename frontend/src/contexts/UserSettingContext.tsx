@@ -105,8 +105,12 @@ export function UserSettingProvider({
      */
     const reset = () => {
         setSettings(null);
+        setIsReady(false);
     };
 
+    if (!isReady) {
+        return null; // 또는 <FullScreenSplash />
+    }
     return (
         <UserSettingContext.Provider
             value={{
