@@ -195,6 +195,23 @@ export default function App() {
     onLoginSuccess: (token: string) => void;
     onLogout: () => void;
   }) {
+    if (!isLoggedIn) {
+      return (
+          <>
+            <StatusBar style="dark" backgroundColor="#ffffff" />
+            <NavigationContainer theme={DefaultTheme}>
+              <PermissionGuard>
+                <RootNavigator
+                    isLoggedIn={false}
+                    onLoginSuccess={onLoginSuccess}
+                    onLogout={onLogout}
+                />
+              </PermissionGuard>
+            </NavigationContainer>
+          </>
+      );
+    }
+
     const { settings } = useSettings();
     const resolvedTheme = useResolvedTheme(settings?.themeMode);
 
