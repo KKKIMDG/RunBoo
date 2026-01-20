@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor              // ✅ Builder 필수
 @Builder                          // ✅ 핵심
@@ -17,39 +18,44 @@ public class UserChallenge {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_challenge_id")
-    private Long id;
+    private Long userChallengeId;
 
-    /* =========================
-       연관관계
-       ========================= */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "challenge_id", nullable = false)
     private Challenge challenge;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "badge_id")
-    private Badge badge;
+    @Column(columnDefinition = "INTEGER DEFAULT 0")
+    private Integer progressValue = 0;
 
-    /* =========================
-       진행 정보
-       ========================= */
-    @Setter
-    @Column(name = "progress_value", nullable = false)
-    private int progressValue;
+    @Column(columnDefinition = "VARCHAR(20) DEFAULT 'LOCKED'")
+    private String status = "LOCKED";
 
-    @Setter
-    @Column(name = "status", nullable = false)
-    private String status; // IN_PROGRESS, COMPLETED
-
-    @Column(name = "started_at", nullable = false)
+    @Column(columnDefinition = "TIMESTAMP(0) WITHOUT TIME ZONE")
     private LocalDateTime startedAt;
 
-    @Setter
-    @Column(name = "completed_at")
+    @Column(columnDefinition = "TIMESTAMP(0) WITHOUT TIME ZONE")
     private LocalDateTime completedAt;
+
+    public static UserChallenge create(Long userId, Challenge challenge) {
+        UserChallenge userChallenge = new UserChallenge();
+
+        // 외래 키 및 기본 정보 설정
+        userChallenge.userId = userId;
+        userChallenge.challenge = challenge;
+
+        // 초기 상태값 설정
+        userChallenge.progressValue = 0;
+        userChallenge.status = "LOCKED"; // 기본은 잠금, 서비스에서 1레벨만 활성화 처리
+
+        return userChallenge;
+    }
+
+    public boolean addProgress(int value) {
+        int target = this.challenge.getTargetValue();
+        this.progressValue = Math.min(this.progressValue + value, target);
+        return this.progressValue >= target;
+    }
 }

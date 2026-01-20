@@ -45,15 +45,11 @@ const LoginScreen: FC<LoginScreenProps> = ({
   // 🔹 시스템 테마 기준 상단 / 하단 바 동기화
   useEffect(() => {
     // Android 하단 네비게이션 바
-    if (Platform.OS === "android") {
-      NavigationBar.setButtonStyleAsync(
-          colorScheme === "dark" ? "light" : "dark"
-      );
+    if (Platform.OS !== "android") return;
 
-      NavigationBar.setBackgroundColorAsync(
-          colorScheme === "dark" ? "#000000" : "#ffffff"
-      );
-    }
+    NavigationBar.setButtonStyleAsync(
+        colorScheme === "dark" ? "light" : "dark"
+    );
   }, [colorScheme]);
   return (
       <>

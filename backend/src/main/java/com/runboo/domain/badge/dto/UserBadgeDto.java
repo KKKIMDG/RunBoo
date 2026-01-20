@@ -2,13 +2,18 @@ package com.runboo.domain.badge.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import java.time.OffsetDateTime;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 public class UserBadgeDto {
-    private Long userBadgeId;    // 엔티티의 id
-    private Long userId;         // 연관된 유저의 ID
-    private BadgeDto badge;      // 뱃지의 상세 정보 (이미 만들어두신 BadgeDto 활용)
-    private OffsetDateTime acquiredAt; // 획득 일시
+    private Long userBadgeId;
+    private Long userId;
+    private Long badgeId;
+    private String name;
+    private String description;
+    private String iconUrl;
+    private LocalDateTime acquiredAt;
 }
