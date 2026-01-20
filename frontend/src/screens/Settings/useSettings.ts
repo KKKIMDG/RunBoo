@@ -7,7 +7,7 @@ import { userSettingService } from '@/services/setting/userSettingService';
 const DEBOUNCE_MS = 400;
 
 export function useSettings() {
-    const { settings, setSettings } = useUserSettingContext();
+    const { settings, setSettings, isReady } = useUserSettingContext();
 
     const prevRef = useRef<UserSetting | null>(null);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -17,6 +17,7 @@ export function useSettings() {
             settings: null,
             update: () => {},
             loading: true,
+            isReady,
         };
     }
 
@@ -69,5 +70,6 @@ export function useSettings() {
     return {
         settings,
         update,
+        isReady
     };
 }
