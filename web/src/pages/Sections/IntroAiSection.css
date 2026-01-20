@@ -4,8 +4,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
-  background-color: #000514;
+    background:
+            radial-gradient(
+                    900px 520px at 50% 50%,
+                    rgba(80, 120, 255, 0.18),
+                    rgba(0, 0, 0, 0) 60%
+            ),
+            linear-gradient(180deg, #00071a 0%, #000514 60%, #00040f 100%);
   overflow: hidden;
 }
 

@@ -9,6 +9,7 @@ export const getStyles = (
     safeArea: {
       flex: 1,
       backgroundColor: Colors[scheme].background,
+
     },
     header: {
         flexDirection: "row",

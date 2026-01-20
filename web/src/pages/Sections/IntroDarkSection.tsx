@@ -9,7 +9,9 @@ export default function IntroDarkSection() {
           <p className="darkCopy">
             밤에는
             <br />
-            <span className="darkCopyStrong">다크 모드</span>로 눈부심 최소화
+            <span className="darkCopyStrong">다크 모드</span>로
+              <br />
+              눈부심 최소화
           </p>
         </div>
 
