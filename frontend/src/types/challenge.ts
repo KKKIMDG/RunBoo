@@ -22,11 +22,17 @@ export interface Challenge {
 export interface UserChallengeDto {
   userChallengeId: number;
   userId: number;
-  challenge: Challenge;
   progressValue: number;
   status: string;
   startedAt: string;
   completedAt: string | null;
-  percentage: number; // percent -> percentage
-  remainingDays: number;
+  badgeId: number;
+  badgeName: string;
+  badgeIconUrl: string;
+  challengeId: number;
+  title: string;
+  description: string;
+  level: number;
+  targetType: string;
+  targetValue: number;
 }
