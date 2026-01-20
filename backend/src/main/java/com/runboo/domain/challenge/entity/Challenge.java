@@ -37,6 +37,7 @@ public class Challenge {
     @Column(name = "target_value", nullable = false)
     private Integer targetValue;
 
-    @Column(name = "badge_id")
-    private Long badgeId; // Badge 엔티티가 있다면 연관관계 매핑 권장
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "badge_id")
+    private Badge badge;
 }

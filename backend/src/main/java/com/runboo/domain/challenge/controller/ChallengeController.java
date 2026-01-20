@@ -61,4 +61,18 @@ public class ChallengeController {
         List<UserChallengeDto> updatedList = challengeService.getActiveAndNextChallenges(user.getUserId());
         return ResponseEntity.ok(updatedList);
     }
+
+    /**
+     * 완료된 챌린지 전체 목록 조회 (완료 페이지용)
+     */
+    @GetMapping("/completed")
+    public ResponseEntity<List<UserChallengeDto>> getCompletedChallenges(
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        // 1. 서비스 로직 호출 (Join Fetch가 적용된 최적화 쿼리 사용)
+        List<UserChallengeDto> completedList = challengeService.getCompletedChallenges(user.getUserId());
+
+        // 2. 결과 반환 (데이터가 없으면 빈 리스트 [] 가 나갑니다)
+        return ResponseEntity.ok(completedList);
+    }
 }

@@ -22,9 +22,26 @@ public interface UserChallengeRepository extends JpaRepository<UserChallenge, Lo
     // [추가] 유저가 해당 시즌에 이미 참여 중인지 확인
     boolean existsByUserIdAndChallenge_Season(Long userId, com.runboo.domain.season.entity.Season season);
 
-    // 현재+다음2개 조회를 위한 기존 쿼리 (필요시 레벨 조건 확인)
-    @Query("SELECT uc FROM UserChallenge uc JOIN FETCH uc.challenge c " +
-            "WHERE uc.userId = :userId AND c.level BETWEEN :start AND :end " +
+    @Query("SELECT uc FROM UserChallenge uc " +
+            "JOIN FETCH uc.challenge c " + // 유저 챌린지와 챌린지 테이블을 즉시 조인
+            "WHERE uc.userId = :userId " +
+            "AND c.level BETWEEN :start AND :end " +
             "ORDER BY c.level ASC")
-    List<UserChallenge> findActiveAndNextTwo(@Param("userId") Long userId, @Param("start") int start, @Param("end") int end);
+    List<UserChallenge> findActiveAndNextTwo(
+            @Param("userId") Long userId,
+            @Param("start") int start,
+            @Param("end") int end
+    );
+
+    @Query("SELECT uc FROM UserChallenge uc " +
+            "JOIN FETCH uc.challenge c " +
+            "LEFT JOIN FETCH c.badge " +
+            "WHERE uc.userId = :userId AND uc.status = :status " +
+            "ORDER BY uc.completedAt DESC")
+    List<UserChallenge> findAllByUserIdAndStatusOrderByCompletedAtDesc(
+            @Param("userId") Long userId,
+            @Param("status") String status
+    );
+
+
 }
