@@ -1,39 +1,31 @@
 package com.runboo.domain.badge.entity;
 
-import com.runboo.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Setter
-@NoArgsConstructor
-@Table(name = "user_badge")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserBadge {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_badge_id")
-    private Long id;
+    private Long userBadgeId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    private Long userId;
+    private Long badgeId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "badge_id")
-    private Badge badge;
+    @Column(columnDefinition = "TIMESTAMP(0) WITH TIME ZONE")
+    private LocalDateTime acquiredAt;
 
-    @Column(name = "acquired_at")
-    private OffsetDateTime acquiredAt;
-
-    public UserBadge(User user, Badge badge) {
-        this.user = user;
-        this.badge = badge;
-        this.acquiredAt = OffsetDateTime.now();
+    // 서비스에서 사용할 객체 생성 메서드
+    public static UserBadge create(Long userId, Long badgeId) {
+        UserBadge userBadge = new UserBadge();
+        userBadge.userId = userId;
+        userBadge.badgeId = badgeId;
+        userBadge.acquiredAt = LocalDateTime.now();
+        return userBadge;
     }
 }

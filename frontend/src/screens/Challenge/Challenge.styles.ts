@@ -1,11 +1,11 @@
 // src/screens/Challange/Challenge.styles.ts
 import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/theme";
-import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
 
 export const getStyles = (
-    scheme: "light" | "dark",
-    fontSize: FontSizeSetting
+  scheme: "light" | "dark",
+  fontSize: FontSizeSetting,
 ) =>
   StyleSheet.create({
     container: {
@@ -106,6 +106,28 @@ export const getStyles = (
       fontSize: scaleFont(12, fontSize),
       color: Colors[scheme].icon,
       marginTop: 4,
+    },
+    summaryIconBox: {
+      width: 56,
+      height: 56,
+      borderRadius: 16,
+      backgroundColor: "rgba(255, 215, 0, 0.15)",
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 16,
+    },
+    summaryInfo: {
+      flex: 1,
+    },
+    summaryTitle: {
+      fontSize: scaleFont(16, fontSize),
+      fontWeight: "700",
+      color: Colors[scheme].text,
+      marginBottom: 4,
+    },
+    summaryCount: {
+      fontSize: scaleFont(14, fontSize),
+      color: Colors[scheme].icon,
     },
     // 완료된 도전과제 카드
     completedCard: {
@@ -249,5 +271,71 @@ export const getStyles = (
       fontSize: scaleFont(13, fontSize),
       fontWeight: "700",
       color: Colors[scheme].text,
+    },
+    // 모달 오버레이
+    modalOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 1000,
+    },
+    // 모달 컨테이너
+    modalContainer: {
+      width: "85%",
+      backgroundColor: Colors[scheme].card,
+      borderRadius: 20,
+      padding: 24,
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 10,
+      elevation: 5,
+    },
+    modalTitle: {
+      fontSize: scaleFont(20, fontSize),
+      fontWeight: "700",
+      color: Colors[scheme].text,
+      marginBottom: 12,
+    },
+    modalMessage: {
+      fontSize: scaleFont(15, fontSize),
+      color: Colors[scheme].icon,
+      textAlign: "center",
+      marginBottom: 24,
+      lineHeight: 22,
+    },
+    modalButtonContainer: {
+      flexDirection: "row",
+      width: "100%",
+      gap: 12,
+    },
+    modalButton: {
+      flex: 1,
+      height: 50,
+      borderRadius: 12,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalButtonAccept: {
+      backgroundColor: Colors[scheme].primary,
+    },
+    modalButtonReject: {
+      backgroundColor: Colors[scheme].secondaryBackground,
+    },
+    modalButtonText: {
+      fontSize: scaleFont(16, fontSize),
+      fontWeight: "600",
+    },
+    modalButtonTextAccept: {
+      color: "#FFF",
+    },
+    modalButtonTextReject: {
+      color: Colors[scheme].icon,
     },
   });

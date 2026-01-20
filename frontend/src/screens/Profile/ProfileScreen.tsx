@@ -15,8 +15,8 @@ import BackButton from "@/components/ui/BackButton";
 import { getStyles } from "./ProfileScreen.styles";
 import { useProfile } from "./useProfile";
 import { TIER_ID_MAP } from "@/constants/TierImages";
-import {useSettings} from "@/screens/Settings/useSettings";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import { useSettings } from "@/screens/Settings/useSettings";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 
 export default function ProfileScreen({ navigation }: any) {
   const profile = useProfile(12);
@@ -27,7 +27,6 @@ export default function ProfileScreen({ navigation }: any) {
   const styles = useMemo(() => {
     return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
   }, [colorScheme, settings?.fontSize]);
-
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -187,18 +186,24 @@ export default function ProfileScreen({ navigation }: any) {
             {profile.badgeLoading ? (
               <ActivityIndicator size="small" color="#3A4A98" />
             ) : profile.badges.length > 0 ? (
-              profile.badges.map((userBadge) => (
-                <View
-                  key={userBadge.userBadgeId}
-                  style={styles.badgeIconPlaceholder}
-                >
-                  <Image
-                    source={{ uri: userBadge.badge.iconUrl }}
-                    style={{ width: 30, height: 30 }}
-                    resizeMode="contain"
-                  />
-                </View>
-              ))
+              profile.badges.map((userBadge) => {
+                // iconUrl이 없는 경우 필터링
+                if (!userBadge?.iconUrl) {
+                  return null;
+                }
+                return (
+                  <View
+                    key={userBadge.userBadgeId}
+                    style={styles.badgeIconPlaceholder}
+                  >
+                    <Image
+                      source={{ uri: userBadge.iconUrl }}
+                      style={{ width: 30, height: 30 }}
+                      resizeMode="contain"
+                    />
+                  </View>
+                );
+              })
             ) : (
               <Text style={{ color: "#999", fontSize: 12 }}>
                 획득한 배지가 없습니다.
@@ -216,7 +221,7 @@ export default function ProfileScreen({ navigation }: any) {
             <View>
               <Text style={styles.miniStatLabel}>연속 일수</Text>
               <Text style={styles.miniStatValue}>
-                {profile.streakLoading ? "-" : profile.streak ?? "0"}
+                {profile.streakLoading ? "-" : (profile.streak ?? "0")}
               </Text>
             </View>
           </View>
@@ -279,7 +284,7 @@ export default function ProfileScreen({ navigation }: any) {
                 {profile
                   .buildGrassColumns12Weeks(
                     profile.grassData.startDate,
-                    profile.grassData.endDate
+                    profile.grassData.endDate,
                   )
                   .map((weekCol, weekIndex) => (
                     <View key={`w-${weekIndex}`} style={styles.grassColumn}>
@@ -297,8 +302,8 @@ export default function ProfileScreen({ navigation }: any) {
                           level === 2
                             ? "#3A4A98"
                             : level === 1
-                            ? "#9ba4d8"
-                            : "#efefef";
+                              ? "#9ba4d8"
+                              : "#efefef";
                         return (
                           <View
                             key={date}

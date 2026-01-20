@@ -1,4 +1,4 @@
-import React, {useMemo} from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -13,42 +13,46 @@ import { Colors } from "@/constants/theme";
 import { getStyles } from "./BadgeCollection.styles";
 import { useBadge } from "@/screens/Badge/useBadge"; // 만든 훅 임포트
 import { UserBadgeDto } from "@/types/badge";
-import {useSettings} from "@/screens/Settings/useSettings";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import { useSettings } from "@/screens/Settings/useSettings";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 
 export default function BadgeCollectionModal({ navigation }: any) {
-    const { settings } = useSettings();
-    const colorScheme = useResolvedTheme(settings?.themeMode);
-    const styles = useMemo(() => {
-        return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
-    }, [colorScheme, settings?.fontSize]);
+  const { settings } = useSettings();
+  const colorScheme = useResolvedTheme(settings?.themeMode);
+  const styles = useMemo(() => {
+    return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
+  }, [colorScheme, settings?.fontSize]);
 
   // useBadge 훅을 통해 서버 데이터를 가져옵니다 (유저 ID 1번 고정)
-    const { badges, loading, badgeCount } = useBadge();
+  const { badges, loading, badgeCount } = useBadge();
 
   // 개별 배지 아이템 렌더링
-    const renderBadgeItem = ({ item }: { item: UserBadgeDto }) => {
-        const badge = item.badge;
+  const renderBadgeItem = ({ item }: { item: UserBadgeDto }) => {
+    return (
+      <View style={styles.badgeItem}>
+        <View style={styles.badgeIconContainer}>
+          {item.iconUrl ? (
+            <Image
+              source={{ uri: item.iconUrl }}
+              style={{ width: 40, height: 40 }}
+              resizeMode="contain"
+            />
+          ) : (
+            <Ionicons name="medal" size={40} color="#DDD" />
+          )}
+        </View>
 
-        return (
-            <View style={styles.badgeItem}>
-                <View style={styles.badgeIconContainer}>
-                    <Image
-                        source={{ uri: badge.iconUrl }}
-                        style={{ width: 40, height: 40 }}
-                        resizeMode="contain"
-                    />
-                </View>
+        <Text style={styles.badgeName}>{item.name || "배지"}</Text>
 
-                <Text style={styles.badgeName}>{badge.name}</Text>
-
-                {/* 획득 날짜 */}
-                <Text style={styles.badgeDate}>
-                    {new Date(item.acquiredAt).toLocaleDateString()}
-                </Text>
-            </View>
-        );
-    };
+        {/* 획득 날짜 */}
+        <Text style={styles.badgeDate}>
+          {item.acquiredAt
+            ? new Date(item.acquiredAt).toLocaleDateString()
+            : "-"}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.overlay}>
@@ -80,14 +84,14 @@ export default function BadgeCollectionModal({ navigation }: any) {
         ) : (
           <FlatList
             /* [API 연동] 서버에서 받아온 실제 배지 배열 연결 */
-              data={badges}
-              keyExtractor={(item) => item.userBadgeId.toString()}
-              renderItem={renderBadgeItem}
-              numColumns={3}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                  <Text style={styles.emptyText}>아직 획득한 배지가 없습니다.</Text>
+            data={badges}
+            keyExtractor={(item) => item.userBadgeId.toString()}
+            renderItem={renderBadgeItem}
+            numColumns={3}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>아직 획득한 배지가 없습니다.</Text>
             }
           />
         )}
