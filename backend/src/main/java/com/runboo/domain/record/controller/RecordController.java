@@ -67,7 +67,7 @@ public class RecordController {
     @PostMapping
     public ResponseEntity<String> createRecord(@AuthenticationPrincipal CustomUserDetails user, @RequestBody RunRecordRequestDto requestDto) {
 
-        String type = "TOTAL_DISTANCE";
+        String type = "DISTANCE";
         Long userId = user.getUserId();
         recordService.saveRecord(requestDto);
         double value = requestDto.getDistanceM();

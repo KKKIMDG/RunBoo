@@ -51,7 +51,7 @@ public class UserChallengeDto {
                 .targetType(entity.getChallenge().getTargetType())
                 .targetValue(entity.getChallenge().getTargetValue())
                 .badgeId(badge != null ? badge.getBadgeId() : null)
-                .badgeName(badge != null ? badge.getName() : "보상 없음") // [추가] 뱃지 이름 매핑
+                .badgeName(badge != null ? badge.getName() : null) // 배지가 없으면 null 반환
                 .badgeIconUrl(badge != null ? badge.getIconUrl() : null)
                 .build();
     }

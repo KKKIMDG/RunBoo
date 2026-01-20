@@ -25,8 +25,7 @@ public class UserBadge {
         UserBadge userBadge = new UserBadge();
         userBadge.userId = userId;
         userBadge.badgeId = badgeId;
-        // @PrePersist가 있다면 생략 가능하지만, 명시적으로 넣을 경우
-        // userBadge.acquiredAt = LocalDateTime.now();
+        userBadge.acquiredAt = LocalDateTime.now();
         return userBadge;
     }
 }
