@@ -116,6 +116,7 @@ export default function App() {
       } finally {
         // 앱 준비 완료 → 스플래시 종료
         setAppReady(true);
+        await SplashScreen.hideAsync();
       }
     };
 
@@ -194,7 +195,7 @@ export default function App() {
     onLoginSuccess: (token: string) => void;
     onLogout: () => void;
   }) {
-    const { settings, isReady } = useSettings();
+    const { settings } = useSettings();
     const resolvedTheme = useResolvedTheme(settings?.themeMode);
 
     // 🔹 시스템 바(상단 / 하단) 테마 동기화
@@ -205,16 +206,6 @@ export default function App() {
           resolvedTheme === "dark" ? "light" : "dark"
       );
     }, [resolvedTheme]);
-
-    useEffect(() => {
-      if (isReady) {
-        SplashScreen.hideAsync();
-      }
-    }, [isReady]);
-
-    if (!settings) {
-      return null; // 스플래시가 떠 있으므로 빈 화면 안 보임
-    }
 
     return (
         <>

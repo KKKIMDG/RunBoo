@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-  Platform,
+  Platform, ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -46,11 +46,19 @@ const ModeTab: FC<{
   scheme: "light" | "dark";
 }> = ({ mode, activeMode, onPress, icon, scheme }) => {
 
-  const { settings } = useSettings();
+  const { settings, isReady } = useSettings();
   const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
     return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
   }, [colorScheme, settings?.fontSize]);
+
+  if (!isReady) {
+    return (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" />
+        </View>
+    );
+  }
 
   const colors = Colors[scheme];
   return (
