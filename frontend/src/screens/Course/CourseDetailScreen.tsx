@@ -184,10 +184,26 @@ export default function CourseDetailScreen({ route, navigation }: any) {
                         />
 
                         {/* 🔥 경로 그리기 (Polyline) */}
-                        <Polyline coordinates={routeCoordinates} strokeColor="rgba(0,0,0,0.1)" strokeWidth={16} />                                                                                                                                                                                                            │
-                        <Polyline coordinates={routeCoordinates} strokeColor="rgba(74,110,169,0.4)" strokeWidth={10} />                                                                                                                                                                                                       │
-                        <Polyline coordinates={routeCoordinates} strokeColor="rgba(120,160,220,0.5)" strokeWidth={6} />                                                                                                                                                                                                       │
-                        <Polyline coordinates={routeCoordinates} strokeColor="rgba(255,255,255,0.7)" strokeWidth={2} />
+                        <Polyline
+                            coordinates={routeCoordinates}
+                            strokeColor="rgba(0,0,0,0.1)"
+                            strokeWidth={16}
+                        />
+                        <Polyline
+                            coordinates={routeCoordinates}
+                            strokeColor="rgba(74,110,169,0.4)"
+                            strokeWidth={10}
+                        />
+                        <Polyline
+                            coordinates={routeCoordinates}
+                            strokeColor="rgba(120,160,220,0.5)"
+                            strokeWidth={6}
+                        />
+                        <Polyline
+                            coordinates={routeCoordinates}
+                            strokeColor="rgba(255,255,255,0.7)"
+                            strokeWidth={2}
+                        />
                     </MapView>
                 </View>
 
