@@ -48,7 +48,12 @@ public class FriendTierBestRunRecordService {
 
         // 2) 친구들의 TIER 기록 조회 (avgPace 빠른 순)
         List<RunRecord> tierRecords =
-                runRecordRepository.findByUser_IdInAndModeIgnoreCaseOrderByAvgPaceAsc(friendIds, "TIER");
+                runRecordRepository
+                        .findByUser_IdInAndModeIgnoreCaseAndAvgPaceGreaterThanOrderByAvgPaceAsc(
+                                friendIds,
+                                "TIER",
+                                0
+                        );
 
         if (tierRecords == null || tierRecords.isEmpty()) return List.of();
 
