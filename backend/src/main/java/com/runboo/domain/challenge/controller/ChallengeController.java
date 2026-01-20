@@ -29,8 +29,7 @@ public class ChallengeController {
             @RequestBody UserChallengeRequestDto requestDto) {
 
         // DTO에 인증된 유저의 ID를 강제로 주입하여 보안 강화
-        requestDto.setUserId(user.getUserId());
-        challengeService.initializeUserChallenges(requestDto);
+        challengeService.initializeUserChallenges(user.getUserId());
 
         return ResponseEntity.ok("챌린지 30단계가 성공적으로 생성되었습니다.");
     }
