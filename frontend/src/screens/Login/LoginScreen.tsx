@@ -11,6 +11,9 @@ import { getStyles } from "./Login.styles";
 // Signup 스크린에서 만들었던 재사용 컴포넌트를 임포트합니다.
 import { FormField } from "@/components/form/FormField";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { StatusBar } from "expo-status-bar";
+import * as NavigationBar from "expo-navigation-bar";
+import { useEffect } from "react";
 
 interface LoginScreenProps {
   email?: string;
@@ -38,7 +41,26 @@ const LoginScreen: FC<LoginScreenProps> = ({
   const styles = useMemo(() => {
     return getStyles(colorScheme);
   }, [colorScheme]);
+
+  // 🔹 시스템 테마 기준 상단 / 하단 바 동기화
+  useEffect(() => {
+    // Android 하단 네비게이션 바
+    if (Platform.OS === "android") {
+      NavigationBar.setButtonStyleAsync(
+          colorScheme === "dark" ? "light" : "dark"
+      );
+
+      NavigationBar.setBackgroundColorAsync(
+          colorScheme === "dark" ? "#000000" : "#ffffff"
+      );
+    }
+  }, [colorScheme]);
   return (
+      <>
+        <StatusBar
+            style={colorScheme === "dark" ? "light" : "dark"}
+            backgroundColor={colorScheme === "dark" ? "#000000" : "#ffffff"}
+        />
     <KeyboardAvoidingView
       style={{ flex: 2 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -120,6 +142,7 @@ const LoginScreen: FC<LoginScreenProps> = ({
         </View>
       </View>
     </KeyboardAvoidingView>
+      </>
   );
 };
 
