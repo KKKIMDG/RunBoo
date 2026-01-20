@@ -1,6 +1,13 @@
 package com.runboo.domain.notification.template;
 
-public record NotificationMessageDto(
-    String title,
-    String body
-){}
+import lombok.Builder;
+
+import java.util.Map;
+
+@Builder
+public class NotificationMessageDto {
+
+    private String title;
+    private String body;
+    private Map<String, String> data; // ← 이거 추가
+}
