@@ -116,7 +116,6 @@ export default function App() {
       } finally {
         // 앱 준비 완료 → 스플래시 종료
         setAppReady(true);
-        await SplashScreen.hideAsync();
       }
     };
 
@@ -163,10 +162,8 @@ export default function App() {
   //   },
   // };
 
-  function AndroidSafeAreaRoot({ children }: { children: React.ReactNode }) {
+  function AndroidSafeAreaRoot({ children, resolvedTheme }: { children: React.ReactNode; resolvedTheme: "light" | "dark" }) {
     const insets = useSafeAreaInsets();
-    const { settings } = useSettings();
-    const resolvedTheme = useResolvedTheme(settings?.themeMode);
 
     if (Platform.OS !== 'android') {
       return <>{children}</>;
@@ -188,7 +185,6 @@ export default function App() {
     );
   }
 
-
   function AppInner({
                       isLoggedIn,
                       onLoginSuccess,
@@ -198,7 +194,7 @@ export default function App() {
     onLoginSuccess: (token: string) => void;
     onLogout: () => void;
   }) {
-    const { settings } = useSettings();
+    const { settings, isReady } = useSettings();
     const resolvedTheme = useResolvedTheme(settings?.themeMode);
 
     // 🔹 시스템 바(상단 / 하단) 테마 동기화
@@ -210,8 +206,15 @@ export default function App() {
       );
     }, [resolvedTheme]);
 
+    useEffect(() => {
+      if (isReady) {
+        SplashScreen.hideAsync();
+      }
+    }, [isReady]);
 
-
+    if (!settings) {
+      return null; // 스플래시가 떠 있으므로 빈 화면 안 보임
+    }
 
     return (
         <>
@@ -221,7 +224,7 @@ export default function App() {
               backgroundColor={resolvedTheme === "dark" ? "#000000" : "#ffffff"}
           />
 
-          <AndroidSafeAreaRoot>
+          <AndroidSafeAreaRoot resolvedTheme={resolvedTheme}>
             <NavigationContainer
                 theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
             >
