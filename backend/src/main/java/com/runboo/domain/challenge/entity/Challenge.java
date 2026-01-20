@@ -1,6 +1,7 @@
 package com.runboo.domain.challenge.entity;
 
 import com.runboo.domain.badge.entity.Badge;
+import com.runboo.domain.season.entity.Season;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,31 +17,26 @@ import java.time.OffsetDateTime;
 public class Challenge {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "challenge_id")
-    private Long id;
+    private Long challengeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "badge_id")
-    private Badge badge;  // badgeId 대신 Badge 엔티티로 참조
+    @JoinColumn(name = "season_id", nullable = false)
+    private Season season;
 
-    @Column(name = "title")
+    @Column(nullable = false)
+    private Integer level; // CHECK (level >= 1 AND level <= 30)
+
+    @Column(nullable = false)
     private String title;
 
-    @Column(name = "description")
     private String description;
 
-    @Column(name = "difficulty")
-    private String difficulty;
-
-    @Column(name = "target_type")
+    @Column(name = "target_type", nullable = false)
     private String targetType;
 
-    @Column(name = "target_value")
-    private int targetValue;
+    @Column(name = "target_value", nullable = false)
+    private Integer targetValue;
 
-    @Column(name = "started_at")
-    private LocalDateTime startedAt;
-
-    @Column(name = "ended_at")
-    private LocalDateTime endedAt;
+    @Column(name = "badge_id")
+    private Long badgeId; // Badge 엔티티가 있다면 연관관계 매핑 권장
 }
