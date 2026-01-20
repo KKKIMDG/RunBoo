@@ -255,15 +255,23 @@ export default function App() {
               showRetryButton={true}
               showHomeButton={true}
           >
-        <UserSettingProvider>
-          <UserMeProvider>
-            <AppInner
-                isLoggedIn={isLoggedIn}
-                onLoginSuccess={handleLoginSuccess}
-                onLogout={handleLogout}
-            />
-          </UserMeProvider>
-        </UserSettingProvider>
+            {isLoggedIn ? (
+                <UserSettingProvider>
+                  <UserMeProvider>
+                    <AppInner
+                        isLoggedIn={true}
+                        onLoginSuccess={handleLoginSuccess}
+                        onLogout={handleLogout}
+                    />
+                  </UserMeProvider>
+                </UserSettingProvider>
+            ) : (
+                <AppInner
+                    isLoggedIn={false}
+                    onLoginSuccess={handleLoginSuccess}
+                    onLogout={handleLogout}
+                />
+            )}
           </ErrorBoundary>
       </SafeAreaProvider>
   );
