@@ -46,6 +46,7 @@ type UserSettingContextValue = {
     setSettings: React.Dispatch<React.SetStateAction<UserSetting | null>>;
     reload: () => Promise<void>;
     reset: () => void;
+    isReady: boolean;
 };
 
 const UserSettingContext = createContext<UserSettingContextValue | null>(null);
@@ -56,6 +57,7 @@ export function UserSettingProvider({
     children: React.ReactNode;
 }) {
     const [settings, setSettings] = useState<UserSetting | null>(null);
+    const [isReady, setIsReady] = useState(false);
 
     /**
      * =========================
@@ -77,6 +79,18 @@ export function UserSettingProvider({
 
         setSettings(normalized);
     };
+
+    useEffect(() => {
+        const init = async () => {
+            try {
+                await load();
+            } finally {
+                setIsReady(true);
+            }
+        };
+
+        init();
+    }, []);
 
     /**
      * 외부에서 다시 불러오고 싶을 때
@@ -100,6 +114,7 @@ export function UserSettingProvider({
                 setSettings,
                 reload,
                 reset,
+                isReady,
             }}
         >
             {children}
