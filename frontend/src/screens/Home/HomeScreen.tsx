@@ -1,11 +1,12 @@
-import React, {FC, useRef, useState, useEffect, useMemo} from "react"; // ✅ useEffect 추가
+import React, { FC, useRef, useState, useEffect, useMemo } from "react"; // ✅ useEffect 추가
 import {
   View,
   Text,
   TouchableOpacity,
   Image,
   Alert,
-  Platform, ActivityIndicator,
+  Platform,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -30,9 +31,9 @@ import type { GhostProfileDto } from "@/types/ghost";
 
 // ✅ records 조회
 import { fetchMyRecords } from "@/services/record/recordsService";
-import {useSettings} from "@/screens/Settings/useSettings";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
-import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles";
+import { useSettings } from "@/screens/Settings/useSettings";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
+import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
 
 type HomeScreenProps = {
   navigation: { navigate: (screen: string, params?: any) => void };
@@ -45,7 +46,6 @@ const ModeTab: FC<{
   icon: keyof typeof Ionicons.glyphMap;
   scheme: "light" | "dark";
 }> = ({ mode, activeMode, onPress, icon, scheme }) => {
-
   const { settings } = useSettings();
   const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
@@ -92,7 +92,7 @@ function addDaysLocal(date: Date, days: number) {
 
 function computeSelfGhosts(userId: number, records: any[]): any[] {
   const list = (records ?? []).filter(
-    (r) => (r?.distanceM ?? 0) > 0 && (r?.durationSec ?? 0) > 0
+    (r) => (r?.distanceM ?? 0) > 0 && (r?.durationSec ?? 0) > 0,
   );
 
   // 1) 직전 기록 = endedAt 기준 가장 최근 1개
@@ -101,18 +101,18 @@ function computeSelfGhosts(userId: number, records: any[]): any[] {
       ? null
       : [...list].sort(
           (a, b) =>
-            new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime()
+            new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime(),
         )[0];
 
   // 2) ✅ 최고 기록 = TIER 모드 중 avgPace 가장 작은 1개
   const bestOne =
     list.length === 0
       ? null
-      : [...list]
+      : ([...list]
           .filter((r) => r.mode === "TIER" && (r.avgPace ?? 0) > 0)
           .sort(
-            (a, b) => (a.avgPace ?? Infinity) - (b.avgPace ?? Infinity)
-          )[0] ?? null;
+            (a, b) => (a.avgPace ?? Infinity) - (b.avgPace ?? Infinity),
+          )[0] ?? null);
 
   // 3) 이번 주 평균(가중 평균: 총시간/총거리)
   const today = new Date();
@@ -126,11 +126,11 @@ function computeSelfGhosts(userId: number, records: any[]): any[] {
 
   const weekTotalDistanceM = weekRecords.reduce(
     (sum, r) => sum + (r.distanceM ?? 0),
-    0
+    0,
   );
   const weekTotalDurationSec = weekRecords.reduce(
     (sum, r) => sum + (r.durationSec ?? 0),
-    0
+    0,
   );
   const weekAvgPaceSec =
     weekTotalDistanceM > 0
@@ -230,7 +230,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
           pitch: 0,
           heading: 0,
         },
-        { duration: 500 }
+        { duration: 500 },
       );
     } else {
       Alert.alert("알림", "현재 위치를 불러올 수 없습니다.");
@@ -398,7 +398,6 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
               }}
               showsUserLocation={true}
               showsMyLocationButton={false}
-
               customMapStyle={
                 colorScheme === "dark" ? darkMapStyle : lightMapStyle
               }
@@ -475,16 +474,23 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
           {activeMode === "측정" && (
             <>
               <TouchableOpacity
-                style={styles.blackButton}
+                style={[
+                  styles.blackButton,
+                  {
+                    backgroundColor: colors.background,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  },
+                ]}
                 onPress={toggleGoalPicker}
               >
-                <Text style={styles.buttonTextMain}>
+                <Text style={[styles.buttonTextMain, { color: colors.text }]}>
                   {selectedGoal.value === 0 ? "목표 설정" : selectedGoal.label}
                 </Text>
                 <Ionicons
                   name={isGoalPickerOpen ? "chevron-up" : "chevron-down"}
                   size={22}
-                  color={colors.background}
+                  color={colors.text}
                 />
               </TouchableOpacity>
 
@@ -544,14 +550,23 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
           {activeMode === "티어" && (
             <>
               <TouchableOpacity
-                style={styles.blackButton}
+                style={[
+                  styles.blackButton,
+                  {
+                    backgroundColor: colors.background,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                  },
+                ]}
                 onPress={toggleTierPicker}
               >
-                <Text style={styles.buttonTextMain}>{tierDistance}</Text>
+                <Text style={[styles.buttonTextMain, { color: colors.text }]}>
+                  {tierDistance}
+                </Text>
                 <Ionicons
                   name={isTierPickerOpen ? "chevron-up" : "chevron-down"}
                   size={22}
-                  color={colors.background}
+                  color={colors.text}
                 />
               </TouchableOpacity>
 

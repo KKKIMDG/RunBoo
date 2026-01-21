@@ -84,12 +84,6 @@ const TierRunningScreen = () => {
     actions.pushCadenceSample(cadence);
   }, [cadence]);
 
-  const handleStopPress = () => {
-    const msg = "종료하려면 버튼을 길게 눌러주세요.";
-    if (Platform.OS === "android") ToastAndroid.show(msg, ToastAndroid.SHORT);
-    else Alert.alert("알림", msg);
-  };
-
   const chartConfig = {
     backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
     backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
@@ -137,7 +131,7 @@ const TierRunningScreen = () => {
         />
       </View>
     ),
-    [initialLocation, isDarkMode]
+    [initialLocation, isDarkMode],
   );
 
   return (
@@ -155,86 +149,37 @@ const TierRunningScreen = () => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff",
+              borderColor: isDarkMode ? "#333" : "#E5E7EB",
+            },
+          ]}
+        >
           <View
             style={[
-              styles.statusTag,
-              { backgroundColor: "#4A6EA9", borderWidth: 0 },
+              styles.headerPill,
+              {
+                backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff",
+                borderColor: isDarkMode ? "#333" : "#E5E7EB",
+              },
             ]}
           >
-            <View style={[styles.statusDot, { backgroundColor: "#FFF" }]} />
-            <Text style={[styles.statusText, { color: "#FFF" }]}>
+            <View style={[styles.statusDot, { backgroundColor: "#4A6EA9" }]} />
+            <Text
+              style={[
+                styles.headerPillText,
+                { color: isDarkMode ? "#fff" : "#1a1a1a" },
+              ]}
+            >
               {isPaused ? "일시정지" : "티어 측정 중"}
             </Text>
           </View>
         </View>
 
-        <View style={styles.statsContainer}>
-          <StatBox
-            icon={<Ionicons name="time-outline" size={20} color="#8E8E93" />}
-            label="시간"
-            value={formatTime(time)}
-          />
-          <StatBox
-            icon={
-              <MaterialCommunityIcons name="target" size={20} color="#2D3269" />
-            }
-            label="남은 거리"
-            value={(remainingDistance / 1000).toFixed(2)}
-            unit="km"
-            highlight
-          />
-          <StatBox
-            icon={<FontAwesome5 name="running" size={18} color="#1A1A1A" />}
-            label="페이스"
-            value={formatPace(currentPace)}
-          />
-          <StatBox
-            icon={
-              <MaterialCommunityIcons
-                name="shoe-print"
-                size={20}
-                color="#8E8E93"
-              />
-            }
-            label="케이던스"
-            value={String(cadence)}
-            unit="spm"
-          />
-        </View>
-
-        <View style={styles.chartCard}>
-          <View style={styles.chartTitleContainer}>
-            <Ionicons
-              name="analytics-outline"
-              size={20}
-              color={isDarkMode ? "#FFF" : "#333"}
-            />
-            <Text style={styles.chartTitle}>페이스 분석</Text>
-          </View>
-          <LineChart
-            data={{
-              labels: [],
-              datasets: [{ data: paceHistory.length > 0 ? paceHistory : [0] }],
-            }}
-            width={width - 80}
-            height={150}
-            chartConfig={chartConfig}
-            bezier
-            style={styles.chart}
-            withInnerLines={false}
-            withOuterLines={false}
-            withVerticalLabels={false}
-            withHorizontalLabels={false}
-          />
-          <View style={styles.chartLabels}>
-            <Text style={styles.chartLabelText}>시작</Text>
-            <Text style={styles.chartLabelText}>
-              현재: {formatPace(currentPace)}/km
-            </Text>
-          </View>
-        </View>
-
+        {/* 지도 영역 */}
         <View style={styles.mapContainer}>
           {!initialLocation ? (
             <View style={customStyles.loadingBox}>
@@ -251,8 +196,8 @@ const TierRunningScreen = () => {
                 backgroundColor: isFollowing
                   ? "#4A6EA9"
                   : isDarkMode
-                  ? "#333"
-                  : "#FFF",
+                    ? "#333"
+                    : "#FFF",
               },
             ]}
             onPress={handleFocusPress}
@@ -264,21 +209,103 @@ const TierRunningScreen = () => {
             />
           </TouchableOpacity>
         </View>
-      </ScrollView>
 
-      {!isReady && (
-        <View style={styles.controlContainer}>
-          {/* ✅ 여기 핵심: 인자 없이 호출 */}
-          <TouchableOpacity
-            style={styles.stopButton}
-            onPress={handleStopPress}
-            onLongPress={stopTierRunManual}
-            delayLongPress={500}
-          >
-            <View style={customStyles.stopSquare} />
-          </TouchableOpacity>
+        {/* 메인 통계: 시간과 남은 거리 */}
+        <View style={styles.mainStatsArea}>
+          <View style={styles.mainStatItem}>
+            <Ionicons name="time-outline" size={16} color="#8E8E93" />
+            <Text style={styles.mainStatLabel}>시간</Text>
+            <Text style={styles.mainStatTime}>{formatTime(time)}</Text>
+          </View>
+          <View style={styles.mainStatItem}>
+            <MaterialCommunityIcons name="target" size={16} color="#8E8E93" />
+            <Text style={styles.mainStatLabel}>남은 거리</Text>
+            <Text style={styles.mainStatValueLarge}>
+              {(remainingDistance / 1000).toFixed(2)}
+            </Text>
+            <Text style={styles.mainStatUnit}>km</Text>
+          </View>
         </View>
-      )}
+
+        {/* 페이스 변화 차트 */}
+        <View style={styles.chartCard}>
+          <View style={styles.chartTitleContainer}>
+            <MaterialCommunityIcons
+              name="chart-line"
+              size={16}
+              color={isDarkMode ? "#FFF" : "#333"}
+            />
+            <Text style={styles.chartTitle}>페이스 변화</Text>
+          </View>
+          <LineChart
+            data={{
+              labels: [],
+              datasets: [{ data: paceHistory.length > 0 ? paceHistory : [0] }],
+            }}
+            width={width - 48}
+            height={120}
+            chartConfig={chartConfig}
+            bezier
+            style={styles.chart}
+            withInnerLines={false}
+            withOuterLines={false}
+            withVerticalLabels={false}
+            withHorizontalLabels={false}
+          />
+          <View style={styles.chartLabels}>
+            <Text style={styles.chartLabelText}>시작</Text>
+            <Text style={styles.chartLabelText}>
+              현재 페이스: {formatPace(currentPace)}/km
+            </Text>
+          </View>
+        </View>
+
+        {/* 페이스와 케이던스 */}
+        <View style={styles.bottomStats}>
+          <View style={styles.bottomStatItem}>
+            <FontAwesome5 name="running" size={14} color="#8E8E93" />
+            <Text style={styles.bottomStatLabel}>페이스</Text>
+            <Text style={styles.bottomStatValue}>
+              {formatPace(currentPace)}
+            </Text>
+            <Text style={styles.bottomStatUnit}>"/km</Text>
+          </View>
+          <View style={styles.bottomStatItem}>
+            <MaterialCommunityIcons
+              name="shoe-print"
+              size={14}
+              color="#8E8E93"
+            />
+            <Text style={styles.bottomStatLabel}>케이던스</Text>
+            <Text style={styles.bottomStatValue}>{cadence}</Text>
+            <Text style={styles.bottomStatUnit}>spm</Text>
+          </View>
+        </View>
+
+        {/* 하단 컨트롤 버튼 */}
+        {!isReady && (
+          <View style={styles.controlContainer}>
+            <TouchableOpacity
+              style={styles.stopButton}
+              onPress={() => {
+                Alert.alert("티어 측정 종료", "티어 측정을 종료하시겠습니까?", [
+                  {
+                    text: "취소",
+                    style: "cancel",
+                  },
+                  {
+                    text: "종료",
+                    onPress: stopTierRunManual,
+                    style: "destructive",
+                  },
+                ]);
+              }}
+            >
+              <Text style={styles.buttonTextWhite}>측정 종료</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -295,12 +322,6 @@ const customStyles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
     zIndex: 10,
-  },
-  stopSquare: {
-    width: 24,
-    height: 24,
-    backgroundColor: "white",
-    borderRadius: 4,
   },
   loadingBox: {
     ...StyleSheet.absoluteFillObject,
