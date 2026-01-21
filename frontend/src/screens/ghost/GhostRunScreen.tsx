@@ -29,6 +29,7 @@ import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
 import { useMapFocusing } from "@/screens/running/useRunCore";
 import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
 import { getStyles } from "./GhostRunScreen.styles";
+import { trackArray } from "@/utils/performanceLogger";
 
 const { width: W } = Dimensions.get("window");
 
@@ -327,8 +328,10 @@ export default function GhostRunScreen() {
     propsForBackgroundLines: { stroke: "transparent" },
   };
 
-  const chartData = useMemo(
-    () => ({
+  const chartData = useMemo(() => {
+    trackArray("rtPaceData", rtPaceData.length, 1000);
+
+    return {
       labels: rtPaceData.map(() => ""),
       datasets: [
         {
@@ -337,9 +340,8 @@ export default function GhostRunScreen() {
           strokeWidth: 3,
         },
       ],
-    }),
-    [rtPaceData],
-  );
+    };
+  }, [rtPaceData]);
 
   // ============================================================
   // ✅ 고스트 경쟁 UI 계산

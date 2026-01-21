@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { Coordinate, getDistance } from "@/utils/runUtils";
+import { trackArray } from "@/utils/performanceLogger";
 
 interface RecordState {
   isReady: boolean;
@@ -78,10 +79,10 @@ export const useRecordStore = create<RecordState>((set, get) => ({
 
   pauseRun: () =>
     set((state) => {
-      console.log("[일시정지] 러닝 일시정지");
-      console.log("[일시정지] 마지막 좌표:", state.lastRawLocation);
-      console.log("[일시정지] 현재 거리:", state.distance.toFixed(2) + "m");
-      console.log("[일시정지] 경로 포인트 수:", state.routeCoordinates.length);
+      // console.log("[일시정지] 러닝 일시정지");
+      // console.log("[일시정지] 마지막 좌표:", state.lastRawLocation);
+      // console.log("[일시정지] 현재 거리:", state.distance.toFixed(2) + "m");
+      // console.log("[일시정지] 경로 포인트 수:", state.routeCoordinates.length);
 
       return {
         isPaused: true,
@@ -94,13 +95,13 @@ export const useRecordStore = create<RecordState>((set, get) => ({
       if (!state.lastPauseStartTime) return { isPaused: false };
       const pausedDuration = Date.now() - state.lastPauseStartTime;
 
-      console.log("[재개] 러닝 재개");
-      console.log("[재개] 일시정지 전 마지막 좌표:", state.lastRawLocation);
-      console.log(
-        "[재개] 일시정지 시간:",
-        Math.floor(pausedDuration / 1000) + "초"
-      );
-      console.log("[재개] 다음 위치 업데이트 대기 중...");
+      // console.log("[재개] 러닝 재개");
+      // console.log("[재개] 일시정지 전 마지막 좌표:", state.lastRawLocation);
+      // console.log(
+      //   "[재개] 일시정지 시간:",
+      //   Math.floor(pausedDuration / 1000) + "초",
+      // );
+      // console.log("[재개] 다음 위치 업데이트 대기 중...");
 
       return {
         isPaused: false,
@@ -139,8 +140,8 @@ export const useRecordStore = create<RecordState>((set, get) => ({
     // 2. 일시정지 상태라면 위치 표시만 하고 종료
     if (!state.isRunning || state.isPaused) {
       if (state.isPaused) {
-        console.log("[일시정지 중] 위치만 업데이트:", { latitude, longitude });
-        console.log("[일시정지 중] 마지막 측정 좌표:", state.lastRawLocation);
+        // console.log("[일시정지 중] 위치만 업데이트:", { latitude, longitude });
+        // console.log("[일시정지 중] 마지막 측정 좌표:", state.lastRawLocation);
       }
       set({ currentLocation: { latitude, longitude } });
       return;
@@ -160,26 +161,26 @@ export const useRecordStore = create<RecordState>((set, get) => ({
       // 순간이동 라인을 위해 좌표 추가
       newCoordinates.push(currentCoord);
 
-      console.log("=== [재개 후 첫 위치] ===");
-      console.log("[재개] 일시정지 전 마지막:", state.lastRawLocation);
-      console.log("[재개] 재개 후 첫 위치:", currentCoord);
-      if (state.lastRawLocation) {
-        const jumpDist = getDistance(
-          state.lastRawLocation.latitude,
-          state.lastRawLocation.longitude,
-          latitude,
-          longitude
-        );
-        console.log(
-          "[재개] 순간이동 거리:",
-          jumpDist.toFixed(2) + "m (측정 안 함)"
-        );
-      }
-      console.log("[재개] 폴리라인 추가: 순간이동 라인 생성");
-      console.log(
-        "[재개] 다음 위치부터 거리 측정 시작 (완화된 범위: 0.5m~20m)"
-      );
-      console.log("========================");
+      // console.log("=== [재개 후 첫 위치] ===");
+      // console.log("[재개] 일시정지 전 마지막:", state.lastRawLocation);
+      // console.log("[재개] 재개 후 첫 위치:", currentCoord);
+      // if (state.lastRawLocation) {
+      //   const jumpDist = getDistance(
+      //     state.lastRawLocation.latitude,
+      //     state.lastRawLocation.longitude,
+      //     latitude,
+      //     longitude,
+      //   );
+      //   console.log(
+      //     "[재개] 순간이동 거리:",
+      //     jumpDist.toFixed(2) + "m (측정 안 함)",
+      //   );
+      // }
+      // console.log("[재개] 폴리라인 추가: 순간이동 라인 생성");
+      // console.log(
+      //   "[재개] 다음 위치부터 거리 측정 시작 (완화된 범위: 0.5m~20m)",
+      // );
+      // console.log("========================");
 
       set({
         // 거리(distance)는 더하지 않음! (순간이동 했으므로)
@@ -199,7 +200,7 @@ export const useRecordStore = create<RecordState>((set, get) => ({
         state.lastRawLocation.latitude,
         state.lastRawLocation.longitude,
         latitude,
-        longitude
+        longitude,
       );
 
       // 재개 후 두 번째 위치는 거리 체크 완화 (바로 측정 시작)
@@ -231,8 +232,11 @@ export const useRecordStore = create<RecordState>((set, get) => ({
         newCoordinates.push(smoothedCoords);
         newDisplayedLocation = smoothedCoords;
 
-        console.log(`🏃 [Runner] 이동 거리: ${rawDist.toFixed(2)}m`);
-        console.log(`📍 누적 거리: ${newDistance.toFixed(2)}m`);
+        // console.log(`🏃 [Runner] 이동 거리: ${rawDist.toFixed(2)}m`);
+        // console.log(`📍 누적 거리: ${newDistance.toFixed(2)}m`);
+
+        // 배열 크기 추적 (100개마다)
+        trackArray("routeCoordinates", newCoordinates.length, 5000);
 
         set({
           distance: newDistance,
@@ -244,11 +248,11 @@ export const useRecordStore = create<RecordState>((set, get) => ({
           secondPointAfterResume: false, // 정상 측정 시작했으므로 플래그 끄기
         });
       } else {
-        console.log(
-          `⚠️  [Runner] 무시됨: ${rawDist.toFixed(2)}m (${
-            rawDist < minDist ? "너무 가까움" : "너무 멂"
-          }, 기준: ${minDist}~${maxDist}m)`
-        );
+        // console.log(
+        //   `⚠️  [Runner] 무시됨: ${rawDist.toFixed(2)}m (${
+        //     rawDist < minDist ? "너무 가까움" : "너무 멂"
+        //   }, 기준: ${minDist}~${maxDist}m)`,
+        // );
       }
     } else {
       // 진짜 처음 시작
