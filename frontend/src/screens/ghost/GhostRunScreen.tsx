@@ -448,7 +448,10 @@ export default function GhostRunScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView
+      style={[styles.safe, { backgroundColor: colors.background }]}
+      edges={["top", "left", "right", "bottom"]}
+    >
       {isReady && (
         <View
           pointerEvents="auto"
@@ -540,49 +543,49 @@ export default function GhostRunScreen() {
         </View>
       </View>
 
-      <View style={styles.mapContainer}>
-        {!initialLocation ? (
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              {
-                justifyContent: "center",
-                alignItems: "center",
-                backgroundColor: isDarkMode ? "#1e1e1e" : "#f0f0f0",
-              },
-            ]}
-          >
-            <ActivityIndicator size="large" color="#4A6EA9" />
-          </View>
-        ) : (
-          renderedMap
-        )}
-
-        <TouchableOpacity
-          style={[
-            styles.locationButton,
-            {
-              backgroundColor: isFollowing
-                ? "#4A6EA9"
-                : isDarkMode
-                  ? "#333"
-                  : "#FFF",
-            },
-          ]}
-          onPress={handleFocusPress}
-        >
-          <MaterialCommunityIcons
-            name="crosshairs-gps"
-            size={24}
-            color={isFollowing ? "#FFF" : isDarkMode ? "#AAA" : "#333"}
-          />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        <View style={styles.mapContainer}>
+          {!initialLocation ? (
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                {
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: isDarkMode ? "#1e1e1e" : "#f0f0f0",
+                },
+              ]}
+            >
+              <ActivityIndicator size="large" color="#4A6EA9" />
+            </View>
+          ) : (
+            renderedMap
+          )}
+
+          <TouchableOpacity
+            style={[
+              styles.locationButton,
+              {
+                backgroundColor: isFollowing
+                  ? "#4A6EA9"
+                  : isDarkMode
+                    ? "#333"
+                    : "#FFF",
+              },
+            ]}
+            onPress={handleFocusPress}
+          >
+            <MaterialCommunityIcons
+              name="crosshairs-gps"
+              size={24}
+              color={isFollowing ? "#FFF" : isDarkMode ? "#AAA" : "#333"}
+            />
+          </TouchableOpacity>
+        </View>
+
         <View
           style={[
             styles.card,
@@ -785,60 +788,62 @@ export default function GhostRunScreen() {
             </Text>
           </View>
         </View>
+
+        {/* 하단 컨트롤 버튼 */}
+        {!isReady && (
+          <View
+            style={[styles.controls, { backgroundColor: colors.background }]}
+          >
+            <TouchableOpacity
+              style={[
+                styles.pauseBtn,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+              onPress={() => {
+                if (isFinished) return;
+                if (isPaused) resumeRun();
+                else pauseRun();
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.buttonText, { color: colors.text }]}>
+                {isPaused ? "재개" : "일시정지"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.stopBtn,
+                {
+                  backgroundColor: colors.danger,
+                  opacity: isFinished ? 0.6 : 1,
+                },
+              ]}
+              onPress={() => {
+                Alert.alert(
+                  "고스트 러닝 종료",
+                  "고스트 러닝을 종료하시겠습니까?",
+                  [
+                    {
+                      text: "취소",
+                      style: "cancel",
+                    },
+                    {
+                      text: "종료",
+                      onPress: handleStopLongPress,
+                      style: "destructive",
+                    },
+                  ],
+                );
+              }}
+              activeOpacity={0.85}
+              disabled={isFinished}
+            >
+              <Text style={styles.buttonTextWhite}>러닝종료</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
-
-      {/* 하단 컨트롤 버튼 */}
-      {!isReady && (
-        <View style={[styles.controls, { backgroundColor: colors.background }]}>
-          <TouchableOpacity
-            style={[
-              styles.pauseBtn,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-            onPress={() => {
-              if (isFinished) return;
-              if (isPaused) resumeRun();
-              else pauseRun();
-            }}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.buttonText, { color: colors.text }]}>
-              {isPaused ? "재개" : "일시정지"}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.stopBtn,
-              {
-                backgroundColor: colors.danger,
-                opacity: isFinished ? 0.6 : 1,
-              },
-            ]}
-            onPress={() => {
-              Alert.alert(
-                "고스트 러닝 종료",
-                "고스트 러닝을 종료하시겠습니까?",
-                [
-                  {
-                    text: "취소",
-                    style: "cancel",
-                  },
-                  {
-                    text: "종료",
-                    onPress: handleStopLongPress,
-                    style: "destructive",
-                  },
-                ],
-              );
-            }}
-            activeOpacity={0.85}
-            disabled={isFinished}
-          >
-            <Text style={styles.buttonTextWhite}>러닝종료</Text>
-          </TouchableOpacity>
-        </View>
-      )}
     </SafeAreaView>
   );
 }

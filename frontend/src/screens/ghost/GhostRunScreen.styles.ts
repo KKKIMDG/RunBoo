@@ -33,7 +33,7 @@ export const getStyles = (
     contentContainer: { flex: 1 },
     scrollContent: {
       paddingHorizontal: 16,
-      paddingBottom: 0,
+      paddingBottom: 20,
     },
 
     header: {
@@ -130,12 +130,12 @@ export const getStyles = (
     small: { fontSize: scaleFont(11, fontSize), fontWeight: "700" },
 
     mapContainer: {
-      flex: 1,
+      height: 400,
       borderRadius: 0,
       overflow: "visible",
       marginBottom: 0,
-      marginHorizontal: 0,
-      marginTop: 0,
+      marginHorizontal: -16,
+      marginTop: -16,
       backgroundColor: Colors[scheme].background,
       position: "relative",
     },
@@ -158,9 +158,10 @@ export const getStyles = (
       justifyContent: "center",
       alignItems: "center",
       gap: 12,
-      paddingHorizontal: 24,
-      paddingTop: 12,
-      paddingBottom: 16,
+      paddingHorizontal: 0,
+      paddingTop: 0,
+      paddingBottom: 0,
+      marginBottom: 20,
     },
 
     pauseBtn: {
