@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from "react";
-import {Alert, Platform, View} from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Platform, View } from "react-native";
 import {
   NavigationContainer,
   DefaultTheme,
@@ -18,17 +18,20 @@ import { AuthService } from "@/services/auth/authService";
 import { authEventBus } from "@/services/auth/authEvents";
 import { UserMeProvider } from "@/contexts/UserMeContext";
 import { UserSettingProvider } from "@/contexts/UserSettingContext";
-import {
-  disablePushDevice,
-  registerPushDevice,
-} from "@/services/notification/notificationService";
-import { getFcmToken } from "@/services/notification/fcmToken";
+// import {
+//   disablePushDevice,
+//   registerPushDevice,
+// } from "@/services/notification/notificationService";
+// import { getFcmToken } from "@/services/notification/fcmToken";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useSettings } from "@/screens/Settings/useSettings";
-import {SafeAreaProvider, useSafeAreaInsets} from "react-native-safe-area-context";
-import { StatusBar } from 'expo-status-bar';
-import * as NavigationBar from 'expo-navigation-bar';
-import messaging from "@react-native-firebase/messaging";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import * as NavigationBar from "expo-navigation-bar";
+// import messaging from "@react-native-firebase/messaging";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -57,25 +60,41 @@ export default function App() {
    * - FCM 디바이스 비활성화 포함
    */
   const handleLogout = async () => {
-    try {
-      const accessToken = await AsyncStorage.getItem("accessToken");
-      const fcmToken = await AsyncStorage.getItem("fcmToken");
-
-      if (accessToken && fcmToken) {
-        await disablePushDevice(fcmToken);
-      }
-    } catch (e) {
-      console.warn("FCM disable failed", e);
-    }
+    // try {
+    //   const accessToken = await AsyncStorage.getItem("accessToken");
+    //   const fcmToken = await AsyncStorage.getItem("fcmToken");
+    //
+    //   if (accessToken && fcmToken) {
+    //     await disablePushDevice(fcmToken);
+    //   }
+    // } catch (e) {
+    //   console.warn("FCM disable failed", e);
+    // }
 
     await AuthService.logout();
     setIsLoggedIn(false);
   };
-  // @ts-ignore
-  useEffect(() => {
-    // 포그라운드 상태에서 메시지를 받았을 때 호출됨
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      console.log('포그라운드 메시지 수신:', remoteMessage);
+  // // @ts-ignore
+  // useEffect(() => {
+  //   // 포그라운드 상태에서 메시지를 받았을 때 호출됨
+  //   const unsubscribe = messaging().onMessage(async remoteMessage => {
+  //     console.log('포그라운드 메시지 수신:', remoteMessage);
+  //
+  //     // 여기서 원하는 UI를 띄웁니다.
+  //     // 예: 시스템 알럿 사용 (가장 간단한 방법)
+  //     // @ts-ignore
+  //     if ("title" in remoteMessage.notification) {
+  //       if (remoteMessage.notification.title != null) {
+  //         Alert.alert(
+  //             remoteMessage.notification.title,
+  //             remoteMessage.notification.body
+  //         );
+  //       }
+  //     }
+  //   });
+  //
+  //   return unsubscribe;
+  // }, []);
 
       // 여기서 원하는 UI를 띄웁니다.
       // 예: 시스템 알럿 사용 (가장 간단한 방법)
@@ -117,20 +136,20 @@ export default function App() {
           setAccessToken(token);
           setIsLoggedIn(true);
 
-          // FCM 등록 (Android만)
-          if (Platform.OS !== "ios") {
-            try {
-              const fcmToken = await getFcmToken();
-              await AsyncStorage.setItem("fcmToken", fcmToken);
-
-              await registerPushDevice({
-                token: fcmToken,
-                platform: "ANDROID",
-              });
-            } catch (e) {
-              console.warn("FCM register failed", e);
-            }
-          }
+          // // FCM 등록 (Android만)
+          // if (Platform.OS !== "ios") {
+          //   try {
+          //     const fcmToken = await getFcmToken();
+          //     await AsyncStorage.setItem("fcmToken", fcmToken);
+          //
+          //     await registerPushDevice({
+          //       token: fcmToken,
+          //       platform: "ANDROID",
+          //     });
+          //   } catch (e) {
+          //     console.warn("FCM register failed", e);
+          //   }
+          // }
         }
       } catch (e) {
         console.warn("App bootstrap failed", e);
@@ -185,52 +204,55 @@ export default function App() {
   //   },
   // };
 
-  function AndroidSafeAreaRoot({ children, resolvedTheme }: { children: React.ReactNode; resolvedTheme: "light" | "dark" }) {
+  function AndroidSafeAreaRoot({
+    children,
+    resolvedTheme,
+  }: {
+    children: React.ReactNode;
+    resolvedTheme: "light" | "dark";
+  }) {
     const insets = useSafeAreaInsets();
 
-    if (Platform.OS !== 'android') {
+    if (Platform.OS !== "android") {
       return <>{children}</>;
     }
 
     return (
-        <View
-            style={{
-              flex: 1,
-              backgroundColor:
-                  resolvedTheme === "dark" ? "#000000" : "#ffffff",
-              paddingBottom: Platform.OS === 'android'
-                  ? insets.bottom
-                  : 0,
-            }}
-        >
-          {children}
-        </View>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: resolvedTheme === "dark" ? "#000000" : "#ffffff",
+          paddingBottom: Platform.OS === "android" ? insets.bottom : 0,
+        }}
+      >
+        {children}
+      </View>
     );
   }
 
   function AppInner({
-                      isLoggedIn,
-                      onLoginSuccess,
-                      onLogout,
-                    }: {
+    isLoggedIn,
+    onLoginSuccess,
+    onLogout,
+  }: {
     isLoggedIn: boolean;
     onLoginSuccess: (token: string) => void;
     onLogout: () => void;
   }) {
     if (!isLoggedIn) {
       return (
-          <>
-            <StatusBar style="dark" backgroundColor="#ffffff" />
-            <NavigationContainer theme={DefaultTheme}>
-              <PermissionGuard>
-                <RootNavigator
-                    isLoggedIn={false}
-                    onLoginSuccess={onLoginSuccess}
-                    onLogout={onLogout}
-                />
-              </PermissionGuard>
-            </NavigationContainer>
-          </>
+        <>
+          <StatusBar style="dark" backgroundColor="#ffffff" />
+          <NavigationContainer theme={DefaultTheme}>
+            <PermissionGuard>
+              <RootNavigator
+                isLoggedIn={false}
+                onLoginSuccess={onLoginSuccess}
+                onLogout={onLogout}
+              />
+            </PermissionGuard>
+          </NavigationContainer>
+        </>
       );
     }
 
@@ -242,60 +264,59 @@ export default function App() {
       if (Platform.OS !== "android") return;
 
       NavigationBar.setButtonStyleAsync(
-          resolvedTheme === "dark" ? "light" : "dark"
+        resolvedTheme === "dark" ? "light" : "dark",
       );
     }, [resolvedTheme]);
 
     return (
-        <>
-          {/* 🔹 상단 StatusBar */}
-          <StatusBar
-              style={resolvedTheme === "dark" ? "light" : "dark"}
-              backgroundColor={resolvedTheme === "dark" ? "#000000" : "#ffffff"}
-          />
+      <>
+        {/* 🔹 상단 StatusBar */}
+        <StatusBar
+          style={resolvedTheme === "dark" ? "light" : "dark"}
+          backgroundColor={resolvedTheme === "dark" ? "#000000" : "#ffffff"}
+        />
 
-          <AndroidSafeAreaRoot resolvedTheme={resolvedTheme}>
-            <NavigationContainer
-                theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
-            >
-              <PermissionGuard>
-                <RootNavigator
-                    isLoggedIn={isLoggedIn}
-                    onLoginSuccess={onLoginSuccess}
-                    onLogout={onLogout}
-                />
-              </PermissionGuard>
-            </NavigationContainer>
-          </AndroidSafeAreaRoot>
-        </>
+        <AndroidSafeAreaRoot resolvedTheme={resolvedTheme}>
+          <NavigationContainer
+            theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <PermissionGuard>
+              <RootNavigator
+                isLoggedIn={isLoggedIn}
+                onLoginSuccess={onLoginSuccess}
+                onLogout={onLogout}
+              />
+            </PermissionGuard>
+          </NavigationContainer>
+        </AndroidSafeAreaRoot>
+      </>
     );
   }
   return (
-      <SafeAreaProvider>
-          <ErrorBoundary
-              fallbackMessage="앱에 문제가 발생했어요"
-              showRetryButton={true}
-              showHomeButton={true}
-          >
-            {isLoggedIn ? (
-                <UserSettingProvider>
-                  <UserMeProvider>
-                    <AppInner
-                        isLoggedIn={true}
-                        onLoginSuccess={handleLoginSuccess}
-                        onLogout={handleLogout}
-                    />
-                  </UserMeProvider>
-                </UserSettingProvider>
-            ) : (
-                <AppInner
-                    isLoggedIn={false}
-                    onLoginSuccess={handleLoginSuccess}
-                    onLogout={handleLogout}
-                />
-            )}
-          </ErrorBoundary>
-      </SafeAreaProvider>
+    <SafeAreaProvider>
+      <ErrorBoundary
+        fallbackMessage="앱에 문제가 발생했어요"
+        showRetryButton={true}
+        showHomeButton={true}
+      >
+        {isLoggedIn ? (
+          <UserSettingProvider>
+            <UserMeProvider>
+              <AppInner
+                isLoggedIn={true}
+                onLoginSuccess={handleLoginSuccess}
+                onLogout={handleLogout}
+              />
+            </UserMeProvider>
+          </UserSettingProvider>
+        ) : (
+          <AppInner
+            isLoggedIn={false}
+            onLoginSuccess={handleLoginSuccess}
+            onLogout={handleLogout}
+          />
+        )}
+      </ErrorBoundary>
+    </SafeAreaProvider>
   );
-
 }

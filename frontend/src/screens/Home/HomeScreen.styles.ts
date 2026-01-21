@@ -19,7 +19,7 @@ export const getStyles = (
       flex: 1,
       paddingHorizontal: 20,
       paddingTop: 10,
-      paddingBottom: Platform.select({ ios: 75, default: 85 }),
+      paddingBottom: Platform.select({ ios: 55, default: 50 }),
     },
     tabContainer: {
       flexDirection: "row",
