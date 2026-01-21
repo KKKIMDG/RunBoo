@@ -127,18 +127,19 @@ const RunResultScreen = () => {
   const isDarkMode = resolvedTheme === "dark";
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
+    <SafeAreaView
+      style={styles.container}
+      edges={
+        Platform.OS === "android"
+          ? ["top", "left", "right", "bottom"]
+          : ["top", "left", "right"]
+      }
+    >
+      <View style={styles.contentContainer}>
         <ViewShot
           ref={storyRef}
           options={{ format: "png", quality: 1.0 }}
-          style={{
-            width: "100%",
-            backgroundColor: styles.container.backgroundColor,
-          }}
+          style={styles.viewShotContainer}
         >
           {/* --- 로고 이미지 --- */}
           <View style={styles.logoContainer}>
@@ -241,8 +242,8 @@ const RunResultScreen = () => {
                     <View style={styles.overlayValueRow}>
                       <Text
                         style={[
-                          styles.overlayValue,
-                          { color: isSystemDark ? "#FFFFFF" : "#1A1A1A" },
+                          styles.overlayDistance,
+                          { color: isSystemDark ? "#5FA8FF" : "#5E6DAF" },
                         ]}
                       >
                         {(distanceM / 1000).toFixed(2)}
@@ -360,15 +361,23 @@ const RunResultScreen = () => {
         {/* --- 버튼 영역 --- */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-            <Ionicons name="share-social-outline" size={24} color="#FFF" />
+            <Ionicons
+              name="share-social-outline"
+              size={24}
+              color={styles.shareButtonText.color}
+            />
             <Text style={styles.shareButtonText}>기록 공유하기</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.homeButton} onPress={handleGoHome}>
-            <Ionicons name="home-outline" size={24} color={styles.icon.color} />
+            <Ionicons
+              name="home-outline"
+              size={24}
+              color={styles.homeButtonText.color}
+            />
             <Text style={styles.homeButtonText}>홈으로 돌아가기</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };

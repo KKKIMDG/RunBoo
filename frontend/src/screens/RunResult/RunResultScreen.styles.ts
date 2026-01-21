@@ -6,12 +6,18 @@ const { width } = Dimensions.get("window");
 
 export const getStyles = (
   scheme: "light" | "dark",
-  fontSize: FontSizeSetting
+  fontSize: FontSizeSetting,
 ) =>
   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: Colors[scheme].background,
+    },
+    contentContainer: {
+      flex: 1,
+    },
+    viewShotContainer: {
+      flex: 1,
     },
     scrollContainer: {
       padding: 0,
@@ -42,8 +48,7 @@ export const getStyles = (
 
     // --- 지도 영역 및 오버레이 ---
     mapContainer: {
-      width: width,
-      height: width * 1.38,
+      flex: 1,
       backgroundColor: "#EBEBEB",
       borderRadius: 0,
       overflow: "hidden",
@@ -91,6 +96,12 @@ export const getStyles = (
     overlayValueRow: {
       flexDirection: "row",
       alignItems: "baseline",
+    },
+    overlayDistance: {
+      marginTop: 5,
+      fontSize: 35,
+      fontFamily: Fonts?.gmarketBold,
+      color: Colors[scheme].text,
     },
     overlayValue: {
       marginTop: 5,
@@ -156,35 +167,38 @@ export const getStyles = (
     buttonContainer: {
       width: "100%",
       paddingHorizontal: 20,
-      marginBottom: 40,
+      paddingTop: 12,
+      paddingBottom: 20,
+      backgroundColor: Colors[scheme].background,
     },
     shareButton: {
-      backgroundColor: "#3B4D9A", // 이미지의 남색
+      backgroundColor: Colors[scheme].background,
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
       paddingVertical: 18,
       borderRadius: 15,
       marginBottom: 12,
+      borderWidth: 1,
+      borderColor: Colors[scheme].border,
     },
     shareButtonText: {
-      color: "#FFFFFF",
+      color: Colors[scheme].text,
       fontSize: 17,
       fontWeight: "bold",
       marginLeft: 10,
     },
     homeButton: {
-      backgroundColor: "transparent",
+      backgroundColor: Colors[scheme].primary,
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
       paddingVertical: 18,
       borderRadius: 15,
-      borderWidth: 1,
-      borderColor: "#E0E0E0",
+      borderWidth: 0,
     },
     homeButtonText: {
-      color: Colors[scheme].text,
+      color: Colors[scheme].background,
       fontSize: 17,
       fontWeight: "bold",
       marginLeft: 10,
