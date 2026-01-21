@@ -499,7 +499,7 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
                   style={{
                     backgroundColor: colors.card,
                     borderRadius: 20,
-                    marginBottom: 0,
+                    marginBottom: 10,
                     borderWidth: 1,
                     borderColor,
                   }}
