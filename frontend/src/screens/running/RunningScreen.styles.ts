@@ -30,6 +30,13 @@ export const getStyles = (
       paddingTop: 0,
       paddingBottom: 0,
     },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 0,
+    },
+    contentContainer: {
+      flex: 1,
+    },
 
     // --- 카운트다운 오버레이 ---
     countdownOverlay: {
@@ -54,10 +61,52 @@ export const getStyles = (
 
     // --- 상단 헤더 ---
     header: {
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      borderBottomWidth: 2,
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 5,
+      justifyContent: "space-between",
+    },
+    headerPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 13,
+      borderWidth: 1,
+      ...Platform.select({
+        ios: {
+          shadowColor,
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+        },
+        android: { elevation: 4 },
+      }),
+    },
+    headerPillText: {
+      fontWeight: "800",
+      fontSize: scaleFont(13, fontSize),
+      marginLeft: 6,
+      marginRight: 6,
+    },
+    headerMiniPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 10,
+      paddingVertical: 7,
+      borderRadius: 999,
+      borderWidth: 1,
+      ...Platform.select({
+        ios: {
+          shadowColor,
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+        },
+        android: { elevation: 4 },
+      }),
     },
     statusTag: {
       flexDirection: "row",

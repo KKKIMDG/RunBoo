@@ -149,15 +149,31 @@ const TierRunningScreen = () => {
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff",
+              borderColor: isDarkMode ? "#333" : "#E5E7EB",
+            },
+          ]}
+        >
           <View
             style={[
-              styles.statusTag,
-              { backgroundColor: "#4A6EA9", borderWidth: 0 },
+              styles.headerPill,
+              {
+                backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff",
+                borderColor: isDarkMode ? "#333" : "#E5E7EB",
+              },
             ]}
           >
-            <View style={[styles.statusDot, { backgroundColor: "#FFF" }]} />
-            <Text style={[styles.statusText, { color: "#FFF" }]}>
+            <View style={[styles.statusDot, { backgroundColor: "#4A6EA9" }]} />
+            <Text
+              style={[
+                styles.headerPillText,
+                { color: isDarkMode ? "#fff" : "#1a1a1a" },
+              ]}
+            >
               {isPaused ? "일시정지" : "티어 측정 중"}
             </Text>
           </View>

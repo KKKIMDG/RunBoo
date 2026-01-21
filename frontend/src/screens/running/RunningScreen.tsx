@@ -248,64 +248,105 @@ const RunningScreen = () => {
         </View>
       )}
 
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff",
+            borderColor: isDarkMode ? "#333" : "#E5E7EB",
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.headerPill,
+            {
+              backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff",
+              borderColor: isDarkMode ? "#333" : "#E5E7EB",
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.statusDot,
+              { backgroundColor: isPaused ? "#FFB347" : "#4CAF50" },
+            ]}
+          />
+          <Text
+            style={[
+              styles.headerPillText,
+              { color: isDarkMode ? "#fff" : "#1a1a1a" },
+            ]}
+          >
+            {isPaused ? "일시정지" : "러닝 중"}
+          </Text>
+        </View>
+
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <TouchableOpacity
+            onPress={() => {
+              console.log(
+                "[RunningScreen] 성별 토글 누름:",
+                !isMale ? "남성" : "여성",
+              );
+              setIsMale(!isMale);
+            }}
+            style={[
+              styles.headerMiniPill,
+              {
+                backgroundColor: isDarkMode ? "#1a1a1a" : "#ffffff",
+                borderColor: "#4A6EA9",
+              },
+            ]}
+            activeOpacity={0.85}
+          >
+            <Text style={{ fontSize: 12, fontWeight: "800", color: "#4A6EA9" }}>
+              {isMale ? "남성" : "여성"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={toggleVoice}
+            style={[
+              styles.headerMiniPill,
+              {
+                backgroundColor: isVoiceEnabled
+                  ? "#4A6EA9"
+                  : isDarkMode
+                    ? "#1a1a1a"
+                    : "#ffffff",
+                borderColor: isVoiceEnabled
+                  ? "#4A6EA9"
+                  : isDarkMode
+                    ? "#333"
+                    : "#E5E7EB",
+              },
+            ]}
+            activeOpacity={0.85}
+          >
+            <Ionicons
+              name={isVoiceEnabled ? "volume-high" : "volume-mute"}
+              size={14}
+              color={isVoiceEnabled ? "#FFF" : isDarkMode ? "#AAA" : "#666"}
+            />
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "800",
+                marginLeft: 5,
+                color: isVoiceEnabled ? "#FFF" : isDarkMode ? "#AAA" : "#666",
+              }}
+            >
+              {isVoiceEnabled ? "음성 ON" : "음성 OFF"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <View style={styles.statusTag}>
-            <View
-              style={[
-                styles.statusDot,
-                { backgroundColor: isPaused ? "#FFB347" : "#4CAF50" },
-              ]}
-            />
-            <Text style={styles.statusText}>
-              {isPaused ? "일시정지" : "러닝 중"}
-            </Text>
-          </View>
-
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <TouchableOpacity
-              onPress={() => {
-                console.log(
-                  "[RunningScreen] 성별 토글 누름:",
-                  !isMale ? "남성" : "여성",
-                );
-                setIsMale(!isMale);
-              }}
-              style={customStyles.genderToggle}
-            >
-              <Text style={{ fontSize: 12, color: "#4A6EA9" }}>
-                {isMale ? "남성" : "여성"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={toggleVoice}
-              style={[
-                customStyles.genderToggle,
-                { backgroundColor: isVoiceEnabled ? "#4A6EA9" : "#E0E0E0" },
-              ]}
-            >
-              <Ionicons
-                name={isVoiceEnabled ? "volume-high" : "volume-mute"}
-                size={14}
-                color={isVoiceEnabled ? "#FFF" : "#666"}
-              />
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: isVoiceEnabled ? "#FFF" : "#666",
-                  marginLeft: 4,
-                }}
-              >
-                {isVoiceEnabled ? "음성 ON" : "음성 OFF"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* 지도 영역 */}
         <View style={styles.mapContainer}>
           {/* 메인 통계: 시간과 거리 (지도 위 오버레이) */}
