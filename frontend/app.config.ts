@@ -9,6 +9,7 @@ export default (): ExpoConfig => ({
   orientation: "portrait",
   icon: "./src/assets/icon.png",
   userInterfaceStyle: "automatic",
+  // 🔹 Unistyles 3.0을 위해 다시 true로 설정합니다.
   newArchEnabled: true,
 
   splash: {
@@ -20,9 +21,8 @@ export default (): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.runboo.frontend",
-
     infoPlist: {
-      UIBackgroundModes: ["location", "fetch"],
+      UIBackgroundModes: ["location", "fetch", "remote-notification"],
       NSLocationAlwaysAndWhenInUseUsageDescription:
           "러닝 기록을 정확하게 측정하기 위해 앱이 백그라운드에서도 위치 정보를 사용합니다.",
       NSLocationWhenInUseUsageDescription:
@@ -33,7 +33,6 @@ export default (): ExpoConfig => ({
         NSAllowsArbitraryLoads: true,
       },
     },
-
     config: {
       googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
     },
@@ -53,12 +52,14 @@ export default (): ExpoConfig => ({
       "ACCESS_BACKGROUND_LOCATION",
       "FOREGROUND_SERVICE",
       "ACTIVITY_RECOGNITION",
+      "POST_NOTIFICATIONS",
     ],
     config: {
       googleMaps: {
         apiKey: process.env.GOOGLE_MAPS_API_KEY,
       },
     },
+    googleServicesFile: "./frontSecrets/google-services.json",
   },
 
   web: {
@@ -70,8 +71,7 @@ export default (): ExpoConfig => ({
     [
       "expo-location",
       {
-        locationWhenInUsePermission:
-            "내 주변 러닝 코스를 찾기 위해 위치 정보 권한이 필요합니다.",
+        locationWhenInUsePermission: "내 주변 러닝 코스를 찾기 위해 위치 정보 권한이 필요합니다.",
         isAndroidBackgroundLocationEnabled: true,
         isAndroidForegroundServiceEnabled: true,
       },
@@ -79,13 +79,25 @@ export default (): ExpoConfig => ({
     [
       "expo-sensors",
       {
-        motionPermission:
-            "러닝 중 케이던스 측정을 위해 만보기 데이터 접근 권한이 필요합니다.",
+        motionPermission: "러닝 중 케이던스 측정을 위해 만보기 데이터 접근 권한이 필요합니다.",
       },
     ],
-
-    // ❌ expo-build-properties에서 frameworks 제거
-    // ❌ Firebase 관련 플러그인 없음
+    "@react-native-firebase/app",
+    "@react-native-firebase/messaging",
+    [
+      "expo-build-properties",
+      {
+        android: {
+          // 🔹 카카오 SDK 서버 주소 (필수)
+          extraMavenRepos: [
+            "https://devrepo.kakao.com/nexus/content/groups/public/"
+          ],
+        },
+        ios: {
+          useFrameworks: "static",
+        },
+      },
+    ],
   ],
 
   extra: {
