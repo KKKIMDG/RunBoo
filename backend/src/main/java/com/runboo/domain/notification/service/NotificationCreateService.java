@@ -4,6 +4,7 @@ import com.runboo.domain.notification.entity.Notification;
 import com.runboo.domain.notification.enums.NotificationType;
 import com.runboo.domain.notification.repository.NotificationRepository;
 import com.runboo.domain.notification.repository.UserNotificationPreferenceRepository;
+import com.runboo.domain.notification.repository.UserPushDeviceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,8 @@ public class NotificationCreateService {
 
     private final NotificationRepository notificationRepository;
     private final UserNotificationPreferenceRepository preferenceRepository;
+    private final UserPushDeviceRepository userPushDeviceRepository;
+    private final FcmSendService fcmSendService;
 
     /**
      * 알림 생성 (로그 저장 전용)
@@ -57,8 +60,17 @@ public class NotificationCreateService {
 
         notificationRepository.save(notification);
 
-        // 4️⃣ (다음 단계) FCM 전송 위치
-        // sendFcm(userId, title, body);
+        // 2️⃣ FCM 전송
+        userPushDeviceRepository
+                .findAllByUserIdAndEnabledTrue(userId)
+                .forEach(device ->
+                        fcmSendService.send(
+                                device.getToken(),
+                                title,
+                                body,
+                                null
+                        )
+                );
     }
 
     /**

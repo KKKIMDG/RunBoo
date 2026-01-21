@@ -8,12 +8,15 @@ import com.runboo.domain.challenge.entity.Challenge;
 import com.runboo.domain.challenge.entity.UserChallenge;
 import com.runboo.domain.challenge.repository.ChallengeRepository;
 import com.runboo.domain.challenge.repository.UserChallengeRepository;
+import com.runboo.domain.notification.enums.NotificationType;
+import com.runboo.domain.notification.service.NotificationCreateService;
 import com.runboo.domain.season.entity.Season;
 import com.runboo.domain.season.repository.SeasonRepository;
+import com.runboo.domain.user.entity.User;
+import com.runboo.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -30,6 +33,8 @@ public class ChallengeService {
     private final UserChallengeRepository userChallengeRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final SeasonRepository seasonRepository;
+    private final NotificationCreateService notificationCreateService;
+    private final UserRepository userRepository;
 
     // 1. 초기화 (1~3레벨만 생성)
     public void initializeUserChallenges(Long userId) {
@@ -82,6 +87,16 @@ public class ChallengeService {
         // [핵심] 다음 레벨 활성화 및 다다음 레벨 지연 생성
         activateNextLevel(userId, season, currentLevel + 1, nowKst);
         ensureFutureLevelExists(userId, season, currentLevel + 3);
+
+        System.out.println(userId+" : 챌린지 달성!");
+        // 챌린지 완료 및 보상 뱃지 지급 알림
+        notificationCreateService.create(
+                userId,
+                NotificationType.CHALLENGE,
+                "🎉 챌린지 달성!",
+                "챌린지를 완료했어요. 다음 단계가 열렸습니다!",
+                true
+        );
 
         return getActiveAndNextChallenges(userId);
     }

@@ -1,18 +1,22 @@
 package com.runboo.domain.notification.service;
 
 import com.google.firebase.messaging.*;
+import com.runboo.domain.notification.repository.UserPushDeviceRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class FcmSendService {
 
-    /**
-     * 단일 토큰으로 FCM 전송
-     */
+    private final UserPushDeviceRepository userPushDeviceRepository;
+
     public void send(
             String token,
             String title,
@@ -22,16 +26,12 @@ public class FcmSendService {
         try {
             Message.Builder builder = Message.builder()
                     .setToken(token)
-
-                    // ✅ OS 알림 UI용
                     .setNotification(
                             Notification.builder()
                                     .setTitle(title)
                                     .setBody(body)
                                     .build()
                     )
-
-                    // ✅ Android 전용 설정 (중요)
                     .setAndroidConfig(
                             AndroidConfig.builder()
                                     .setPriority(AndroidConfig.Priority.HIGH)
@@ -43,7 +43,6 @@ public class FcmSendService {
                                     .build()
                     );
 
-            // ✅ 앱에서 사용하는 data payload
             if (data != null) {
                 data.forEach(builder::putData);
             }
@@ -51,10 +50,17 @@ public class FcmSendService {
             String messageId = FirebaseMessaging.getInstance().send(builder.build());
             log.info("FCM sent. messageId={}", messageId);
 
-        } catch (Exception e) {
+        } catch (FirebaseMessagingException e) {
             log.error("FCM send failed", e);
+
+            if (e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED) {
+                userPushDeviceRepository
+                        .findByToken(token)
+                        .ifPresent(userPushDeviceRepository::delete);
+            }
         }
     }
+
     public void sendReminder(String token) {
         try {
             Message message = Message.builder()
@@ -71,9 +77,11 @@ public class FcmSendService {
             FirebaseMessaging.getInstance().send(message);
 
         } catch (FirebaseMessagingException e) {
-            // INVALID 토큰 정리 로직 있으면 여기서 처리
-            log.error("FCM reminder send failed", e);
+            if (e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED) {
+                userPushDeviceRepository
+                        .findByToken(token)
+                        .ifPresent(userPushDeviceRepository::delete);
+            }
         }
     }
-
 }
