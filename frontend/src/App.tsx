@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import { Platform, View } from "react-native";
+import {Alert, Platform, View} from "react-native";
 import {
   NavigationContainer,
   DefaultTheme,
@@ -28,6 +28,7 @@ import { useSettings } from "@/screens/Settings/useSettings";
 import {SafeAreaProvider, useSafeAreaInsets} from "react-native-safe-area-context";
 import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
+import messaging from "@react-native-firebase/messaging";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -70,6 +71,27 @@ export default function App() {
     await AuthService.logout();
     setIsLoggedIn(false);
   };
+  // @ts-ignore
+  useEffect(() => {
+    // 포그라운드 상태에서 메시지를 받았을 때 호출됨
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      console.log('포그라운드 메시지 수신:', remoteMessage);
+
+      // 여기서 원하는 UI를 띄웁니다.
+      // 예: 시스템 알럿 사용 (가장 간단한 방법)
+      // @ts-ignore
+      if ("title" in remoteMessage.notification) {
+        if (remoteMessage.notification.title != null) {
+          Alert.alert(
+              remoteMessage.notification.title,
+              remoteMessage.notification.body
+          );
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, []);
 
   /**
    * 앱 초기 부트스트랩
