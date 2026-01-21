@@ -13,6 +13,7 @@ export async function getFcmToken(): Promise<string> {
   }
 
   const token = await messaging().getToken();
+  console.log('🔥 FCM DEVICE TOKEN:', token);
 
   if (!token) {
     throw new Error("Failed to get FCM token");

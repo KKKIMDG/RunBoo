@@ -88,10 +88,8 @@ public class ChallengeService {
         activateNextLevel(userId, season, currentLevel + 1, nowKst);
         ensureFutureLevelExists(userId, season, currentLevel + 3);
 
+        System.out.println(userId+" : 챌린지 달성!");
         // 챌린지 완료 및 보상 뱃지 지급 알림
-        User user = userRepository.findById(userId)
-                .orElseThrow();
-
         notificationCreateService.create(
                 userId,
                 NotificationType.CHALLENGE,
