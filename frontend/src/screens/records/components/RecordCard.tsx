@@ -1,13 +1,7 @@
 // frontend/src/screens/records/components/RecordCard.tsx
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    Platform,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import MapView, { Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 
@@ -23,14 +17,24 @@ import {
 import { fetchRunRecordDetail } from "@/services/record/recordsService";
 import { decodePolyline, LatLng } from "@/utils/polyline";
 import { Colors } from "@/constants/theme";
-import {useSettings} from "@/screens/Settings/useSettings";
-import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
-import {darkMapStyle, lightMapStyle} from "@/screens/Home/mapStyles";
+import { useSettings } from "@/screens/Settings/useSettings";
+import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
+import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
 
-export default function RecordCard({ item }: { item: RecordDto }) {
+// ✅ routePolyline 캐시 (메모리 상 유지)
+type RouteCacheValue = { detail: RunRecordDetailDto | null; routeError: boolean };
+const routeCache = new Map<number, RouteCacheValue>();
+
+function RecordCardInner({
+                             item,
+                             routeEnabled = false,
+                         }: {
+    item: RecordDto;
+    routeEnabled?: boolean;
+}) {
     const { settings } = useSettings();
-    const colorScheme =  useResolvedTheme(settings?.themeMode);
+    const colorScheme = useResolvedTheme(settings?.themeMode);
     const styles = useMemo(() => {
         return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
     }, [colorScheme, settings?.fontSize]);
@@ -40,41 +44,55 @@ export default function RecordCard({ item }: { item: RecordDto }) {
     const [detail, setDetail] = useState<RunRecordDetailDto | null>(null);
     const [routeError, setRouteError] = useState(false);
 
-    // ✅ [추가] A방법: 지도 자동 확대용 ref
     const mapRef = useRef<MapView>(null);
 
-    // ✅ 상세 화면처럼: 카드 렌더링 시 상세 API 호출해서 polyline 확보
     useEffect(() => {
+        const recordId = Number(item.id);
+        if (Number.isNaN(recordId)) return;
+
+        // ✅ 1) 캐시에 있으면 즉시 사용하고 종료
+        const cached = routeCache.get(recordId);
+        if (cached) {
+            setDetail(cached.detail);
+            setRouteError(cached.routeError);
+            return;
+        }
+
+        // ✅ 2) 화면에 보일 때만 로딩
+        if (!routeEnabled) return;
+
         let alive = true;
 
         (async () => {
             try {
                 setRouteError(false);
-                const res = (await fetchRunRecordDetail(
-                    Number(item.id)
-                )) as RunRecordDetailDto;
+                const res = (await fetchRunRecordDetail(recordId)) as RunRecordDetailDto;
 
                 if (!alive) return;
 
-                setDetail(res ?? null);
+                const hasPolyline = !!res?.routePolyline;
+                const nextRouteError = !hasPolyline;
 
-                // routePolyline 없으면 경로 없음 표시
-                if (!res?.routePolyline) {
-                    setRouteError(true);
-                }
+                setDetail(res ?? null);
+                setRouteError(nextRouteError);
+
+                // ✅ 캐시 저장
+                routeCache.set(recordId, { detail: res ?? null, routeError: nextRouteError });
             } catch (e) {
                 if (!alive) return;
                 setRouteError(true);
                 setDetail(null);
+
+                // ✅ 실패도 캐시(무한 재시도 방지)
+                routeCache.set(recordId, { detail: null, routeError: true });
             }
         })();
 
         return () => {
             alive = false;
         };
-    }, [item.id]);
+    }, [item.id, routeEnabled]);
 
-    // ✅ 상세 화면과 동일하게 decode
     const coords: LatLng[] = useMemo(() => {
         const poly = detail?.routePolyline ?? "";
         if (!poly) return [];
@@ -85,10 +103,8 @@ export default function RecordCard({ item }: { item: RecordDto }) {
         }
     }, [detail?.routePolyline]);
 
-    const midCoord =
-        coords.length > 0 ? coords[Math.floor(coords.length / 2)] : null;
+    const midCoord = coords.length > 0 ? coords[Math.floor(coords.length / 2)] : null;
 
-    // ✅ [추가] coords 준비되면 경로가 카드 안에 꽉 차게 자동 확대
     useEffect(() => {
         if (!mapRef.current) return;
         if (coords.length < 2) return;
@@ -98,39 +114,6 @@ export default function RecordCard({ item }: { item: RecordDto }) {
             animated: false,
         });
     }, [coords]);
-
-    // ✅ RunResultScreen 느낌의 연한 지도 스타일 (라이트/다크 색상만 분기)
-    const blurredMapStyle = useMemo(() => {
-        if (colorScheme === "dark") {
-            return [
-                { elementType: "geometry", stylers: [{ color: "#1E1E1E" }] },
-                {
-                    featureType: "road",
-                    elementType: "geometry",
-                    stylers: [{ visibility: "on" }, { color: "#2C2C2E" }, { weight: 1.5 }],
-                },
-                {
-                    featureType: "water",
-                    elementType: "geometry",
-                    stylers: [{ color: "#2A3440" }],
-                },
-            ];
-        }
-
-        return [
-            { elementType: "geometry", stylers: [{ color: "#f0f0f0" }] },
-            {
-                featureType: "road",
-                elementType: "geometry",
-                stylers: [{ visibility: "on" }, { color: "#ffffff" }, { weight: 1.5 }],
-            },
-            {
-                featureType: "water",
-                elementType: "geometry",
-                stylers: [{ color: "#c9d1d9" }],
-            },
-        ];
-    }, [colorScheme]);
 
     return (
         <TouchableOpacity
@@ -147,19 +130,13 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                             item.mode === "TIER" && styles.badgeTier,
                         ]}
                     >
-                        {item.mode === "GHOST"
-                            ? "고스트"
-                            : item.mode === "TIER"
-                                ? "티어 측정"
-                                : "일반 측정"}
+                        {item.mode === "GHOST" ? "고스트" : item.mode === "TIER" ? "티어 측정" : "일반 측정"}
                     </Text>
                 </View>
 
                 <Text style={styles.sub}>{formatTimeRange(item.startedAt, item.endedAt)}</Text>
 
-                {/** 가로 2분할 */}
                 <View style={styles.bodyRow}>
-                    {/** 왼쪽*/}
                     <View style={styles.leftCol}>
                         <View style={[styles.rowBox, styles.rowBoxFirst]}>
                             <Text style={styles.label}>런닝 거리</Text>
@@ -173,13 +150,10 @@ export default function RecordCard({ item }: { item: RecordDto }) {
 
                         <View style={styles.rowBox}>
                             <Text style={styles.label}>런닝 시간</Text>
-                            <Text style={styles.value}>
-                                {formatDurationFromRange(item.startedAt, item.endedAt)}
-                            </Text>
+                            <Text style={styles.value}>{formatDurationFromRange(item.startedAt, item.endedAt)}</Text>
                         </View>
                     </View>
 
-                    {/** 오른쪽: 지도 미리보기 */}
                     <View style={styles.mapCol} pointerEvents="none">
                         {coords.length > 0 && midCoord ? (
                             <MapView
@@ -198,18 +172,11 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                                 pitchEnabled={false}
                                 toolbarEnabled={false}
                                 showsCompass={false}
-                                customMapStyle={
-                                    colorScheme === "dark" ? darkMapStyle : lightMapStyle
-                                }
+                                customMapStyle={colorScheme === "dark" ? darkMapStyle : lightMapStyle}
                             >
-                                {/* 상세 화면 느낌 그대로 3겹 (색상만 테마 분기) */}
                                 <Polyline
                                     coordinates={coords}
-                                    strokeColor={
-                                        colorScheme === "dark"
-                                            ? "rgba(255,255,255,0.10)"
-                                            : "rgba(0,0,0,0.10)"
-                                    }
+                                    strokeColor={colorScheme === "dark" ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}
                                     strokeWidth={10}
                                 />
                                 <Polyline
@@ -223,18 +190,18 @@ export default function RecordCard({ item }: { item: RecordDto }) {
                                 />
                                 <Polyline
                                     coordinates={coords}
-                                    strokeColor={
-                                        colorScheme === "dark"
-                                            ? "rgba(255,255,255,0.55)"
-                                            : "rgba(255,255,255,0.70)"
-                                    }
+                                    strokeColor={colorScheme === "dark" ? "rgba(255,255,255,0.55)" : "rgba(255,255,255,0.70)"}
                                     strokeWidth={2}
                                 />
                             </MapView>
                         ) : (
                             <View style={styles.mapPlaceholder}>
                                 <Text style={styles.mapPlaceholderText}>
-                                    {routeError ? "경로 없음" : "경로 불러오는 중…"}
+                                    {!routeEnabled
+                                        ? "스크롤하면 로드돼요"
+                                        : routeError
+                                            ? "경로 없음"
+                                            : "경로 불러오는 중…"}
                                 </Text>
                             </View>
                         )}
@@ -249,10 +216,22 @@ export default function RecordCard({ item }: { item: RecordDto }) {
     );
 }
 
-export const getStyles = (
-    scheme: "light" | "dark",
-    fontSize: FontSizeSetting
-) =>
+// ✅ React.memo로 불필요 리렌더 방지
+const RecordCard = React.memo(
+    RecordCardInner,
+    (prev, next) =>
+        prev.item.id === next.item.id &&
+        prev.routeEnabled === next.routeEnabled &&
+        prev.item.startedAt === next.item.startedAt &&
+        prev.item.endedAt === next.item.endedAt &&
+        prev.item.mode === next.item.mode &&
+        prev.item.distanceM === next.item.distanceM &&
+        prev.item.avgPace === next.item.avgPace
+);
+
+export default RecordCard;
+
+export const getStyles = (scheme: "light" | "dark", fontSize: FontSizeSetting) =>
     StyleSheet.create({
         card: {
             backgroundColor: Colors[scheme].background,
@@ -342,10 +321,7 @@ export const getStyles = (
             position: "absolute",
             top: 8,
             left: 8,
-            backgroundColor:
-                scheme === "dark"
-                    ? "rgba(255,255,255,0.16)"
-                    : "rgba(17,24,39,0.55)",
+            backgroundColor: scheme === "dark" ? "rgba(255,255,255,0.16)" : "rgba(17,24,39,0.55)",
             paddingHorizontal: 8,
             paddingVertical: 4,
             borderRadius: 10,

@@ -30,29 +30,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+        String requestUri = request.getRequestURI();
+
+        // ⭐️ 1. JWT 검사 제외 경로 (웹 관리자 / 인증 관련)
+        if (requestUri.startsWith("/api/admin")
+                || requestUri.startsWith("/api/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = resolveToken(request);
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
             try {
-                // 1. 토큰 타입 확인
+                // 2. 토큰 타입 확인
                 String type = jwtTokenProvider.getTokenType(token);
 
-                // 2. ACCESS 토큰만 인증 처리
+                // 3. ACCESS 토큰만 인증 처리
                 if (!"ACCESS".equals(type)) {
                     filterChain.doFilter(request, response);
                     return;
                 }
 
-                // 3. 토큰에서 userId 추출
+                // 4. 토큰에서 userId 추출
                 Long userId = jwtTokenProvider.getUserIdFromToken(token);
 
                 User user = userRepository.findById(userId).orElseThrow();
 
-                // 4. 권한 (지금은 고정)
+                // 5. 권한 (현재는 USER 고정)
                 List<SimpleGrantedAuthority> authorities =
                         List.of(new SimpleGrantedAuthority("ROLE_USER"));
 
-                // 5. ★ CustomUserDetails 생성 (핵심)
+                // 6. CustomUserDetails 생성
                 CustomUserDetails userDetails =
                         new CustomUserDetails(
                                 user.getId(),
@@ -60,7 +69,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 authorities
                         );
 
-                // 6. ★ principal에 userDetails 주입
+                // 7. Authentication 객체 생성
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
@@ -69,14 +78,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         );
 
                 authentication.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
+                        new WebAuthenticationDetailsSource()
+                                .buildDetails(request)
                 );
 
+                // 8. SecurityContext에 인증 정보 저장
                 SecurityContextHolder.getContext()
                         .setAuthentication(authentication);
 
             } catch (Exception e) {
-                // 토큰 문제면 인증 없이 통과
+                // 토큰 문제 발생 시 인증 제거
                 SecurityContextHolder.clearContext();
             }
         }
