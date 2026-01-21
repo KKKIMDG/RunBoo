@@ -26,6 +26,7 @@ import { getStyles } from "./RunResultScreen.styles";
 import { Coordinate } from "@/utils/runUtils";
 import { useSettings } from "@/screens/Settings/useSettings";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
+import { perfLogger } from "@/utils/performanceLogger";
 
 type RunResultRouteParams = {
   distanceM: number;
@@ -107,20 +108,38 @@ const RunResultScreen = () => {
 
   const handleShare = async () => {
     try {
+      perfLogger.start("ViewShot 캡처 및 공유");
+      // console.log("📸 [공유] 캡처 시작");
+      // console.log("📸 [공유] 경로 좌표 수:", routeCoordinates.length);
+
       if (storyRef.current) {
+        // console.log("📸 [공유] ViewShot ref 존재 확인");
+
+        perfLogger.start("ViewShot 캡처");
         const uri = await captureRef(storyRef, {
           format: "png",
           quality: 1.0,
           result: "tmpfile",
         });
+        perfLogger.end("ViewShot 캡처");
+
+        // console.log("✅ [공유] 캡처 성공:", uri);
+
         await Sharing.shareAsync(uri, {
           mimeType: "image/png",
           dialogTitle: "나의 러닝 기록 공유하기",
           UTI: "public.png",
         });
+
+        perfLogger.end("ViewShot 캡처 및 공유");
+        // console.log("✅ [공유] 공유 다이얼로그 표시 완료");
+      } else {
+        // console.log("❌ [공유] storyRef.current가 null");
       }
     } catch (error) {
-      console.error("공유 실패:", error);
+      perfLogger.end("ViewShot 캡처 및 공유", { error: true });
+      // console.error("❌ [공유] 실패:", error);
+      // console.error("❌ [공유] 에러 상세:", JSON.stringify(error, null, 2));
     }
   };
 
