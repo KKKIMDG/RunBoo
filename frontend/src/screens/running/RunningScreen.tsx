@@ -193,7 +193,7 @@ const RunningScreen = () => {
         />
       </View>
     ),
-    [initialLocation, isDarkMode, isFollowing]
+    [initialLocation, isDarkMode, isFollowing],
   );
 
   const chartData = useMemo(
@@ -207,7 +207,7 @@ const RunningScreen = () => {
         },
       ],
     }),
-    [paceHistory]
+    [paceHistory],
   );
 
   const chartConfig = useMemo(() => {
@@ -270,7 +270,7 @@ const RunningScreen = () => {
               onPress={() => {
                 console.log(
                   "[RunningScreen] 성별 토글 누름:",
-                  !isMale ? "남성" : "여성"
+                  !isMale ? "남성" : "여성",
                 );
                 setIsMale(!isMale);
               }}
@@ -306,76 +306,6 @@ const RunningScreen = () => {
           </View>
         </View>
 
-        {/* 통계 영역 */}
-        <View style={styles.statsContainer}>
-          <StatBox
-            icon={<Ionicons name="time-outline" size={20} color="#8E8E93" />}
-            label="시간"
-            value={formatTime(time)}
-          />
-          <StatBox
-            icon={
-              <MaterialCommunityIcons
-                name="map-marker-distance"
-                size={20}
-                color="#2D3269"
-              />
-            }
-            label="거리"
-            value={(distance / 1000).toFixed(2)}
-            unit="km"
-            highlight
-          />
-          <StatBox
-            icon={<FontAwesome5 name="running" size={18} color="#1A1A1A" />}
-            label="페이스"
-            value={formatPace(currentPace)}
-          />
-          <StatBox
-            icon={
-              <MaterialCommunityIcons
-                name="shoe-print"
-                size={20}
-                color="#8E8E93"
-              />
-            }
-            label="케이던스"
-            value={String(cadence)}
-            unit="spm"
-          />
-        </View>
-
-        {/* 페이스 변화 차트 */}
-        <View style={styles.chartCard}>
-          <View style={styles.chartTitleContainer}>
-            <Ionicons
-              name="analytics-outline"
-              size={15}
-              style={{ marginLeft: 0 }}
-              color={isDarkMode ? "#FFF" : "#333"}
-            />
-            <Text style={styles.chartTitle}>페이스 변화</Text>
-          </View>
-          <LineChart
-            data={chartData}
-            width={width - 88}
-            height={150}
-            chartConfig={chartConfig}
-            bezier
-            style={styles.chart}
-            withInnerLines={true}
-            withOuterLines={true}
-            withVerticalLabels={false}
-            withHorizontalLabels={false}
-          />
-          <View style={styles.chartLabels}>
-            <Text style={styles.chartLabelText}>시작</Text>
-            <Text style={styles.chartLabelText}>
-              현재 페이스: {formatPace(currentPace)}/km
-            </Text>
-          </View>
-        </View>
-
         {/* 지도 영역 */}
         <View style={styles.mapContainer}>
           {/* 메인 통계: 시간과 거리 (지도 위 오버레이) */}
@@ -403,8 +333,8 @@ const RunningScreen = () => {
                 backgroundColor: isFollowing
                   ? "#4A6EA9"
                   : isDarkMode
-                  ? "#333"
-                  : "#FFF",
+                    ? "#333"
+                    : "#FFF",
               },
             ]}
             onPress={handleFocusPress}
@@ -416,38 +346,118 @@ const RunningScreen = () => {
             />
           </TouchableOpacity>
         </View>
-      </ScrollView>
-
-      {!isReady && (
-        <View style={styles.controlContainer}>
-          <TouchableOpacity
-            style={styles.pauseButton}
-            onPress={() => {
-              if (isPaused) {
-                console.log("[RunningScreen] 재개 버튼 누름");
-                resumeRun();
-              } else {
-                console.log("[RunningScreen] 일시정지 버튼 누름");
-                pauseRun();
-              }
-            }}
-          >
-            <Ionicons
-              name={isPaused ? "play" : "pause"}
-              size={36}
-              color="#4A6EA9"
+        {/* 메인 통계: 시간과 거리 */}
+        <View style={styles.mainStatsArea}>
+          <View style={styles.mainStatItem}>
+            <Ionicons name="time-outline" size={16} color="#8E8E93" />
+            <Text style={styles.mainStatLabel}>시간</Text>
+            <Text style={styles.mainStatTime}>{formatTime(time)}</Text>
+          </View>
+          <View style={styles.mainStatItem}>
+            <MaterialCommunityIcons
+              name="map-marker-distance"
+              size={16}
+              color="#8E8E93"
             />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.stopButton, { backgroundColor: "#FF3B30" }]}
-            onPress={() => Alert.alert("알림", "종료하려면 길게 누르세요.")}
-            onLongPress={handleStopLongPress}
-            delayLongPress={500}
-          >
-            <View style={customStyles.stopSquare} />
-          </TouchableOpacity>
+            <Text style={styles.mainStatLabel}>거리</Text>
+            <Text style={styles.mainStatValueLarge}>
+              {(distance / 1000).toFixed(2)}
+            </Text>
+            <Text style={styles.mainStatUnit}>km</Text>
+          </View>
         </View>
-      )}
+        {/* 페이스 변화 차트 */}
+        <View style={styles.chartCard}>
+          <View style={styles.chartTitleContainer}>
+            <MaterialCommunityIcons
+              name="chart-line"
+              size={16}
+              color={isDarkMode ? "#FFF" : "#333"}
+            />
+            <Text style={styles.chartTitle}>페이스 변화</Text>
+          </View>
+          <LineChart
+            data={chartData}
+            width={width - 48}
+            height={120}
+            chartConfig={chartConfig}
+            bezier
+            style={styles.chart}
+            withInnerLines={false}
+            withOuterLines={false}
+            withVerticalLabels={false}
+            withHorizontalLabels={false}
+          />
+          <View style={styles.chartLabels}>
+            <Text style={styles.chartLabelText}>시작</Text>
+            <Text style={styles.chartLabelText}>
+              현재 페이스: {formatPace(currentPace)}/km
+            </Text>
+          </View>
+        </View>
+
+        {/* 페이스와 케이던스 */}
+        <View style={styles.bottomStats}>
+          <View style={styles.bottomStatItem}>
+            <FontAwesome5 name="running" size={14} color="#8E8E93" />
+            <Text style={styles.bottomStatLabel}>페이스</Text>
+            <Text style={styles.bottomStatValue}>
+              {formatPace(currentPace)}
+            </Text>
+            <Text style={styles.bottomStatUnit}>"/km</Text>
+          </View>
+          <View style={styles.bottomStatItem}>
+            <MaterialCommunityIcons
+              name="shoe-print"
+              size={14}
+              color="#8E8E93"
+            />
+            <Text style={styles.bottomStatLabel}>케이던스</Text>
+            <Text style={styles.bottomStatValue}>{cadence}</Text>
+            <Text style={styles.bottomStatUnit}>spm</Text>
+          </View>
+        </View>
+
+        {/* 하단 컨트롤 버튼 */}
+        {!isReady && (
+          <View style={styles.controlContainer}>
+            <TouchableOpacity
+              style={styles.pauseButton}
+              onPress={() => {
+                if (isPaused) {
+                  console.log("[RunningScreen] 재개 버튼 누름");
+                  resumeRun();
+                } else {
+                  console.log("[RunningScreen] 일시정지 버튼 누름");
+                  pauseRun();
+                }
+              }}
+            >
+              <Text style={styles.buttonText}>
+                {isPaused ? "재개" : "일시정지"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.stopButton}
+              onPress={() => {
+                Alert.alert("러닝 종료", "러닝을 종료하시겠습니까?", [
+                  {
+                    text: "취소",
+                    style: "cancel",
+                  },
+                  {
+                    text: "종료",
+                    onPress: handleStopLongPress,
+                    style: "destructive",
+                  },
+                ]);
+              }}
+            >
+              <Text style={styles.buttonTextWhite}>러닝종료</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -465,16 +475,9 @@ const customStyles = StyleSheet.create({
     elevation: 5,
     zIndex: 10,
   },
-  stopSquare: {
-    width: 24,
-    height: 24,
-    backgroundColor: "white",
-    borderRadius: 4,
-  },
   genderToggle: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFF",
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 10,
