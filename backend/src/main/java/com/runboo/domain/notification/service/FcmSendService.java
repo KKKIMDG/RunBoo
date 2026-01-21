@@ -60,28 +60,4 @@ public class FcmSendService {
             }
         }
     }
-
-    public void sendReminder(String token) {
-        try {
-            Message message = Message.builder()
-                    .setToken(token)
-                    .setNotification(
-                            Notification.builder()
-                                    .setTitle("오늘 러닝 어떠세요?")
-                                    .setBody("퇴실찍기!! 🏃")
-                                    .build()
-                    )
-                    .putData("type", "REMINDER")
-                    .build();
-
-            FirebaseMessaging.getInstance().send(message);
-
-        } catch (FirebaseMessagingException e) {
-            if (e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED) {
-                userPushDeviceRepository
-                        .findByToken(token)
-                        .ifPresent(userPushDeviceRepository::delete);
-            }
-        }
-    }
 }
