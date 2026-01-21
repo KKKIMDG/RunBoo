@@ -59,7 +59,7 @@ export function useGhostRunScreen() {
     isPaused,
     startTime,
     pausedTime,
-    currentPace
+    currentPace,
   );
   // 고스트 진행거리(시간 기반)
   const ghostDistanceM = isRunning
@@ -139,7 +139,7 @@ export function useGhostRunScreen() {
 
   const startLocationTracking = makeStartLocationTracking(
     "RunBoo Ghost Challenge",
-    "고스트와 대결 중입니다."
+    "고스트와 대결 중입니다.",
   );
 
   // ✅ 저장 (✅ 100m 미만 안내는 "음성"이 아니라 Alert만)
@@ -159,7 +159,17 @@ export function useGhostRunScreen() {
       Alert.alert(
         "기록 저장 불가",
         "100m 미만의 활동은 고스트 대결 기록으로 저장되지 않습니다.",
-        [{ text: "확인", onPress: () => navigation.goBack() }]
+        [
+          {
+            text: "확인",
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "MainStack" }],
+              });
+            },
+          },
+        ],
       );
       return;
     }
@@ -174,7 +184,7 @@ export function useGhostRunScreen() {
 
       Alert.alert(
         "오류",
-        "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)"
+        "userId가 없습니다. (GhostRun으로 이동할 때 userId를 params로 넘겨야 합니다.)",
       );
 
       navigation.navigate("RunResult", {
@@ -207,7 +217,7 @@ export function useGhostRunScreen() {
       console.error("Ghost save error:", error);
       Alert.alert(
         "저장 실패",
-        `기록을 저장하지 못했습니다. (${error?.message || "네트워크 에러"})`
+        `기록을 저장하지 못했습니다. (${error?.message || "네트워크 에러"})`,
       );
     }
 

@@ -41,7 +41,7 @@ const TierResultScreen = ({ navigation, route }: TierResultScreenProps) => {
   const { tierName, tierData, loading, error, handleShare } = useTierResult(
     navigation,
     route,
-    viewRef
+    viewRef,
   );
 
   // 로딩 상태
@@ -136,29 +136,47 @@ const TierResultScreen = ({ navigation, route }: TierResultScreenProps) => {
         <TouchableOpacity
           style={[
             styles.button,
-            styles.shareButton,
-            { backgroundColor: theme.colors[1] },
+            {
+              backgroundColor: colorScheme === "dark" ? "#1a1a1a" : "#ffffff",
+              borderColor: colorScheme === "dark" ? "#333" : "#E5E7EB",
+            },
           ]}
           onPress={handleShare}
         >
-          <Ionicons name="share-social" size={20} color="#FFF" />
+          <Ionicons
+            name="share-social"
+            size={20}
+            color={colorScheme === "dark" ? "#FFF" : "#000"}
+          />
           <Text
-            style={[styles.buttonText, styles.whiteText, { marginLeft: 8 }]}
+            style={[
+              styles.buttonText,
+              {
+                marginLeft: 8,
+                color: colorScheme === "dark" ? "#FFF" : "#000",
+              },
+            ]}
           >
             기록 자랑하기
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.button}
+          style={[
+            styles.button,
+            {
+              backgroundColor: "#4A6EA9",
+              borderWidth: 0,
+            },
+          ]}
           onPress={() => navigation.navigate("MainStack")}
         >
-          <Ionicons
-            name="home-outline"
-            size={20}
-            color={colorScheme === "dark" ? "#FFF" : "#000"}
-          />
-          <Text style={[styles.buttonText, { marginLeft: 8 }]}>홈으로</Text>
+          <Ionicons name="home-outline" size={20} color="#FFF" />
+          <Text
+            style={[styles.buttonText, styles.whiteText, { marginLeft: 8 }]}
+          >
+            홈으로
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

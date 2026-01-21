@@ -6,7 +6,7 @@ const { width } = Dimensions.get("window");
 
 export const getStyles = (
   scheme: "light" | "dark",
-  fontSize: FontSizeSetting
+  fontSize: FontSizeSetting,
 ) => {
   // ✅ Colors 객체가 존재하는지 방어 코드 추가
   const activeColors = Colors?.[scheme] ??
@@ -29,6 +29,13 @@ export const getStyles = (
     scrollContainer: {
       paddingTop: 0,
       paddingBottom: 0,
+    },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingBottom: 0,
+    },
+    contentContainer: {
+      flex: 1,
     },
 
     // --- 카운트다운 오버레이 ---
@@ -54,10 +61,52 @@ export const getStyles = (
 
     // --- 상단 헤더 ---
     header: {
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      borderBottomWidth: 2,
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 5,
+      justifyContent: "space-between",
+    },
+    headerPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 13,
+      borderWidth: 1,
+      ...Platform.select({
+        ios: {
+          shadowColor,
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+        },
+        android: { elevation: 4 },
+      }),
+    },
+    headerPillText: {
+      fontWeight: "800",
+      fontSize: scaleFont(13, fontSize),
+      marginLeft: 6,
+      marginRight: 6,
+    },
+    headerMiniPill: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 10,
+      paddingVertical: 7,
+      borderRadius: 999,
+      borderWidth: 1,
+      ...Platform.select({
+        ios: {
+          shadowColor,
+          shadowOpacity: 0.08,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+        },
+        android: { elevation: 4 },
+      }),
     },
     statusTag: {
       flexDirection: "row",
@@ -79,12 +128,58 @@ export const getStyles = (
       fontFamily: Fonts?.gmarketBold,
     },
 
+    // --- 메인 통계 영역 (시간/거리) ---
+    mainStatsArea: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      backgroundColor: activeColors.background,
+    },
+    mainStatItem: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: 6,
+    },
+    mainStatLabel: {
+      fontSize: scaleFont(12, fontSize),
+      color: subTextColor,
+      fontWeight: "600",
+    },
+    mainStatValue: {
+      fontSize: scaleFont(18, fontSize),
+      fontWeight: "bold",
+      color: activeColors.text,
+      fontVariant: ["tabular-nums"],
+      marginLeft: 4,
+    },
+    mainStatTime: {
+      fontSize: scaleFont(25, fontSize),
+      fontWeight: "bold",
+      color: activeColors.text,
+      fontVariant: ["tabular-nums"],
+      marginLeft: 4,
+      marginTop: 8,
+    },
+    mainStatValueLarge: {
+      fontSize: scaleFont(32, fontSize),
+      fontWeight: "bold",
+      color: activeColors.primary,
+      fontVariant: ["tabular-nums"],
+      marginLeft: 4,
+    },
+    mainStatUnit: {
+      fontSize: scaleFont(16, fontSize),
+      color: subTextColor,
+      marginLeft: 2,
+    },
+
     // --- 지도 영역 ---
     mapContainer: {
-      height: 340,
+      height: 400,
       borderRadius: 0,
       overflow: "visible",
-      marginBottom: 0,
+      marginBottom: 5,
       backgroundColor: activeColors.background,
       position: "relative",
     },
@@ -195,7 +290,7 @@ export const getStyles = (
     statsContainer: {
       backgroundColor: scheme === "light" ? "#FFFFFF" : activeColors.card,
       borderRadius: 15,
-      padding: 20,
+      padding: 10,
       flexDirection: "row",
       flexWrap: "wrap",
       justifyContent: "space-between",
@@ -250,8 +345,8 @@ export const getStyles = (
     chartCard: {
       backgroundColor: activeColors.background,
       borderRadius: 0,
-      paddingVertical: 16,
-      paddingHorizontal: 20,
+      paddingVertical: 15,
+      paddingHorizontal: 24,
       marginBottom: 0,
       borderWidth: 0,
       borderColor: activeColors.border,
@@ -259,20 +354,17 @@ export const getStyles = (
     chartTitleContainer: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 8,
-      marginLeft: 0,
+      marginBottom: 12,
+      gap: 6,
     },
     chartTitle: {
-      fontSize: scaleFont(14, fontSize),
-      fontWeight: "800",
+      fontSize: scaleFont(13, fontSize),
+      fontWeight: "700",
       color: activeColors.text,
-      marginTop: 0,
-      marginLeft: 8,
     },
     chart: {
-      marginVertical: 0,
-      borderRadius: 16,
-      marginLeft: 0,
+      marginVertical: 8,
+      borderRadius: 0,
     },
     chartLabels: {
       flexDirection: "row",
@@ -280,42 +372,80 @@ export const getStyles = (
       marginTop: 8,
     },
     chartLabelText: {
-      fontSize: scaleFont(12, fontSize),
+      fontSize: scaleFont(11, fontSize),
       color: subTextColor,
-      marginLeft: 0,
-      marginRight: 0,
+      fontWeight: "500",
+    },
+
+    // --- 하단 통계 (페이스/케이던스) ---
+    bottomStats: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      paddingVertical: 10,
+      paddingHorizontal: 24,
+      backgroundColor: activeColors.background,
+      marginBottom: 20,
+    },
+    bottomStatItem: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: 6,
+    },
+    bottomStatLabel: {
+      fontSize: scaleFont(11, fontSize),
+      color: subTextColor,
       fontWeight: "600",
+    },
+    bottomStatValue: {
+      fontSize: scaleFont(20, fontSize),
+      fontWeight: "bold",
+      color: activeColors.text,
+      fontVariant: ["tabular-nums"],
+      marginLeft: 4,
+    },
+    bottomStatUnit: {
+      fontSize: scaleFont(14, fontSize),
+      color: subTextColor,
+      marginLeft: 2,
     },
 
     // --- 하단 컨트롤 버튼 ---
     controlContainer: {
-      position: "absolute",
-      bottom: 20,
-      left: 0,
-      right: 0,
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      gap: 10,
-      zIndex: 15,
+      gap: 12,
+      paddingHorizontal: 24,
+      paddingBottom: 20,
+      paddingTop: 0,
     },
     pauseButton: {
+      flex: 1,
       backgroundColor: activeColors.background,
-      width: 70,
-      height: 50,
-      borderRadius: 10,
+      height: 56,
+      borderRadius: 12,
       justifyContent: "center",
       alignItems: "center",
-      borderWidth: 2,
+      borderWidth: 1.5,
       borderColor: activeColors.border,
     },
     stopButton: {
+      flex: 1,
       backgroundColor: "#FF3B30",
-      width: 70,
-      height: 50,
-      borderRadius: 10,
+      height: 56,
+      borderRadius: 12,
       justifyContent: "center",
       alignItems: "center",
+    },
+    buttonText: {
+      fontSize: scaleFont(15, fontSize),
+      fontWeight: "700",
+      color: activeColors.text,
+    },
+    buttonTextWhite: {
+      fontSize: scaleFont(15, fontSize),
+      fontWeight: "700",
+      color: "#FFFFFF",
     },
     voiceSettingButton: {
       fontSize: scaleFont(12, fontSize),

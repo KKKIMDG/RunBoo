@@ -1,11 +1,8 @@
 package com.runboo.domain.notification.scheduler;
 
-import com.runboo.domain.notification.entity.UserPushDevice;
 import com.runboo.domain.notification.enums.NotificationType;
-import com.runboo.domain.notification.service.FcmSendService;
 import com.runboo.domain.notification.service.NotificationCreateService;
 import com.runboo.domain.notification.service.UserNotificationPreferenceService;
-import com.runboo.domain.notification.service.UserPushDeviceService;
 import com.runboo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,7 +22,7 @@ public class ReminderNotificationScheduler {
     /**
      * 리마인더 발송
      */
-    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
     public void sendDailyReminder() {
 
         List<Long> userIds = userRepository.findAllActiveUserIds();
@@ -41,8 +38,8 @@ public class ReminderNotificationScheduler {
             notificationCreateService.create(
                     userId,
                     NotificationType.REMINDER,
-                    "오늘 러닝 어떠세요?",
-                    "퇴실찍기!! 🏃",
+                    "🏃 오늘 러닝 어떠세요? ",
+                    "1분 주기로 뜨는 테스트용 알림! 끄고 싶으면 설정 -> 러닝 리마인더 알림 끄기",
                     true
             );
         }

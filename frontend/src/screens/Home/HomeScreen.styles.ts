@@ -1,10 +1,10 @@
 import { StyleSheet, Platform } from "react-native";
 import { Colors } from "@/constants/theme";
-import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
 
 export const getStyles = (
-    scheme: "light" | "dark",
-     fontSize: FontSizeSetting
+  scheme: "light" | "dark",
+  fontSize: FontSizeSetting,
 ) =>
   StyleSheet.create({
     safeArea: {
@@ -19,7 +19,7 @@ export const getStyles = (
       flex: 1,
       paddingHorizontal: 20,
       paddingTop: 10,
-      paddingBottom: Platform.select({ ios: 75, default: 85 }),
+      paddingBottom: Platform.select({ ios: 55, default: 50 }),
     },
     tabContainer: {
       flexDirection: "row",
