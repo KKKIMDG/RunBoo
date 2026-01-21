@@ -18,6 +18,7 @@ export const getStyles = (
     },
     viewShotContainer: {
       flex: 1,
+      backgroundColor: Colors[scheme].background,
     },
     scrollContainer: {
       padding: 0,

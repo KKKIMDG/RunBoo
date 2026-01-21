@@ -324,7 +324,7 @@ export default function GhostRunScreen() {
         : `rgba(0,0,0,${opacity})`,
     style: { borderRadius: 16 },
     propsForDots: { r: "0" },
-    propsForBackgroundLines: { stroke: "rgba(0,0,0,0.08)" },
+    propsForBackgroundLines: { stroke: "transparent" },
   };
 
   const chartData = useMemo(

@@ -32,7 +32,7 @@ export const getStyles = (
     safe: { flex: 1 },
     contentContainer: { flex: 1 },
     scrollContent: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 12,
       paddingBottom: 20,
     },
 
@@ -81,8 +81,6 @@ export const getStyles = (
     card: {
       padding: 14,
       marginBottom: 12,
-      marginHorizontal: -16,
-      paddingHorizontal: 16,
       backgroundColor: Colors[scheme].background,
       borderWidth: 0,
     },
@@ -125,6 +123,7 @@ export const getStyles = (
       justifyContent: "space-between",
       gap: 12,
       marginBottom: 12,
+      paddingHorizontal: 8,
     },
 
     small: { fontSize: scaleFont(11, fontSize), fontWeight: "700" },
@@ -134,8 +133,7 @@ export const getStyles = (
       borderRadius: 0,
       overflow: "visible",
       marginBottom: 0,
-      marginHorizontal: -16,
-      marginTop: -16,
+      marginHorizontal: -8,
       backgroundColor: Colors[scheme].background,
       position: "relative",
     },
@@ -158,10 +156,10 @@ export const getStyles = (
       justifyContent: "center",
       alignItems: "center",
       gap: 12,
-      paddingHorizontal: 0,
+      paddingHorizontal: 12,
       paddingTop: 0,
-      paddingBottom: 0,
-      marginBottom: 20,
+      paddingBottom: 20,
+      marginBottom: 0,
     },
 
     pauseBtn: {
