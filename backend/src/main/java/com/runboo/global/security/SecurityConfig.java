@@ -11,6 +11,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -27,35 +32,29 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/records").permitAll()
-                        .requestMatchers("/api/courses/**").permitAll()
-                        .requestMatchers(
-                                "/api/auth/login",
-                                "/api/auth/signup",
-                                "/api/auth/login/oauth",
-                                "/api/auth/token/reissue",
-                                "/api/auth/email/verify",
-                                "/api/auth/email/verify/check",
-                                "/api/auth/password/reset-request",
-                                "/api/auth/password/verify",
-                                "/api/auth/password/reset",
-                                "/api/notifications/test/reminder",
-                                "/api/auth/kakao/callback",
-                                "/api/auth/google/callback",
-                                "api/friends/**",
-                                "api/notices/**",
-                                "api/admin/**",
+                        // ⭐️ preflight OPTIONS 전부 허용
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+                        // 인증 없이 허용할 API
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/admin/**",
+                                "/api/courses/**",
+                                "/api/records",
+                                "/api/notices/**",
+                                "/api/friends/**",
+                                "/api/notifications/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**",
-                                "/api/runners/**"
+                                "/webjars/**"
                         ).permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
@@ -64,5 +63,27 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:8081"
+        ));
+        config.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
+        ));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        config.setExposedHeaders(List.of("Authorization", "Set-Cookie"));
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
     }
 }
