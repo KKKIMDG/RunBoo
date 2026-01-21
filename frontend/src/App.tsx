@@ -74,43 +74,6 @@ export default function App() {
     await AuthService.logout();
     setIsLoggedIn(false);
   };
-  // // @ts-ignore
-  // useEffect(() => {
-  //   // 포그라운드 상태에서 메시지를 받았을 때 호출됨
-  //   const unsubscribe = messaging().onMessage(async remoteMessage => {
-  //     console.log('포그라운드 메시지 수신:', remoteMessage);
-  //
-  //     // 여기서 원하는 UI를 띄웁니다.
-  //     // 예: 시스템 알럿 사용 (가장 간단한 방법)
-  //     // @ts-ignore
-  //     if ("title" in remoteMessage.notification) {
-  //       if (remoteMessage.notification.title != null) {
-  //         Alert.alert(
-  //             remoteMessage.notification.title,
-  //             remoteMessage.notification.body
-  //         );
-  //       }
-  //     }
-  //   });
-  //
-  //   return unsubscribe;
-  // }, []);
-
-      // 여기서 원하는 UI를 띄웁니다.
-      // 예: 시스템 알럿 사용 (가장 간단한 방법)
-      // @ts-ignore
-      if ("title" in remoteMessage.notification) {
-        if (remoteMessage.notification.title != null) {
-          Alert.alert(
-              remoteMessage.notification.title,
-              remoteMessage.notification.body
-          );
-        }
-      }
-    });
-
-    return unsubscribe;
-  }, []);
 
   /**
    * 앱 초기 부트스트랩
@@ -238,7 +201,10 @@ export default function App() {
     isLoggedIn: boolean;
     onLoginSuccess: (token: string) => void;
     onLogout: () => void;
+
+
   }) {
+
     if (!isLoggedIn) {
       return (
         <>
@@ -269,54 +235,56 @@ export default function App() {
     }, [resolvedTheme]);
 
     return (
-      <>
-        {/* 🔹 상단 StatusBar */}
-        <StatusBar
-          style={resolvedTheme === "dark" ? "light" : "dark"}
-          backgroundColor={resolvedTheme === "dark" ? "#000000" : "#ffffff"}
-        />
+        <>
+          {/* 🔹 상단 StatusBar */}
+          <StatusBar
+              style={resolvedTheme === "dark" ? "light" : "dark"}
+              backgroundColor={resolvedTheme === "dark" ? "#000000" : "#ffffff"}
+          />
 
-        <AndroidSafeAreaRoot resolvedTheme={resolvedTheme}>
-          <NavigationContainer
-            theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
-          >
-            <PermissionGuard>
-              <RootNavigator
-                isLoggedIn={isLoggedIn}
-                onLoginSuccess={onLoginSuccess}
-                onLogout={onLogout}
-              />
-            </PermissionGuard>
-          </NavigationContainer>
-        </AndroidSafeAreaRoot>
-      </>
+          <AndroidSafeAreaRoot resolvedTheme={resolvedTheme}>
+            <NavigationContainer
+                theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <NotificationHandler />
+              <PermissionGuard>
+                <RootNavigator
+                    isLoggedIn={isLoggedIn}
+                    onLoginSuccess={onLoginSuccess}
+                    onLogout={onLogout}
+                />
+              </PermissionGuard>
+            </NavigationContainer>
+          </AndroidSafeAreaRoot>
+        </>
     );
   }
   return (
-    <SafeAreaProvider>
-      <ErrorBoundary
-        fallbackMessage="앱에 문제가 발생했어요"
-        showRetryButton={true}
-        showHomeButton={true}
-      >
-        {isLoggedIn ? (
-          <UserSettingProvider>
-            <UserMeProvider>
-              <AppInner
-                isLoggedIn={true}
-                onLoginSuccess={handleLoginSuccess}
-                onLogout={handleLogout}
-              />
-            </UserMeProvider>
-          </UserSettingProvider>
-        ) : (
-          <AppInner
-            isLoggedIn={false}
-            onLoginSuccess={handleLoginSuccess}
-            onLogout={handleLogout}
-          />
-        )}
-      </ErrorBoundary>
-    </SafeAreaProvider>
+      <SafeAreaProvider>
+          <ErrorBoundary
+              fallbackMessage="앱에 문제가 발생했어요"
+              showRetryButton={true}
+              showHomeButton={true}
+          >
+            {isLoggedIn ? (
+                <UserSettingProvider>
+                  <UserMeProvider>
+                    <AppInner
+                        isLoggedIn={true}
+                        onLoginSuccess={handleLoginSuccess}
+                        onLogout={handleLogout}
+                    />
+                  </UserMeProvider>
+                </UserSettingProvider>
+            ) : (
+                <AppInner
+                    isLoggedIn={false}
+                    onLoginSuccess={handleLoginSuccess}
+                    onLogout={handleLogout}
+                />
+            )}
+          </ErrorBoundary>
+        <FlashMessage position="top" />
+      </SafeAreaProvider>
   );
 }
