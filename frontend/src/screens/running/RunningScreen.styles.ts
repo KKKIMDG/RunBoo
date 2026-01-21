@@ -132,7 +132,7 @@ export const getStyles = (
     mainStatsArea: {
       flexDirection: "row",
       justifyContent: "space-around",
-      paddingVertical: 24,
+      paddingVertical: 14,
       paddingHorizontal: 20,
       backgroundColor: activeColors.background,
     },
@@ -179,7 +179,7 @@ export const getStyles = (
       height: 400,
       borderRadius: 0,
       overflow: "visible",
-      marginBottom: 20,
+      marginBottom: 5,
       backgroundColor: activeColors.background,
       position: "relative",
     },
@@ -290,7 +290,7 @@ export const getStyles = (
     statsContainer: {
       backgroundColor: scheme === "light" ? "#FFFFFF" : activeColors.card,
       borderRadius: 15,
-      padding: 20,
+      padding: 10,
       flexDirection: "row",
       flexWrap: "wrap",
       justifyContent: "space-between",
@@ -345,7 +345,7 @@ export const getStyles = (
     chartCard: {
       backgroundColor: activeColors.background,
       borderRadius: 0,
-      paddingVertical: 20,
+      paddingVertical: 15,
       paddingHorizontal: 24,
       marginBottom: 0,
       borderWidth: 0,
@@ -381,7 +381,7 @@ export const getStyles = (
     bottomStats: {
       flexDirection: "row",
       justifyContent: "space-around",
-      paddingVertical: 20,
+      paddingVertical: 10,
       paddingHorizontal: 24,
       backgroundColor: activeColors.background,
       marginBottom: 20,
