@@ -6,9 +6,8 @@ import {
   Image,
   Alert,
   Platform,
-  ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import MapView, { PROVIDER_GOOGLE, Marker } from "react-native-maps";
@@ -350,6 +349,15 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
     });
   };
 
+  const insets = useSafeAreaInsets();
+
+  const TAB_BASE_HEIGHT = 15; // BottomNavBar 기준 높이
+  const bottomPadding =
+      Platform.OS === "android"
+          ? TAB_BASE_HEIGHT + insets.bottom
+          : TAB_BASE_HEIGHT;
+
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <TopNavBar
@@ -470,7 +478,10 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
         </View>
 
         {/* 하단 버튼 영역 */}
-        <View style={styles.buttonSection}>
+        <View   style={[
+          styles.buttonSection,
+          { paddingBottom: bottomPadding },
+        ]}>
           {activeMode === "측정" && (
             <>
               <TouchableOpacity
