@@ -13,6 +13,7 @@ const DUCK_MODE: Partial<AudioMode> = {
   allowsRecording: false,
   interruptionMode: "duckOthers",
   playsInSilentMode: true,
+  shouldPlayInBackground: true,
 };
 
 // 음성 안내 종료 후 정상 모드
@@ -20,6 +21,7 @@ const NORMAL_MODE: Partial<AudioMode> = {
   allowsRecording: false,
   interruptionMode: "mixWithOthers",
   playsInSilentMode: false,
+  shouldPlayInBackground: true,
 };
 
 interface VoiceFeedbackProps {
@@ -72,12 +74,12 @@ export const useRunningVoiceFeedback = ({
 
   // iOS 음성 identifier
   const [selectedVoice, setSelectedVoice] = useState<string | undefined>(
-    undefined
+    undefined,
   );
 
   // Android 음성 identifier (남/여)
   const [androidMaleVoice, setAndroidMaleVoice] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [androidFemaleVoice, setAndroidFemaleVoice] = useState<
     string | undefined
@@ -95,7 +97,7 @@ export const useRunningVoiceFeedback = ({
 
         // 한국어 음성 후보
         const koVoices = voices.filter((v) =>
-          (v.language || "").toLowerCase().startsWith("ko")
+          (v.language || "").toLowerCase().startsWith("ko"),
         );
 
         // -----------------
@@ -103,19 +105,19 @@ export const useRunningVoiceFeedback = ({
         // -----------------
         if (Platform.OS === "ios") {
           const freeKo = koVoices.filter(
-            (v) => (v.quality || "").toLowerCase() !== "enhanced"
+            (v) => (v.quality || "").toLowerCase() !== "enhanced",
           );
 
           const pool =
             freeKo.length > 0
               ? freeKo
               : koVoices.length > 0
-              ? koVoices
-              : voices;
+                ? koVoices
+                : voices;
 
           const targetName = isMale ? "minsu" : "suhyun";
           const found = pool.find((v) =>
-            (v.name || "").toLowerCase().includes(targetName)
+            (v.name || "").toLowerCase().includes(targetName),
           );
 
           setSelectedVoice(found?.identifier ?? pool[0]?.identifier);
@@ -128,16 +130,16 @@ export const useRunningVoiceFeedback = ({
         if (Platform.OS === "android") {
           // 1) ko-KR만
           const koSpecificVoices = koVoices.filter(
-            (v) => v.language === "ko-KR"
+            (v) => v.language === "ko-KR",
           );
 
           // 2) 남/여 후보 (요구사항: ism 절대 사용 X)
           const maleVoices = koSpecificVoices.filter((v) =>
-            (v.name || "").includes("kod")
+            (v.name || "").includes("kod"),
           );
           const femaleVoices = koSpecificVoices.filter(
             (v) =>
-              (v.name || "").includes("koc") || (v.name || "").includes("kob")
+              (v.name || "").includes("koc") || (v.name || "").includes("kob"),
           );
 
           // 3) local 우선 → network → 첫 번째
@@ -155,7 +157,7 @@ export const useRunningVoiceFeedback = ({
 
           // 4) fallback: ism 제외한 아무거나
           const fallback = koSpecificVoices.find(
-            (v) => !(v.name || "").includes("ism")
+            (v) => !(v.name || "").includes("ism"),
           )?.identifier;
 
           setAndroidMaleVoice(finalMale?.identifier ?? fallback);
@@ -262,7 +264,7 @@ export const useRunningVoiceFeedback = ({
       `목표 거리 ${km} 킬로미터 측정을 시작합니다. 권장 페이스는 ${paceMin}분 ${paceSec}초입니다. 파이팅!`,
       () => {
         ghostBlockUntilRef.current = Date.now() + ghostBlockAfterStartMs;
-      }
+      },
     );
 
     startTime.current = Date.now();
@@ -343,7 +345,7 @@ export const useRunningVoiceFeedback = ({
       isRunning: boolean;
       isPaused: boolean;
       timeSec: number;
-    }
+    },
   ) => {
     const { isReady, isRunning, isPaused, timeSec } = ctx;
 

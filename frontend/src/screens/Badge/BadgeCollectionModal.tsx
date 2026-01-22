@@ -87,7 +87,7 @@ export default function BadgeCollectionModal({ navigation }: any) {
             data={badges}
             keyExtractor={(item) => item.userBadgeId.toString()}
             renderItem={renderBadgeItem}
-            numColumns={3}
+            numColumns={4}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={

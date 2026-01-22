@@ -121,6 +121,7 @@ export const Fonts = Platform.select({
     gmarketBold: "GmarketSansBold", // 지마켓 산스 Bold
     chab: "Chab", // Chab 폰트
     keriskedu: "KERISKEDU_B", // KERISKEDU Bold
+    suiteExtraBold: "SUITE-Heavy", // SUITE Heavy
   },
   android: {
     sans: "Roboto",
@@ -130,6 +131,7 @@ export const Fonts = Platform.select({
     gmarketBold: "GmarketSansBold", // 지마켓 산스 Bold
     chab: "Chab", // Chab 폰트
     keriskedu: "KERISKEDU_B", // KERISKEDU Bold
+    suiteExtraBold: "SUITE-Heavy", // SUITE Heavy
   },
   default: {
     sans: "sans-serif",
@@ -140,6 +142,7 @@ export const Fonts = Platform.select({
     chab: "Chab", // Chab 폰트
     samliphopangche: "SDSamliphopangcheTTFOutline", // 삼립호빵체 아웃라인
     keriskedu: "KERISKEDU_B", // KERISKEDU Bold
+    suiteExtraBold: "SUITE-Heavy", // SUITE Heavy
   },
 });
 
