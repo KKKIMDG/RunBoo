@@ -141,10 +141,27 @@ export default function App() {
   /**
    * 로그인 성공 콜백
    */
-  const handleLoginSuccess = (token: string) => {
+  const handleLoginSuccess = async (token: string) => {
     setAccessToken(token);
     setIsLoggedIn(true);
     authEventBus.emitLogin();
+
+    // 로그인 직후 FCM 토큰 등록 (Android)
+    if (Platform.OS !== "ios") {
+      try {
+        const fcmToken = await getFcmToken();
+        await AsyncStorage.setItem("fcmToken", fcmToken);
+
+        await registerPushDevice({
+          token: fcmToken,
+          platform: "ANDROID",
+        });
+
+        console.log("FCM token registered after login:", fcmToken);
+      } catch (e) {
+        console.warn("FCM register after login failed", e);
+      }
+    }
   };
 
   /**
@@ -154,18 +171,6 @@ export default function App() {
   if (!appReady) {
     return <View style={{ flex: 1, backgroundColor: "#000000" }} />;
   }
-
-  // /** 테마 설정 */
-  // const MyTheme = {
-  //   ...(colorScheme === "dark" ? DarkTheme : DefaultTheme),
-  //   colors: {
-  //     ...(colorScheme === "dark" ? DarkTheme.colors : DefaultTheme.colors),
-  //     primary: Colors[colorScheme === "dark" ? "dark" : "light"].primary,
-  //     background: Colors[colorScheme === "dark" ? "dark" : "light"].background,
-  //     card: Colors[colorScheme === "dark" ? "dark" : "light"].card,
-  //     text: Colors[colorScheme === "dark" ? "dark" : "light"].text,
-  //   },
-  // };
 
   function AndroidSafeAreaRoot({ children, resolvedTheme }: { children: React.ReactNode; resolvedTheme: "light" | "dark" }) {
     const insets = useSafeAreaInsets();
