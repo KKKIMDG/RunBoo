@@ -53,6 +53,13 @@ public class UserSettingService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public boolean isPushEnabled(Long userId) {
+        return userSettingRepository.findById(userId)
+                .map(UserSetting::isPushEnabled)
+                .orElse(false);
+    }
+
 
 
 }

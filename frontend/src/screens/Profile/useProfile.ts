@@ -12,8 +12,8 @@ import {
   updateMyProfileImage,
 } from "@/services/user/userService";
 import {
-    fetchCurrentRunningStreak,
-    fetchTotalRunDistanceM
+  fetchCurrentRunningStreak,
+  fetchTotalRunDistanceM,
 } from "@/services/record/recordsService";
 import { getUserTierIds } from "@/services/tier/tierService"; // dabin 추가: 서비스 임포트
 
@@ -64,7 +64,8 @@ export function useProfile(weeks: number = 12) {
       파생 데이터
   ======================= */
   const profileImageSource =
-    typeof userMe?.profileImageUrl === "string" && userMe.profileImageUrl.length > 0
+    typeof userMe?.profileImageUrl === "string" &&
+    userMe.profileImageUrl.length > 0
       ? { uri: userMe.profileImageUrl }
       : require("@/assets/images/runboo.png");
 
@@ -167,7 +168,9 @@ export function useProfile(weeks: number = 12) {
       contentType: image.mimeType ?? "image/jpeg",
     });
 
-    const { data } = supabase.storage.from("profile-images").getPublicUrl(filePath);
+    const { data } = supabase.storage
+      .from("profile-images")
+      .getPublicUrl(filePath);
     return data.publicUrl;
   };
 
@@ -217,6 +220,44 @@ export function useProfile(weeks: number = 12) {
   };
 
   /* =======================
+      데이터 새로고침
+  ======================= */
+  const refetchAll = async () => {
+    try {
+      setStreakLoading(true);
+      setTierLoading(true);
+      setTotalDistanceLoading(true);
+
+      // 유저 정보 새로고침
+      await refetch();
+
+      // 1. 연속 러닝 스트릭 로드
+      const streakValue = await fetchCurrentRunningStreak();
+      setStreak(streakValue);
+
+      // 2. 누적 총 거리 로드
+      const totalM = await fetchTotalRunDistanceM();
+      setTotalDistanceM(typeof totalM === "number" ? totalM : 0);
+
+      // 3. 티어 ID 리스트 로드
+      const tierIds = await getUserTierIds();
+
+      if (tierIds && tierIds.length >= 2) {
+        setTier5kId(tierIds[0]);
+        setTier10kId(tierIds[1]);
+      } else if (tierIds && tierIds.length === 1) {
+        setTier5kId(tierIds[0]);
+      }
+    } catch (error) {
+      console.error("데이터 새로고침 실패:", error);
+    } finally {
+      setStreakLoading(false);
+      setTierLoading(false);
+      setTotalDistanceLoading(false);
+    }
+  };
+
+  /* =======================
       반환
   ======================= */
   return {
@@ -262,5 +303,8 @@ export function useProfile(weeks: number = 12) {
 
     /* common */
     saving,
+
+    /* refresh */
+    refetchAll,
   };
 }

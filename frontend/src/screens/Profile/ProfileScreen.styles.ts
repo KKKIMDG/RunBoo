@@ -1,11 +1,11 @@
 // ProfileScreen.styles.ts
 import { StyleSheet, Platform } from "react-native";
 import { Colors } from "@/constants/theme";
-import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
 
 export const getStyles = (
-    scheme: "light" | "dark",
-    fontSize: FontSizeSetting
+  scheme: "light" | "dark",
+  fontSize: FontSizeSetting,
 ) =>
   StyleSheet.create({
     safeArea: {
@@ -138,6 +138,7 @@ export const getStyles = (
     },
     badgeList: {
       flexDirection: "row",
+      paddingRight: 10,
     },
     badgeIconPlaceholder: {
       width: 44,

@@ -3,8 +3,8 @@ package com.runboo.domain.notification.service;
 import com.runboo.domain.notification.entity.Notification;
 import com.runboo.domain.notification.enums.NotificationType;
 import com.runboo.domain.notification.repository.NotificationRepository;
-import com.runboo.domain.notification.repository.UserNotificationPreferenceRepository;
 import com.runboo.domain.notification.repository.UserPushDeviceRepository;
+import com.runboo.domain.usersetting.service.UserSettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationCreateService {
 
     private final NotificationRepository notificationRepository;
-    private final UserNotificationPreferenceRepository preferenceRepository;
+    private final UserNotificationPreferenceService preferenceService;
+    private final UserSettingService userSettingService;
     private final UserPushDeviceRepository userPushDeviceRepository;
     private final FcmSendService fcmSendService;
 
@@ -25,28 +26,22 @@ public class NotificationCreateService {
      * @param type          알림 타입
      * @param title         알림 제목
      * @param body          알림 본문
-     * @param pushEnabled   유저 전체 푸시 ON/OFF
      */
     @Transactional
     public void create(
             Long userId,
             NotificationType type,
             String title,
-            String body,
-            boolean pushEnabled
+            String body
     ) {
-        // 1️⃣ 전체 푸시 OFF → 즉시 종료
-        if (!pushEnabled) {
+        // 1️⃣ 전역 push OFF면 종료
+        if (!userSettingService.isPushEnabled(userId)) {
             return;
         }
 
-        // 2️⃣ 타입별 알림 수신 여부 판단
-        boolean enabled = preferenceRepository
-                .findByUserIdAndType(userId, type)
-                .map(p -> p.isEnabled())
-                .orElseGet(() -> getDefault(type));
 
-        if (!enabled) {
+        // 2️⃣ 타입별 알림 OFF면 종료
+        if (!preferenceService.isEnabled(userId, type)) {
             return;
         }
 
