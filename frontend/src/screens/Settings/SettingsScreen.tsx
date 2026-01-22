@@ -19,11 +19,14 @@ import SettingItem from "@/components/setting/SettingItem";
 import { useSettings } from "./useSettings";
 import { useUserMe } from "@/contexts/UserMeContext";
 import { useNotificationPreference } from "./useNotificationPreference";
-import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import { useResolvedTheme } from "@/hooks/useResolvedTheme";
+import { useTutorial } from "@/hooks/useTutorial";
+import OnboardingScreen from "@/screens/tutorial/OnboardingScreen";
 
 export default function SettingsScreen({ navigation, onLogout }: any) {
   const { userMe } = useUserMe();
-  
+  const { resetAllTutorials } = useTutorial();
+
   /** 일반 설정 */
   const { settings, update } = useSettings();
   const colorScheme = useResolvedTheme(settings?.themeMode);
@@ -40,6 +43,9 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
 
   // 어떤 select가 열려 있는지 (화살표용)
   const [openSelectKey, setOpenSelectKey] = useState<string | null>(null);
+
+  // 온보딩 모달 표시 여부
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // 실제 드랍다운 데이터
   const [dropdown, setDropdown] = useState<null | {
@@ -231,7 +237,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
               isOpen={openSelectKey === "voiceType"}
               onToggleOpen={() =>
                 setOpenSelectKey((prev) =>
-                  prev === "voiceType" ? null : "voiceType"
+                  prev === "voiceType" ? null : "voiceType",
                 )
               }
               isLast
@@ -268,7 +274,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
               isOpen={openSelectKey === "themeMode"}
               onToggleOpen={() =>
                 setOpenSelectKey((prev) =>
-                  prev === "themeMode" ? null : "themeMode"
+                  prev === "themeMode" ? null : "themeMode",
                 )
               }
             />
@@ -294,7 +300,7 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
               isOpen={openSelectKey === "fontSize"}
               onToggleOpen={() =>
                 setOpenSelectKey((prev) =>
-                  prev === "fontSize" ? null : "fontSize"
+                  prev === "fontSize" ? null : "fontSize",
                 )
               }
               isLast
@@ -314,6 +320,26 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
               icon="settings-outline"
               label="권한"
               onPress={() => Linking.openSettings()}
+              isLast
+            />
+          </View>
+        </View>
+
+        {/* 도움말 */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="help-circle-outline" size={16} color="#FF9800" />
+            <Text style={styles.sectionTitle}>도움말</Text>
+          </View>
+
+          <View style={styles.card}>
+            <SettingItem
+              icon="book-outline"
+              label="튜토리얼 다시보기"
+              onPress={() => {
+                resetAllTutorials();
+                setShowOnboarding(true);
+              }}
               isLast
             />
           </View>
@@ -348,6 +374,20 @@ export default function SettingsScreen({ navigation, onLogout }: any) {
           <Text style={styles.textButton}>계정 탈퇴하기</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* 온보딩 모달 */}
+      {showOnboarding && (
+        <Modal
+          visible={showOnboarding}
+          animationType="slide"
+          presentationStyle="fullScreen"
+          onRequestClose={() => setShowOnboarding(false)}
+        >
+          <View style={{ flex: 1 }}>
+            <OnboardingScreen onComplete={() => setShowOnboarding(false)} />
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
