@@ -94,8 +94,7 @@ public class ChallengeService {
                 userId,
                 NotificationType.CHALLENGE,
                 "🎉 챌린지 달성!",
-                "챌린지를 완료했어요. 다음 단계가 열렸습니다!",
-                true
+                "챌린지를 완료했어요. 다음 단계가 열렸습니다!"
         );
 
         return getActiveAndNextChallenges(userId);
