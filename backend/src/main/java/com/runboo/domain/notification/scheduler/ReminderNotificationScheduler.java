@@ -39,8 +39,7 @@ public class ReminderNotificationScheduler {
                     userId,
                     NotificationType.REMINDER,
                     "🏃 오늘 러닝 어떠세요? ",
-                    "1분 주기로 뜨는 테스트용 알림! 끄고 싶으면 설정 -> 러닝 리마인더 알림 끄기",
-                    true
+                    "1분 주기로 뜨는 테스트용 알림! 끄고 싶으면 설정 -> 러닝 리마인더 알림 끄기"
             );
         }
     }
