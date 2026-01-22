@@ -1,11 +1,13 @@
 import type { Notice } from "../types/admin";
 
-// 환경 변수가 로드되지 않을 경우를 대비한 기본값 설정
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
-  ? `${import.meta.env.VITE_API_BASE_URL}/api/admin`
-  : "http://localhost:8080/api/admin";
+// 개발환경에서는 프록시 사용, 프로덕션에서는 절대 URL 사용
+const API_BASE_URL =
+  import.meta.env.MODE === "development"
+    ? "/api/admin" // 프록시를 통해 요청
+    : `${import.meta.env.VITE_API_BASE_URL}/api/admin`;
 
 console.log("API_BASE_URL:", API_BASE_URL); // 디버깅용
+console.log("MODE:", import.meta.env.MODE); // 디버깅용
 
 export const adminApi = {
   // 관리자 로그인
