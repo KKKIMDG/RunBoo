@@ -1,14 +1,15 @@
 // src/screens/Profile/BadgeCollection.styles.ts
 import { StyleSheet, Dimensions } from "react-native";
 import { Colors } from "@/constants/theme";
-import {FontSizeSetting, scaleFont} from "@/utils/fontScale";
+import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
 
 const { height } = Dimensions.get("window");
 
 export const getStyles = (
-    scheme: "light" | "dark",
-    fontSize: FontSizeSetting
-) =>  StyleSheet.create({
+  scheme: "light" | "dark",
+  fontSize: FontSizeSetting,
+) =>
+  StyleSheet.create({
     overlay: {
       flex: 1,
       justifyContent: "flex-end",
@@ -51,18 +52,20 @@ export const getStyles = (
     },
     listContent: {
       paddingBottom: 40,
-      alignItems: "center",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-around",
     },
     badgeItem: {
-      width: (Dimensions.get("window").width - 80) / 1,
+      width: (Dimensions.get("window").width - 60) / 4,
       alignItems: "center",
-      marginBottom: 25,
-      marginHorizontal: 10,
+      marginBottom: 20,
+      marginHorizontal: 2,
     },
     badgeIconContainer: {
-      width: 70,
-      height: 70,
-      borderRadius: 35,
+      width: 50,
+      height: 50,
+      borderRadius: 25,
       backgroundColor: scheme === "dark" ? "#1C1C1E" : "#F1F3F9",
       justifyContent: "center",
       alignItems: "center",

@@ -7,7 +7,7 @@ import { FontSizeSetting, scaleFont } from "@/utils/fontScale";
 
 export const getStyles = (
   scheme: "light" | "dark",
-  fontSize: FontSizeSetting
+  fontSize: FontSizeSetting,
 ) =>
   StyleSheet.create({
     root: {
@@ -53,11 +53,13 @@ export const getStyles = (
     },
 
     logoText: {
-      fontFamily: Fonts?.keriskedu,
+      fontFamily: Fonts.gmarketBold,
+      fontWeight: "800",
       marginTop: 5,
       fontSize: scaleFont(25, fontSize),
-      letterSpacing: 1.0,
+      letterSpacing: 0,
       color: Colors[scheme].text,
+      transform: [{ skewX: "-10deg" }],
     },
 
     bellButton: {
