@@ -184,7 +184,6 @@ export default function App() {
     children: React.ReactNode;
     resolvedTheme: "light" | "dark";
   }) {
-    const insets = useSafeAreaInsets();
 
     if (Platform.OS !== "android") {
       return <>{children}</>;
@@ -195,7 +194,6 @@ export default function App() {
             style={{
               flex: 1,
               backgroundColor: resolvedTheme === "dark" ? "#000000" : "#ffffff",
-              paddingBottom: Platform.OS === "android" ? insets.bottom : 0,
             }}
         >
           {children}

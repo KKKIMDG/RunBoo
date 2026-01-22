@@ -20,7 +20,7 @@ export const getStyles = (
       borderTopColor: Colors[scheme].border,
       borderTopWidth: 1,
       backgroundColor: Colors[scheme].background,
-      paddingBottom: 5, // 홈 인디케이터(Home Indicator) 여백 확보
+
       elevation: 20, // 안드로이드 그림자
       shadowColor: Colors[scheme].shadow, // iOS 그림자
       shadowOffset: { width: 0, height: -2 },

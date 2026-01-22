@@ -1,10 +1,11 @@
 import React, { useMemo } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { getStyles } from "./BottomNavBar.styles";
 import {useSettings} from "@/screens/Settings/useSettings";
 import {useResolvedTheme} from "@/hooks/useResolvedTheme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface BottomNavBarProps {
   activeTab?: string;
@@ -26,7 +27,7 @@ export function BottomNavBar({
   const styles = useMemo(() => {
     return getStyles(resolvedTheme, settings?.fontSize || "MEDIUM");
   }, [resolvedTheme, settings?.fontSize]);
-
+  const insets = useSafeAreaInsets();
   const tabs: {
     name: string;
     icon: IoniconName;
@@ -40,7 +41,12 @@ export function BottomNavBar({
   ];
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root,
+      Platform.OS === "android" && {
+        paddingBottom: insets.bottom,
+        height: 70 + insets.bottom,
+      },
+    ]}>
       <View style={styles.container}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.name;
