@@ -22,7 +22,7 @@ public class ReminderNotificationScheduler {
     /**
      * 리마인더 발송
      */
-    @Scheduled(cron = "0 */1 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 19 * * *", zone = "Asia/Seoul")
     public void sendDailyReminder() {
 
         List<Long> userIds = userRepository.findAllActiveUserIds();
@@ -38,8 +38,8 @@ public class ReminderNotificationScheduler {
             notificationCreateService.create(
                     userId,
                     NotificationType.REMINDER,
-                    "🏃 오늘 러닝 어떠세요? ",
-                    "1분 주기로 뜨는 테스트용 알림! 끄고 싶으면 설정 -> 러닝 리마인더 알림 끄기"
+                    "🏃 오늘 러닝 어떠세요? 🏃",
+                    "가볍게 한 번 뛰어볼까요?"
             );
         }
     }
