@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "notification")
@@ -56,7 +57,8 @@ public class Notification {
         notification.title = title;
         notification.body = body;
         notification.read = false;
-        notification.createdAt = LocalDateTime.now();
+        notification.createdAt =
+                LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         return notification;
     }
 
