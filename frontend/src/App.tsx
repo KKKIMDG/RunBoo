@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Alert, Platform, View } from "react-native";
+import React, {useEffect, useState} from "react";
+import { Platform, View} from "react-native";
 import {
   NavigationContainer,
   DefaultTheme,
@@ -25,13 +25,13 @@ import {
 import { getFcmToken } from "@/services/notification/fcmToken";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useSettings } from "@/screens/Settings/useSettings";
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import * as NavigationBar from "expo-navigation-bar";
+import {SafeAreaProvider, useSafeAreaInsets} from "react-native-safe-area-context";
+import { StatusBar } from 'expo-status-bar';
+import * as NavigationBar from 'expo-navigation-bar';
 import messaging from "@react-native-firebase/messaging";
+import FlashMessage, {showMessage} from "react-native-flash-message";
+import {useBannerNotification} from "@/hooks/useBannerNotification";
+import {NotificationHandler} from "@/components/NotificationHandler";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -74,27 +74,6 @@ export default function App() {
     await AuthService.logout();
     setIsLoggedIn(false);
   };
-  // // @ts-ignore
-  useEffect(() => {
-    // 포그라운드 상태에서 메시지를 받았을 때 호출됨
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      console.log('포그라운드 메시지 수신:', remoteMessage);
-
-      // 여기서 원하는 UI를 띄웁니다.
-      // 예: 시스템 알럿 사용 (가장 간단한 방법)
-      // @ts-ignore
-      if ("title" in remoteMessage.notification) {
-        if (remoteMessage.notification.title != null) {
-          Alert.alert(
-              remoteMessage.notification.title,
-              remoteMessage.notification.body
-          );
-        }
-      }
-    });
-
-    return unsubscribe;
-  }, []);
 
   /**
    * 앱 초기 부트스트랩
@@ -176,16 +155,22 @@ export default function App() {
     return <View style={{ flex: 1, backgroundColor: "#000000" }} />;
   }
 
+  // /** 테마 설정 */
+  // const MyTheme = {
+  //   ...(colorScheme === "dark" ? DarkTheme : DefaultTheme),
+  //   colors: {
+  //     ...(colorScheme === "dark" ? DarkTheme.colors : DefaultTheme.colors),
+  //     primary: Colors[colorScheme === "dark" ? "dark" : "light"].primary,
+  //     background: Colors[colorScheme === "dark" ? "dark" : "light"].background,
+  //     card: Colors[colorScheme === "dark" ? "dark" : "light"].card,
+  //     text: Colors[colorScheme === "dark" ? "dark" : "light"].text,
+  //   },
+  // };
 
-  function AndroidSafeAreaRoot({
-                                 children,
-                                 resolvedTheme,
-                               }: {
-    children: React.ReactNode;
-    resolvedTheme: "light" | "dark";
-  }) {
+  function AndroidSafeAreaRoot({ children, resolvedTheme }: { children: React.ReactNode; resolvedTheme: "light" | "dark" }) {
+    const insets = useSafeAreaInsets();
 
-    if (Platform.OS !== "android") {
+    if (Platform.OS !== 'android') {
       return <>{children}</>;
     }
 
@@ -193,7 +178,11 @@ export default function App() {
         <View
             style={{
               flex: 1,
-              backgroundColor: resolvedTheme === "dark" ? "#000000" : "#ffffff",
+              backgroundColor:
+                  resolvedTheme === "dark" ? "#000000" : "#ffffff",
+              paddingBottom: Platform.OS === 'android'
+                  ? insets.bottom
+                  : 0,
             }}
         >
           {children}
@@ -209,7 +198,10 @@ export default function App() {
     isLoggedIn: boolean;
     onLoginSuccess: (token: string) => void;
     onLogout: () => void;
+
+
   }) {
+
     if (!isLoggedIn) {
       return (
           <>
@@ -235,7 +227,7 @@ export default function App() {
       if (Platform.OS !== "android") return;
 
       NavigationBar.setButtonStyleAsync(
-          resolvedTheme === "dark" ? "light" : "dark",
+          resolvedTheme === "dark" ? "light" : "dark"
       );
     }, [resolvedTheme]);
 
@@ -251,6 +243,7 @@ export default function App() {
             <NavigationContainer
                 theme={resolvedTheme === "dark" ? DarkTheme : DefaultTheme}
             >
+              <NotificationHandler />
               <PermissionGuard>
                 <RootNavigator
                     isLoggedIn={isLoggedIn}
@@ -288,6 +281,8 @@ export default function App() {
               />
           )}
         </ErrorBoundary>
+        <FlashMessage position="top" />
       </SafeAreaProvider>
   );
+
 }
