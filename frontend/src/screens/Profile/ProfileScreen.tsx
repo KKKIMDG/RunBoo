@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Image,
   ActivityIndicator,
   TextInput,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,6 +29,15 @@ export default function ProfileScreen({ navigation }: any) {
     return getStyles(colorScheme, settings?.fontSize || "MEDIUM");
   }, [colorScheme, settings?.fontSize]);
 
+  /** Pull-to-Refresh 상태 */
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await profile.refetchAll();
+    setRefreshing(false);
+  }, [profile]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* ===== 헤더 ===== */}
@@ -46,6 +56,14 @@ export default function ProfileScreen({ navigation }: any) {
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#3A4A98"
+            colors={["#3A4A98"]}
+          />
+        }
       >
         {/* ===== 유저 카드 ===== */}
         <View style={styles.card}>
@@ -182,7 +200,11 @@ export default function ProfileScreen({ navigation }: any) {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.badgeList}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.badgeList}
+          >
             {profile.badgeLoading ? (
               <ActivityIndicator size="small" color="#3A4A98" />
             ) : profile.badges.length > 0 ? (
@@ -209,7 +231,7 @@ export default function ProfileScreen({ navigation }: any) {
                 획득한 배지가 없습니다.
               </Text>
             )}
-          </View>
+          </ScrollView>
         </View>
 
         {/* ===== 요약 통계 (연속 일수 & 배지 갯수) ===== */}
