@@ -1,5 +1,6 @@
 import "./HomePage.css";
 import IntroSection1 from "../Sections/IntroSection1";
+import IntroResultSection from "@/pages/Sections/IntroResultSection.tsx";
 import IntroLightSection from "../Sections/IntroLightSection";
 import IntroDarkSection from "../Sections/IntroDarkSection";
 import IntroStatsSection from "../Sections/IntroStatsSection";
@@ -74,6 +75,7 @@ export default function HomePage() {
 
       <section id="service" data-title="서비스 소개" data-index="1">
         <IntroSection1 />
+        <IntroResultSection />
         <IntroLightSection />
         <IntroDarkSection />
         <IntroStatsSection />
