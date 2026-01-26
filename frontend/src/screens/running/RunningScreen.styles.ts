@@ -383,7 +383,7 @@ export const getStyles = (
       justifyContent: "space-around",
       paddingVertical: 10,
       paddingHorizontal: 24,
-      backgroundColor: activeColors.background,
+      backgroundColor: "transparent",
       marginBottom: 20,
     },
     bottomStatItem: {
