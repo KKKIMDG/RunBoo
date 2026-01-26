@@ -1,17 +1,17 @@
-import "./IntroDarkSection.css";
+import "./IntroFriendsSection.css";
 
-export default function IntroDarkSection() {
+export default function IntroFriendsSection() {
   return (
     <section className="darkIntro snapSection" id="service-intro-dark">
       <div className="darkIntroInner">
         {/* 좌측: 카피 */}
         <div className="darkIntroLeft animate-section">
           <p className="darkCopy">
-            밤에는
+            친구 추가 기능으로
             <br />
-            <span className="darkCopyStrong">다크 모드</span>로
-              <br />
-              눈부심 최소화
+            <span className="darkCopyStrong">친구와 함께</span>
+            <br />
+            러닝이 더 즐거워진다.
           </p>
         </div>
 
