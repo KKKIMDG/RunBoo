@@ -14,16 +14,4 @@ public class TierCreateRequest {
     private String distanceType;
     private int minPaceSecPerKm;
     private int maxPaceSecPerKm;
-
-    // DTO -> 엔티티
-    public Tier toEntity() {
-        return new Tier(
-                null,                 // tierId는 생성 시 null
-                name,
-                displayName,
-                distanceType,
-                minPaceSecPerKm,
-                maxPaceSecPerKm
-        );
-    }
 }
