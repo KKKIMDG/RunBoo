@@ -31,6 +31,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useSettings } from "@/screens/Settings/useSettings";
 import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
+import { Colors } from "@/constants/theme";
 
 const { width } = Dimensions.get("window");
 
@@ -211,19 +212,19 @@ const RunningScreen = () => {
   );
 
   const chartConfig = useMemo(() => {
-    const bgColor = isDarkMode ? "#121212" : "#FFFFFF";
     return {
-      backgroundGradientFrom: bgColor,
-      backgroundGradientTo: bgColor,
+      backgroundColor: Colors[colorScheme].background,
+      backgroundGradientFrom: Colors[colorScheme].background,
+      backgroundGradientTo: Colors[colorScheme].background,
       decimalPlaces: 1,
-      color: (opacity = 1) => `rgba(74,110,169,${opacity})`,
-      labelColor: () => (isDarkMode ? "#FFF" : "#333"),
+      color: (opacity = 1) => `rgba(44, 63, 110, ${opacity})`,
+      labelColor: (opacity = 1) =>
+        isDarkMode ? `rgba(255,255,255,${opacity})` : `rgba(0,0,0,${opacity})`,
+      style: { borderRadius: 16 },
       propsForDots: { r: "0" },
-      propsForBackgroundLines: {
-        strokeWidth: 0,
-      },
+      propsForBackgroundLines: { stroke: "transparent" },
     };
-  }, [isDarkMode]);
+  }, [isDarkMode, colorScheme]);
 
   // ✅ 변경: stopRun()은 인자 없이 호출 (cadence는 훅에서 평균 계산 후 DB 저장)
   const handleStopLongPress = () => {
@@ -313,13 +314,13 @@ const RunningScreen = () => {
                 backgroundColor: isVoiceEnabled
                   ? "#4A6EA9"
                   : isDarkMode
-                    ? "#1a1a1a"
-                    : "#ffffff",
+                  ? "#1a1a1a"
+                  : "#ffffff",
                 borderColor: isVoiceEnabled
                   ? "#4A6EA9"
                   : isDarkMode
-                    ? "#333"
-                    : "#E5E7EB",
+                  ? "#333"
+                  : "#E5E7EB",
               },
             ]}
             activeOpacity={0.85}
@@ -374,8 +375,8 @@ const RunningScreen = () => {
                 backgroundColor: isFollowing
                   ? "#4A6EA9"
                   : isDarkMode
-                    ? "#333"
-                    : "#FFF",
+                  ? "#333"
+                  : "#FFF",
               },
             ]}
             onPress={handleFocusPress}
