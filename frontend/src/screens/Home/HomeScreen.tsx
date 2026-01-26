@@ -33,6 +33,7 @@ import { fetchMyRecords } from "@/services/record/recordsService";
 import { useSettings } from "@/screens/Settings/useSettings";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
+import {startRunningService} from "@/services/running/runningService";
 
 type HomeScreenProps = {
   navigation: { navigate: (screen: string, params?: any) => void };
@@ -318,6 +319,10 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
 
   const handleSelectGhost = (gp: GhostProfileDto) => {
     setGhostSheetOpen(false);
+
+    // 안드로이드는 포그라운드 서비스 시작
+    startRunningService();
+
     // ✅ 고스트 모드도 userId 전달
     navigation.navigate("GhostRun", {
       ghost: gp,
@@ -331,6 +336,10 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
       Alert.alert("알림", "사용자 정보를 불러오는 중입니다.");
       return;
     }
+
+    // 안드로이드는 포그라운드 서비스 시작
+    startRunningService();
+
     navigation.navigate("Running", {
       userId: me.userId,
       targetDistance: selectedGoal.value,
@@ -343,6 +352,10 @@ const HomeScreen: FC<HomeScreenProps> = ({ navigation }) => {
       Alert.alert("알림", "사용자 정보를 불러오는 중입니다.");
       return;
     }
+
+    // 안드로이드는 포그라운드 서비스 시작
+    startRunningService();
+
     navigation.navigate("TierRunning", {
       userId: me.userId,
       targetDistance: tierDistance === "5km" ? 5000 : 10000,

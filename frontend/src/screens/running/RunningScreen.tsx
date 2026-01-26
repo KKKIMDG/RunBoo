@@ -31,11 +31,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useSettings } from "@/screens/Settings/useSettings";
 import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
+
+import {stopRunningService} from "@/services/running/runningService";
+import {useBlockBack} from "@/hooks/useBlockBack";
+
 import { Colors } from "@/constants/theme";
 
 const { width } = Dimensions.get("window");
 
 const RunningScreen = () => {
+  useBlockBack();
   const mapRef = useRef<MapView>(null);
   const { settings } = useSettings();
   const colorScheme = useResolvedTheme(settings?.themeMode);
@@ -228,6 +233,7 @@ const RunningScreen = () => {
 
   // ✅ 변경: stopRun()은 인자 없이 호출 (cadence는 훅에서 평균 계산 후 DB 저장)
   const handleStopLongPress = () => {
+    stopRunningService();
     console.log("[RunningScreen] 정지 버튼 길게 누름");
     if (isVoiceEnabled) {
       console.log("[RunningScreen] 정지 안내 음성 재생");

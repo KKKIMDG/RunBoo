@@ -28,12 +28,15 @@ import { useSettings } from "@/screens/Settings/useSettings";
 import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useMapFocusing } from "./useRunCore";
 import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
+
+import {useBlockBack} from "@/hooks/useBlockBack";
 import { Background } from "@react-navigation/elements";
 import { Colors } from "@/constants/theme";
 
 const { width } = Dimensions.get("window");
 
 const TierRunningScreen = () => {
+  useBlockBack();
   const { settings } = useSettings();
   const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {

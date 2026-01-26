@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Alert } from "react-native";
+import {Alert, Platform} from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Location from "expo-location";
@@ -21,6 +21,7 @@ import {
   useMapFocusing,
 } from "./useRunCore";
 import { perfLogger, trackArray } from "@/utils/performanceLogger";
+import {startRunningService, stopRunningService} from "@/services/running/runningService";
 
 type RunningScreenRouteProp = RouteProp<RootStackParamList, "Running">;
 type RunningScreenNavigationProp = StackNavigationProp<RootStackParamList>;
@@ -67,7 +68,7 @@ export const useRunningScreen = () => {
   const [initialLocation, setInitialLocation] = useState<Coordinate | null>(
     null,
   );
-
+  const locationSubscription = useRef<Location.LocationSubscription | null>(null);
   const { pushCadenceSample, resetCadenceAgg, avgCadence } = useCadence();
   const { displayTime, paceHistory } = useRunTimer(
     isRunning,
@@ -157,17 +158,55 @@ export const useRunningScreen = () => {
 
   // 타이머 및 페이스 기록은 공통 훅(useRunTimer)에서 처리합니다.
 
-  const startLocationTracking = makeStartLocationTracking(
-    "RunBoo Running",
-    "러닝 기록을 측정 중입니다.",
-  );
+// ✅ 2. 위치 추적 시작 로직 수정
+  const startLocationTracking = async () => {
+    if (Platform.OS === 'android') {
+      // 네이티브 서비스 시작 (고정 알림 띄우기)
+      startRunningService();
 
+      // JS 레벨 추적 (네이티브 서비스 덕분에 백그라운드에서도 생존)
+      // 기존에 존재하던 구독이 있다면 제거 후 새로 시작
+      if (locationSubscription.current) {
+        locationSubscription.current.remove();
+      }
+
+      locationSubscription.current = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Highest,
+            distanceInterval: 5, // 5미터 이동 시마다 업데이트
+            timeInterval: 1000,  // 혹은 1초마다
+          },
+          (location) => {
+            updateLocation(location);
+          }
+      );
+    } else {
+      // iOS는 기존 Expo Background Task 방식 유지
+      const trackingStarter = makeStartLocationTracking(
+          "RunBoo Running",
+          "러닝 기록을 측정 중입니다."
+      );
+      await trackingStarter();
+    }
+  };
   // ✅ 통합된 stopRun: 평균 케이던스 포함 및 ID 확보
+// ✅ 3. 통합된 stopRun 수정
   const stopRun = async () => {
-    // console.log("[useRunningScreen] Stopping run...");
     perfLogger.start("stopRun - 전체 처리");
 
-    await stopBackgroundLocation();
+    // 안드로이드와 iOS 종료 로직 분기
+    if (Platform.OS === 'android') {
+      // 네이티브 알림 서비스 종료
+      stopRunningService();
+      // JS 위치 구독 해제
+      if (locationSubscription.current) {
+        locationSubscription.current.remove();
+        locationSubscription.current = null;
+      }
+    } else {
+      // iOS 전용 백그라운드 위치 종료
+      await stopBackgroundLocation();
+    }
 
     stopStoreRun();
     // console.log("[useRunningScreen] Store run stopped");
@@ -234,6 +273,15 @@ export const useRunningScreen = () => {
       recordId,
     });
   };
+  useEffect(() => {
+    return () => {
+      if (Platform.OS === 'android') {
+        stopRunningService();
+        locationSubscription.current?.remove();
+      }
+    };
+  }, []);
+
 
   return {
     state: {

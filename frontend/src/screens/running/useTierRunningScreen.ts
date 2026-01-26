@@ -19,6 +19,7 @@ import {
   formatTime,
   formatPace,
 } from "./useRunCore";
+import {stopRunningService} from "@/services/running/runningService";
 
 type TierRunningRouteProp = RouteProp<RootStackParamList, "TierRunning">;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -198,6 +199,7 @@ export const useTierRunningScreen = () => {
 
   // ✅ 중단 버튼 처리
   const handleStopPress = () => {
+    stopRunningService();
     pauseStoreRun();
     Alert.alert(
       "측정 중단",
