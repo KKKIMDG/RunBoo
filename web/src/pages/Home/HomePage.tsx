@@ -1,14 +1,14 @@
 import "./HomePage.css";
 import IntroSection1 from "../Sections/IntroSection1";
 import IntroResultSection from "@/pages/Sections/IntroResultSection.tsx";
-import IntroLightSection from "../Sections/IntroLightSection";
-import IntroDarkSection from "../Sections/IntroDarkSection";
 import IntroStatsSection from "../Sections/IntroStatsSection";
 import IntroAiSection from "../Sections/IntroAiSection";
 import IntroNearbyGhostSection from "@/pages/Sections/IntroNearbyGhostSection.tsx";
 import FinalCtaSection from "@/pages/Sections/FinalCtaSection.tsx";
 import ScrollNavigator from "@/components/common/scrollNavigator/ScrollNavigator.tsx";
 import { useEffect } from "react";
+import IntroFriendsSection from "../Sections/IntroFriendsSection";
+import IntroCourseSection from "../Sections/IntroCourseSection";
 
 export default function HomePage() {
   useEffect(() => {
@@ -76,11 +76,11 @@ export default function HomePage() {
       <section id="service" data-title="서비스 소개" data-index="1">
         <IntroSection1 />
         <IntroResultSection />
-        <IntroLightSection />
-        <IntroDarkSection />
+        <IntroNearbyGhostSection />
+        <IntroCourseSection />
+        <IntroFriendsSection />
         <IntroStatsSection />
         <IntroAiSection />
-        <IntroNearbyGhostSection />
         <FinalCtaSection />
       </section>
     </main>

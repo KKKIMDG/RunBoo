@@ -1,6 +1,6 @@
-import "./IntroLightSection.css";
+import "./IntroCourseSection.css";
 
-export default function IntroLightSection() {
+export default function IntroCourseSection() {
   return (
     <section className="lightIntro snapSection" id="service-intro-light">
       <div className="lightIntroInner">
@@ -8,7 +8,7 @@ export default function IntroLightSection() {
         <div className="lightIntroLeft">
           <img
             className="lightPhone animate-section"
-            src="/phone1.png"
+            src="/phone12.png"
             alt="RunBoo 라이트 모드 화면"
           />
         </div>
@@ -16,9 +16,9 @@ export default function IntroLightSection() {
         {/* 우측: 텍스트 + 라벨 */}
         <div className="lightIntroRight animate-section">
           <p className="lightCopy">
-            평소에는 편안하게
+            나만의 러닝 코스가
             <br />
-            <span className="lightCopyStrong">라이트 모드</span>를
+            <span className="lightCopyStrong">인기 코스가 될 수 있다.</span>
           </p>
         </div>
       </div>
