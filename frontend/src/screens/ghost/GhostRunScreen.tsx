@@ -314,9 +314,9 @@ export default function GhostRunScreen() {
   }, [rtPaceData]);
 
   const chartConfig = {
-    backgroundColor: colors.card,
-    backgroundGradientFrom: colors.card,
-    backgroundGradientTo: colors.card,
+    backgroundColor: colors.background,
+    backgroundGradientFrom: colors.background,
+    backgroundGradientTo: colors.background,
     decimalPlaces: 1,
     color: (opacity = 1) => `rgba(44, 63, 110, ${opacity})`,
     labelColor: (opacity = 1) =>
@@ -574,8 +574,8 @@ export default function GhostRunScreen() {
                 backgroundColor: isFollowing
                   ? "#4A6EA9"
                   : isDarkMode
-                    ? "#333"
-                    : "#FFF",
+                  ? "#333"
+                  : "#FFF",
               },
             ]}
             onPress={handleFocusPress}
@@ -591,7 +591,7 @@ export default function GhostRunScreen() {
         <View
           style={[
             styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
+            { backgroundColor: colors.background, borderColor: colors.border },
           ]}
         >
           <View style={styles.cardTopRow}>
@@ -741,7 +741,7 @@ export default function GhostRunScreen() {
         <View
           style={[
             styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
+            { backgroundColor: colors.background, borderColor: colors.border },
           ]}
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
