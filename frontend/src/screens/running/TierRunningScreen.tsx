@@ -29,9 +29,14 @@ import { useResolvedTheme } from "@/hooks/useResolvedTheme";
 import { useMapFocusing } from "./useRunCore";
 import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
 
+import {useBlockBack} from "@/hooks/useBlockBack";
+import { Background } from "@react-navigation/elements";
+import { Colors } from "@/constants/theme";
+
 const { width } = Dimensions.get("window");
 
 const TierRunningScreen = () => {
+  useBlockBack();
   const { settings } = useSettings();
   const colorScheme = useResolvedTheme(settings?.themeMode);
   const styles = useMemo(() => {
@@ -85,12 +90,15 @@ const TierRunningScreen = () => {
   }, [cadence]);
 
   const chartConfig = {
-    backgroundGradientFrom: isDarkMode ? "#1E1E1E" : "#ffffff",
-    backgroundGradientTo: isDarkMode ? "#1E1E1E" : "#ffffff",
+    backgroundColor: Colors[colorScheme].background,
+    backgroundGradientFrom: Colors[colorScheme].background,
+    backgroundGradientTo: Colors[colorScheme].background,
     decimalPlaces: 1,
-    color: (opacity = 1) => `rgba(74, 110, 169, ${opacity})`,
-    labelColor: () => (isDarkMode ? "#FFF" : "#333"),
+    color: (opacity = 1) => `rgba(44, 63, 110, ${opacity})`,
+    labelColor: (opacity = 1) =>
+      isDarkMode ? `rgba(255,255,255,${opacity})` : `rgba(0,0,0,${opacity})`,
     propsForDots: { r: "0" },
+    propsForBackgroundLines: { stroke: "transparent" },
   };
 
   const renderedMap = useMemo(
@@ -196,8 +204,8 @@ const TierRunningScreen = () => {
                 backgroundColor: isFollowing
                   ? "#4A6EA9"
                   : isDarkMode
-                    ? "#333"
-                    : "#FFF",
+                  ? "#333"
+                  : "#FFF",
               },
             ]}
             onPress={handleFocusPress}

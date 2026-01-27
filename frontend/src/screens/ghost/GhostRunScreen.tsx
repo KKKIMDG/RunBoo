@@ -30,6 +30,8 @@ import { useMapFocusing } from "@/screens/running/useRunCore";
 import { darkMapStyle, lightMapStyle } from "@/screens/Home/mapStyles";
 import { getStyles } from "./GhostRunScreen.styles";
 import { trackArray } from "@/utils/performanceLogger";
+import {stopRunningService} from "@/services/running/runningService";
+import {useBlockBack} from "@/hooks/useBlockBack";
 
 const { width: W } = Dimensions.get("window");
 
@@ -43,6 +45,7 @@ type IoniconName =
   | "medal-outline";
 
 export default function GhostRunScreen() {
+  useBlockBack();
   const mapRef = useRef<MapView>(null);
   const { settings } = useSettings();
   const resolvedTheme = useResolvedTheme(settings?.themeMode);
@@ -314,9 +317,9 @@ export default function GhostRunScreen() {
   }, [rtPaceData]);
 
   const chartConfig = {
-    backgroundColor: colors.card,
-    backgroundGradientFrom: colors.card,
-    backgroundGradientTo: colors.card,
+    backgroundColor: colors.background,
+    backgroundGradientFrom: colors.background,
+    backgroundGradientTo: colors.background,
     decimalPlaces: 1,
     color: (opacity = 1) => `rgba(44, 63, 110, ${opacity})`,
     labelColor: (opacity = 1) =>
@@ -368,6 +371,7 @@ export default function GhostRunScreen() {
   // ✅ 기록 종료: RunningScreen과 동일 패턴
   // ============================================================
   const handleStopLongPress = () => {
+    stopRunningService();
     if (isVoiceEnabled) {
       speakStop(distanceM);
       stopRun();
@@ -574,8 +578,8 @@ export default function GhostRunScreen() {
                 backgroundColor: isFollowing
                   ? "#4A6EA9"
                   : isDarkMode
-                    ? "#333"
-                    : "#FFF",
+                  ? "#333"
+                  : "#FFF",
               },
             ]}
             onPress={handleFocusPress}
@@ -591,7 +595,7 @@ export default function GhostRunScreen() {
         <View
           style={[
             styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
+            { backgroundColor: colors.background, borderColor: colors.border },
           ]}
         >
           <View style={styles.cardTopRow}>
@@ -741,7 +745,7 @@ export default function GhostRunScreen() {
         <View
           style={[
             styles.card,
-            { backgroundColor: colors.card, borderColor: colors.border },
+            { backgroundColor: colors.background, borderColor: colors.border },
           ]}
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>

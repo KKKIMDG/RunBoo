@@ -1,0 +1,101 @@
+.resultIntro {
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+            radial-gradient(
+                    900px 520px at 50% 50%,
+                    rgba(90, 130, 255, 0.22),
+                    rgba(0, 0, 0, 0) 60%
+            ),
+            linear-gradient(180deg, #020617 0%, #00040f 100%);
+    overflow: hidden;
+}
+
+.resultIntroInner {
+    width: min(1200px, 92vw);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    gap: 28px;
+}
+
+/* 좌측 */
+.resultLeft {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.resultLeftTitle {
+    margin: 0;
+    font-size: clamp(22px, 2.4vw, 34px);
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.6px;
+}
+
+.resultLeftText {
+    margin: 0;
+    font-size: clamp(18px, 2.0vw, 22px);
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: -0.6px;
+    line-height: 1.4;
+}
+
+/* 가운데 */
+.resultCenter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.resultPhone {
+    width: min(300px, 62vw);
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 26px 36px rgba(0, 0, 0, 0.6));
+}
+
+/* 우측 */
+.resultRight {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: left;
+}
+
+.resultRightText {
+    margin: 0;
+    font-size: clamp(18px, 2.2vw, 30px);
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: -0.6px;
+    line-height: 1.3;
+}
+
+.resultStrong {
+    font-weight: 900;
+    color: #ffffff;
+}
+
+/* 반응형 */
+@media (max-width: 920px) {
+    .resultIntroInner {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        text-align: center;
+    }
+
+    .resultLeft {
+        align-items: center;
+    }
+
+    .resultRight {
+        justify-content: center;
+        text-align: center;
+    }
+}

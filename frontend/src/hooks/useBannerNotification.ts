@@ -19,9 +19,9 @@ export const useBannerNotification = () => {
             // 타입별로 디자인과 유지 시간을 모두 정의
         const bannerConfig = ({
             RUN_RESULT: { color: "#2ecc71", icon: "success", duration: 5000, delay: 1000 }, // 결과는 중요하니까 5초
-            CHALLENGE: { color: "#12397a", icon: "success", duration: 4000, delay: 3000 },  // 챌린지는 4초
-            REMINDER: { color: "#f1c40f", icon: "info", duration: 2500 },     // 단순 리마인더는 짧게 2.5초
-            EVENT: { color: "#e74c3c", icon: "warning", duration: 6000 },     // 이벤트 공지는 길게 6초
+            CHALLENGE: { color: "#12397a", icon: "success", duration: 7000, delay: 3000 },  // 챌린지는 4초
+            REMINDER: { color: "#f1c40f", icon: "info", duration: 5000 },     // 단순 리마인더는 짧게 2.5초
+            EVENT: { color: "#e74c3c", icon: "warning", duration: 10000 },     // 이벤트 공지는 길게 6초
         } as const)[type] || { color: "#12397a", icon: "info" as const, duration: 3000 };
 
         showMessage({
