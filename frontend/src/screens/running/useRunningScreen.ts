@@ -211,6 +211,16 @@ export const useRunningScreen = () => {
     stopStoreRun();
     // console.log("[useRunningScreen] Store run stopped");
 
+    // 100m 미만 기록 방지
+    if (distance < 100) {
+      Alert.alert(
+        "기록 저장 불가",
+        "100m 미만의 활동은 측정 기록으로 인정되지 않습니다.",
+        [{ text: "확인", onPress: () => navigation.goBack() }],
+      );
+      return;
+    }
+
     const avgPaceSec = distance > 0 ? displayTime / (distance / 1000) : 0;
     const calories = Math.floor(distance * 0.05);
     // console.log("[useRunningScreen] Calculated stats:", {
@@ -226,6 +236,7 @@ export const useRunningScreen = () => {
     trackArray("paceHistory", paceHistory.length, 5000);
 
     let recordId: number | undefined = undefined;
+
     try {
       // console.log("[useRunningScreen] Saving record to server...");
       perfLogger.start("saveRecord - API 호출");
