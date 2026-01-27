@@ -53,28 +53,44 @@ export function TopNavBar({ onLeftPress, onRightPress }: TopNavBarProps) {
       </View>
     );
   }
+  const isRemoteImage =
+      typeof profileImageSource === "object" &&
+      profileImageSource !== null &&
+      "uri" in profileImageSource;
 
   return (
     <View style={styles.root}>
       {/* 왼쪽 프로필 버튼 */}
       <TouchableOpacity onPress={onLeftPress} activeOpacity={0.7}>
-        <View style={styles.profileImageWrapper}>
-          <Image
+      <View style={styles.profileImageWrapper}>
+        <Image
             source={profileImageSource}
             style={styles.profileImage}
             resizeMode="cover"
-            onLoadStart={() => setImageLoading(true)}
-            onLoadEnd={() => setImageLoading(false)}
-            onError={() => setImageLoading(false)}
-          />
+            onLoadStart={() => {
+              if (isRemoteImage) {
+                setImageLoading(true);
+              }
+            }}
+            onLoadEnd={() => {
+              if (isRemoteImage) {
+                setImageLoading(false);
+              }
+            }}
+            onError={() => {
+              if (isRemoteImage) {
+                setImageLoading(false);
+              }
+            }}
+        />
 
-          {imageLoading && (
+        {isRemoteImage && imageLoading && (
             <View style={styles.loadingOverlay}>
               <ActivityIndicator size="small" color="#3A4A98" />
             </View>
-          )}
-        </View>
-      </TouchableOpacity>
+        )}
+      </View>
+    </TouchableOpacity>
 
       {/* 중앙 RunBoo 텍스트 로고 */}
       <View style={styles.logoContainer} pointerEvents="none">
