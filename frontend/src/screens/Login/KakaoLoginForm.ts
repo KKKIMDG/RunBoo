@@ -2,7 +2,7 @@ import * as WebBrowser from "expo-web-browser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setAccessToken } from "@/services/api";
 import { KAKAO_REST_API_KEY, API_BASE_URL } from "@env";
-import { Alert } from "react-native";
+import {Alert, Linking} from "react-native";
 
 export const kakaoLoginForm = (onLoginSuccess: (token: string) => void) => {
   const startKakaoLogin = async () => {
@@ -33,7 +33,9 @@ export const kakaoLoginForm = (onLoginSuccess: (token: string) => void) => {
       if (__DEV__) {
         console.log("[KAKAO] WebBrowser result =", result);
       }
-
+      Linking.addEventListener("url", e =>
+          console.log("DEEPLINK:", e.url)
+      );
       if (result.type !== "success" || !result.url) {
         if (__DEV__) {
           console.log("[KAKAO] 로그인 취소 또는 실패");

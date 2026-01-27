@@ -7,16 +7,23 @@ const BASE_URL = API_BASE_URL;
 
 // API_BASE_URL이 설정되지 않은 경우 에러 확인
 if (!BASE_URL) {
-  console.error("⚠️ API_BASE_URL이 설정되지 않았습니다. .env 파일을 확인해주세요.");
+  throw {
+    status: 0,
+    message: "앱 설정 오류입니다. 앱을 재시작해주세요.",
+  };
 }
 
 let accessToken: string | null = null;
-
+let isLoggingOut = false;
 /**
  * 인증 토큰 설정 (로그인 / 로그아웃 시 호출)
  */
 export const setAccessToken = (token: string | null) => {
   accessToken = token && token.trim() !== "" ? token : null;
+
+  if (accessToken) {
+    isLoggingOut = false;
+  }
 };
 
 /**
@@ -122,8 +129,12 @@ const request = async (input: RequestInfo, init: RequestInit, retry = true) => {
       }
 
       const newAccessToken = await refreshAccessToken();
+
       if (!newAccessToken) {
-        authEventBus.emitLogout();
+        if (!isLoggingOut) {
+          isLoggingOut = true;
+          authEventBus.emitLogout();
+        }
         throw { status: 401, message: "로그인이 필요합니다." };
       }
 
