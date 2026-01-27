@@ -157,10 +157,9 @@ export default function App() {
 }
 
 function AndroidSafeAreaRoot({ children, resolvedTheme }: { children: React.ReactNode; resolvedTheme: "light" | "dark" }) {
-  const insets = useSafeAreaInsets();
   if (Platform.OS !== 'android') return <>{children}</>;
   return (
-      <View style={{ flex: 1, backgroundColor: resolvedTheme === "dark" ? "#000000" : "#ffffff", paddingBottom: insets.bottom }}>
+      <View style={{ flex: 1, backgroundColor: resolvedTheme === "dark" ? "#000000" : "#ffffff"}}>
         {children}
       </View>
   );
@@ -168,7 +167,6 @@ function AndroidSafeAreaRoot({ children, resolvedTheme }: { children: React.Reac
 
 function AppInner({ isLoggedIn, onLoginSuccess, onLogout }: { isLoggedIn: boolean; onLoginSuccess: (token: string) => void; onLogout: () => void; }) {
 
-  // ⚠️ 중요: 모든 Hook은 최상단에서 무조건 호출되어야 함 (Rendered more hooks 에러 방지)
   const { hasSeenOnboarding } = useTutorial();
   const { settings } = useSettings();
   const resolvedTheme = useResolvedTheme(settings?.themeMode);
@@ -192,7 +190,7 @@ function AppInner({ isLoggedIn, onLoginSuccess, onLogout }: { isLoggedIn: boolea
     );
   }
 
-  // [2] 로그인 됨 + 온보딩 안 봄
+  // [2] 로그인 됨 + 튜토리얼 안 봄
   if (!hasSeenOnboarding) {
     return (
         <>
@@ -202,7 +200,7 @@ function AppInner({ isLoggedIn, onLoginSuccess, onLogout }: { isLoggedIn: boolea
     );
   }
 
-  // [3] 로그인 됨 + 온보딩 봄 (메인 앱)
+  // [3] 로그인 됨 +  봄 (메인 앱)
   return (
       <>
         <StatusBar
