@@ -58,7 +58,7 @@ public class AiAnalysisService {
         );
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AiStatusViewResponse getStatusForView(Long userId) {
         UserAiStatus status = aiStatusRepository.findByUserId(userId)
                 .orElseGet(() -> createDefaultStatus(userId));
