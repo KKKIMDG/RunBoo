@@ -3,7 +3,7 @@
 입니다. <br>
 
 ## 1. 서비스 관련 정보
-### 🏃 서비스 개발 배경
+### 서비스 개발 배경
 런닝은 하나의 라이프스타일로 자리 잡으며 빠르게 성장하고 있습니다. <br>
 하지만 현재 시중에 출시되어 있는 런닝 앱들은 기능과 경험 면에서 매우 한정적입니다. <br>
 
@@ -12,7 +12,7 @@
 
 가장 트렌디한 런닝 앱. ***RunBoo*** 와 함께 하세요.
 
-### ⭐ 주요 기능
+### 주요 기능
 
 **1. 티어** <br>
 몇 키로를 몇 분에 뛰는지 다른 사람에게 더 이상 길게 설명할 필요가 없습니다. <br>
@@ -38,10 +38,10 @@ AI 와 함께 지난 런닝을 되돌아보고, 앞으로의 목표를 세워보
 
 ## 2. 개발 관련 정보
 
-### 🛠️ Stack
+### Stack
 [![My Skills](https://skillicons.dev/icons?i=spring,java,react,typescript,supabase,postgres,figma,git,github)](https://skillicons.dev)
 
-### 🎨 Frontend Styling & Theme
+### Frontend Styling & Theme
 
 **RunBoo** 앱의 프론트엔드 스타일링은 일관성, 확장성, 그리고 유지보수성을 핵심 가치로 삼습니다. 이를 위해 중앙화된 디자인 시스템과 동적 스타일링 패턴을 도입했습니다.
 
@@ -108,9 +108,9 @@ AI 와 함께 지난 런닝을 되돌아보고, 앞으로의 목표를 세워보
 
 이 패턴을 통해 각 컴포넌트는 자신의 스타일에 대한 책임을 가지면서도, 중앙 `theme` 시스템과 완벽하게 통합되어 앱 전체의 디자인 일관성을 유지하고 다크 모드를 효과적으로 지원할 수 있습니다.
 
-### 👤 개발진
+### 개발진
 
-**김동건** | 👑PM, 🛠️FullStack | [GitHub](https://github.com/KKKIMDG) <br>
-**김다빈** | 🛠️FullStack | [GitHub](https://github.com/i3inni) <br>
-**김희곤** | 🛠️FullStack | [GitHub](https://github.com/heegon02) <br>
-**이차원** | 🛠️FullStack | [GitHub](https://github.com/Lee-Dimension) <br>
+**김동건** | PM, FullStack | [GitHub](https://github.com/KKKIMDG) <br>
+**김다빈** | FullStack | [GitHub](https://github.com/i3inni) <br>
+**김희곤** | FullStack | [GitHub](https://github.com/heegon02) <br>
+**이차원** | FullStack | [GitHub](https://github.com/Lee-Dimension) <br>
