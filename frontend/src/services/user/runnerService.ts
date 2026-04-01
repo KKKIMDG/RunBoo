@@ -9,62 +9,71 @@ export interface NearbyRunner {
     profileImageUrl?: string;
 }
 
-// 2. [실제 API] 수정된 함수 - api.ts의 공통 함수 사용
+// 2. [실제 API] 수정된 함수
 export const fetchNearbyRunnersAPI = async (
     lat: number,
     lon: number,
     radius: number = 3000
 ): Promise<NearbyRunner[]> => {
     try {
-        // api.post를 사용하여 공통 에러 처리 및 ATS 설정 적용
         const data: any = await api.post('/api/runners/nearby', {
             latitude: lat,
             longitude: lon,
             radius,
         });
 
-        // API 응답이 배열이 아닐 수 있으므로 안전하게 처리
+        // API 응답이 배열인 경우
         if (Array.isArray(data)) {
             return data;
         }
-        
-        // 응답이 객체로 감싸져 있을 경우 처리
+
+        // API 응답이 { data: [...] } 형태인 경우
         if (data && typeof data === 'object' && 'data' in data && Array.isArray(data.data)) {
             return data.data;
         }
-        
+
+        // 예상치 못한 응답 구조면 빈 배열
         return [];
     } catch (error: any) {
-        // 네트워크 에러나 기타 에러 처리
-        console.error('[RunnerService Error]', error);
-        
-        // 네트워크 에러는 조용히 빈 배열 반환 (3초마다 재시도하므로)
-        if (error?.status === 0 || error?.message?.includes('네트워크')) {
-            console.log('[RunnerService] 네트워크 연결 실패, 빈 배열 반환');
+        const status = error?.status;
+        const message = error?.message ?? '';
+
+        // 1) 인증 만료/인증 실패는 아예 조용히 무시
+        if (status === 401) {
             return [];
         }
-        
-        // 기타 에러도 빈 배열 반환하여 앱이 중단되지 않도록
+
+        // 2) 네트워크 에러도 조용히 무시
+        if (
+            status === 0 ||
+            message.includes('네트워크') ||
+            message.includes('Network Error') ||
+            message.includes('fetch')
+        ) {
+            return [];
+        }
+
+        // 3) 그 외 에러만 필요할 때 출력
+        console.error('[RunnerService Error]', error);
         return [];
     }
 };
 
-// ... (fetchMockRunners는 그대로 두셔도 됩니다)
-
-// 3. [테스트용] 가짜 데이터 생성 함수 (백엔드 없을 때 사용)
-// 내 위치 주변에 랜덤하게 3~5명의 러너를 생성합니다.
-export const fetchMockRunners = async (lat: number, lon: number): Promise<NearbyRunner[]> => {
+// 3. [테스트용] 가짜 데이터 생성 함수
+export const fetchMockRunners = async (
+    lat: number,
+    lon: number
+): Promise<NearbyRunner[]> => {
     return new Promise((resolve) => {
         setTimeout(() => {
             const mockRunners: NearbyRunner[] = Array.from({ length: 4 }).map((_, i) => ({
                 userId: 100 + i,
                 nickname: `러너${100 + i}`,
-                // 내 위치 기준 ±0.005도 (약 500m~1km) 내외로 랜덤 좌표 생성
                 latitude: lat + (Math.random() - 0.5) * 0.01,
                 longitude: lon + (Math.random() - 0.5) * 0.01,
                 profileImageUrl: undefined,
             }));
             resolve(mockRunners);
-        }, 500); // 0.5초 딜레이 (네트워크 흉내)
+        }, 500);
     });
 };

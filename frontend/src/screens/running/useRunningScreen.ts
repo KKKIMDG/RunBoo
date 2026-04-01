@@ -10,15 +10,14 @@ import { fetchUserVoiceSetting } from "@/services/user/userService";
 import { UserVoiceSetting } from "@/types/userSetting";
 import { useUserMe } from "@/contexts/UserMeContext";
 import {
-  toIsoPlus9,
-  useCadence,
-  useRunTimer,
-  makeStartLocationTracking,
-  stopBackgroundLocation,
-  saveRecord,
-  formatTime,
-  formatPace,
-  useMapFocusing,
+    toIsoPlus9,
+    useCadence,
+    useRunTimer,
+    makeStartLocationTracking,
+    stopBackgroundLocation,
+    saveRecord,
+    formatTime,
+    formatPace,
 } from "./useRunCore";
 import { perfLogger, trackArray } from "@/utils/performanceLogger";
 
@@ -28,226 +27,288 @@ type RunningScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 type Coordinate = { latitude: number; longitude: number };
 
 export const useRunningScreen = () => {
-  useKeepAwake();
-  const navigation = useNavigation<RunningScreenNavigationProp>();
-  const route = useRoute<RunningScreenRouteProp>();
-  const { userMe } = useUserMe();
+    useKeepAwake();
 
-  // 유저 ID 확보 (Context 우선, 차선책 Params)
-  const userId = userMe?.userId;
-  const targetDistance = route.params?.targetDistance ?? 0;
+    const navigation = useNavigation<RunningScreenNavigationProp>();
+    const route = useRoute<RunningScreenRouteProp>();
+    const { userMe } = useUserMe();
 
-  // 음성 설정 상태 (Params에서 먼저 시도 후 fetch)
-  const voiceGuideEnabled = route.params?.voiceGuideEnabled;
-  const voiceType = route.params?.voiceType;
-  const [isMale, setIsMale] = useState(voiceType === "MALE");
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(
-    voiceGuideEnabled ?? true,
-  );
+    const userId = userMe?.userId;
+    const targetDistance = route.params?.targetDistance ?? 0;
 
-  const {
-    isReady,
-    countdown,
-    isRunning,
-    isPaused,
-    distance,
-    currentPace,
-    routeCoordinates,
-    startTime,
-    pausedTime,
-    setCountdown,
-    startRun: startStoreRun,
-    pauseRun: pauseStoreRun,
-    resumeRun: resumeStoreRun,
-    stopRun: stopStoreRun,
-    reset: resetStore,
-    updateLocation,
-  } = useRecordStore();
+    const voiceGuideEnabled = route.params?.voiceGuideEnabled;
+    const voiceType = route.params?.voiceType;
+    const [isMale, setIsMale] = useState(voiceType === "MALE");
+    const [isVoiceEnabled, setIsVoiceEnabled] = useState(
+        voiceGuideEnabled ?? true,
+    );
 
-  const [initialLocation, setInitialLocation] = useState<Coordinate | null>(
-    null,
-  );
-
-  const { pushCadenceSample, resetCadenceAgg, avgCadence } = useCadence();
-  const { displayTime, paceHistory } = useRunTimer(
-    isRunning,
-    isPaused,
-    startTime,
-    pausedTime,
-    currentPace,
-  );
-
-  const utils = {
-    formatTime,
-    formatPace,
-  };
-
-  // 1. 초기 진입: 초기화 및 권한 확인
-  useEffect(() => {
-    (async () => {
-      // console.log("[useRunningScreen] Initializing...");
-      resetStore();
-      resetCadenceAgg();
-
-      // console.log("[useRunningScreen] Requesting location permissions");
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        // console.error("[useRunningScreen] Location permission denied");
-        Alert.alert(
-          "위치 권한 필요",
-          "러닝 기록을 위해 위치 권한이 필요합니다.",
-        );
-        return;
-      }
-      // console.log("[useRunningScreen] Location permission granted");
-
-      // console.log("[useRunningScreen] Getting current position");
-      const loc = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Highest,
-      });
-      // console.log("[useRunningScreen] Current position:", loc.coords);
-
-      setInitialLocation({
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-      });
-      // console.log("[useRunningScreen] Initial location set");
-
-      updateLocation(loc);
-      // console.log("[useRunningScreen] Initialization complete");
-    })();
-  }, []);
-
-  // 2. 서버에서 유저 음성 설정 가져오기 (Params에 값이 없을 때만 혹은 최신화용)
-  useEffect(() => {
-    (async () => {
-      try {
-        // console.log("[useRunningScreen] Fetching voice settings from server");
-        const userVoice: UserVoiceSetting = await fetchUserVoiceSetting();
-        // console.log("[useRunningScreen] Voice settings:", userVoice);
-        // Params에 값이 없었던 경우에만 서버값으로 덮어씀 (선택 사항)
-        if (voiceGuideEnabled === undefined) {
-          // console.log("[useRunningScreen] Applying voice settings from server");
-          setIsVoiceEnabled(userVoice.voiceGuideEnabled);
-          setIsMale(userVoice.voiceType === "MALE");
-        }
-      } catch (e) {
-        // console.warn(
-        //   "[useRunningScreen] Failed to fetch user voice setting",
-        //   e,
-        // );
-      }
-    })();
-  }, []);
-
-  // 3. 카운트다운 -> 시작 로직
-  useEffect(() => {
-    if (isReady && countdown > 0) {
-      // console.log(`[useRunningScreen] Countdown: ${countdown}`);
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (isReady && countdown === 0) {
-      // console.log("[useRunningScreen] Countdown complete, starting run");
-      resetCadenceAgg(); // 시작 직전 케이던스 누적치 초기화
-      startStoreRun();
-      startLocationTracking();
-      // console.log("[useRunningScreen] Run started");
-    }
-  }, [isReady, countdown]);
-
-  // 타이머 및 페이스 기록은 공통 훅(useRunTimer)에서 처리합니다.
-
-  const startLocationTracking = makeStartLocationTracking(
-    "RunBoo Running",
-    "러닝 기록을 측정 중입니다.",
-  );
-
-  // ✅ 통합된 stopRun: 평균 케이던스 포함 및 ID 확보
-  const stopRun = async () => {
-    // console.log("[useRunningScreen] Stopping run...");
-    perfLogger.start("stopRun - 전체 처리");
-
-    await stopBackgroundLocation();
-
-    stopStoreRun();
-    // console.log("[useRunningScreen] Store run stopped");
-
-    const avgPaceSec = distance > 0 ? displayTime / (distance / 1000) : 0;
-    const calories = Math.floor(distance * 0.05);
-    // console.log("[useRunningScreen] Calculated stats:", {
-    //   avgPaceSec,
-    //   calories,
-    //   avgCadence: avgCadence(),
-    //   distance,
-    //   displayTime,
-    // });
-
-    // 배열 크기 로그
-    trackArray("routeCoordinates", routeCoordinates.length, 5000);
-    trackArray("paceHistory", paceHistory.length, 5000);
-
-    let recordId: number | undefined = undefined;
-    try {
-      // console.log("[useRunningScreen] Saving record to server...");
-      perfLogger.start("saveRecord - API 호출");
-
-      const { recordId: rid } = await saveRecord({
-        userId: userId ? Number(userId) : 0,
-        mode: "NORMAL",
-        distanceM: Math.floor(distance),
-        durationSec: displayTime,
-        avgPaceSec,
-        calories,
-        cadence: avgCadence(),
+    const {
+        isReady,
+        countdown,
+        isRunning,
+        isPaused,
+        distance,
+        currentPace,
         routeCoordinates,
-        startedAtIso: startTime ? toIsoPlus9(new Date(startTime)) : undefined,
-        endedAtIso: toIsoPlus9(new Date()),
-      });
+        startTime,
+        pausedTime,
+        setCountdown,
+        startRun: startStoreRun,
+        pauseRun: pauseStoreRun,
+        resumeRun: resumeStoreRun,
+        stopRun: stopStoreRun,
+        reset: resetStore,
+        updateLocation,
+    } = useRecordStore();
 
-      perfLogger.end("saveRecord - API 호출");
-      recordId = rid;
-      // console.log("[useRunningScreen] Record saved successfully:", recordId);
-    } catch (e) {
-      perfLogger.end("saveRecord - API 호출", { error: true });
-      // console.error("[useRunningScreen] 기록 저장 실패:", e);
-    }
+    const [initialLocation, setInitialLocation] = useState<Coordinate | null>(
+        null,
+    );
 
-    perfLogger.end("stopRun - 전체 처리");
-    // console.log("[useRunningScreen] Navigating to RunResult");
-    navigation.navigate("RunResult", {
-      distanceM: distance,
-      durationSec: displayTime,
-      avgPaceSec,
-      calories,
-      routeCoordinates,
-      recordId,
-    });
-  };
+    const { pushCadenceSample, resetCadenceAgg, avgCadence } = useCadence();
+    const { displayTime, paceHistory } = useRunTimer(
+        isRunning,
+        isPaused,
+        startTime,
+        pausedTime,
+        currentPace,
+    );
 
-  return {
-    state: {
-      isReady,
-      countdown,
-      isRunning,
-      isPaused,
-      time: displayTime,
-      distance,
-      currentPace,
-      routeCoordinates,
-      paceHistory,
-      targetDistance,
-      initialLocation,
-      isVoiceEnabled,
-      isMale,
-    },
-    actions: {
-      pauseRun: pauseStoreRun,
-      resumeRun: resumeStoreRun,
-      stopRun,
-      pushCadenceSample,
-      setIsVoiceEnabled,
-      setIsMale,
-    },
-    utils,
-  };
+    const watchRef = useRef<Location.LocationSubscription | null>(null);
+
+    const utils = {
+        formatTime,
+        formatPace,
+    };
+
+    const startLocationTracking = makeStartLocationTracking(
+        "RunBoo Running",
+        "러닝 기록을 측정 중입니다.",
+    );
+
+    // foreground 실시간 위치 추적
+    const startForegroundTracking = async () => {
+        if (watchRef.current) {
+            watchRef.current.remove();
+            watchRef.current = null;
+        }
+
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!servicesEnabled) {
+            Alert.alert("위치 서비스 필요", "GPS가 꺼져 있어 러닝을 기록할 수 없습니다.");
+            return false;
+        }
+
+        const fg = await Location.getForegroundPermissionsAsync();
+        if (fg.status !== "granted") {
+            const req = await Location.requestForegroundPermissionsAsync();
+            if (req.status !== "granted") {
+                Alert.alert("위치 권한 필요", "러닝 기록을 위해 위치 권한이 필요합니다.");
+                return false;
+            }
+        }
+
+        watchRef.current = await Location.watchPositionAsync(
+            {
+                accuracy: Location.Accuracy.BestForNavigation,
+                timeInterval: 1000,
+                distanceInterval: 3,
+                mayShowUserSettingsDialog: true,
+            },
+            (location) => {
+                const { latitude, longitude, accuracy } = location.coords;
+
+                console.log("[useRunningScreen] foreground location:", {
+                    latitude,
+                    longitude,
+                    accuracy,
+                });
+
+                // 너무 부정확한 좌표만 제외
+                if (accuracy != null && accuracy > 100) {
+                    console.log("[useRunningScreen] accuracy too low -> ignored");
+                    return;
+                }
+
+                // 핵심: 실시간 위치를 store에 반영
+                updateLocation(location);
+            },
+        );
+
+        console.log("[useRunningScreen] foreground tracking started");
+        return true;
+    };
+
+    const stopForegroundTracking = async () => {
+        if (watchRef.current) {
+            watchRef.current.remove();
+            watchRef.current = null;
+            console.log("[useRunningScreen] foreground tracking stopped");
+        }
+    };
+
+    // 1. 초기 진입
+    useEffect(() => {
+        (async () => {
+            resetStore();
+            resetCadenceAgg();
+
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== "granted") {
+                Alert.alert(
+                    "위치 권한 필요",
+                    "러닝 기록을 위해 위치 권한이 필요합니다.",
+                );
+                return;
+            }
+
+            const loc = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Highest,
+            });
+
+            setInitialLocation({
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+            });
+
+            // 시작 전 현재 위치 store 반영
+            updateLocation(loc);
+        })();
+
+        return () => {
+            stopForegroundTracking();
+            stopBackgroundLocation();
+        };
+    }, []);
+
+    // 2. 서버에서 유저 음성 설정 가져오기
+    useEffect(() => {
+        (async () => {
+            try {
+                const userVoice: UserVoiceSetting = await fetchUserVoiceSetting();
+                if (voiceGuideEnabled === undefined) {
+                    setIsVoiceEnabled(userVoice.voiceGuideEnabled);
+                    setIsMale(userVoice.voiceType === "MALE");
+                }
+            } catch (e) {
+                console.log("[useRunningScreen] voice setting fetch skipped");
+            }
+        })();
+    }, []);
+
+    // 3. 카운트다운 -> 시작
+    useEffect(() => {
+        if (isReady && countdown > 0) {
+            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+
+        if (isReady && countdown === 0) {
+            (async () => {
+                resetCadenceAgg();
+                startStoreRun();
+
+                // 실시간 거리/경로/페이스 계산용
+                const started = await startForegroundTracking();
+
+                // background 보조 추적
+                if (started) {
+                    try {
+                        await startLocationTracking();
+                    } catch (e) {
+                        console.warn("[useRunningScreen] background tracking start failed", e);
+                    }
+                }
+            })();
+        }
+    }, [isReady, countdown]);
+
+    const pauseRun = async () => {
+        pauseStoreRun();
+        await stopForegroundTracking();
+    };
+
+    const resumeRun = async () => {
+        resumeStoreRun();
+        await startForegroundTracking();
+    };
+
+    const stopRun = async () => {
+        perfLogger.start("stopRun - 전체 처리");
+
+        await stopForegroundTracking();
+        await stopBackgroundLocation();
+
+        stopStoreRun();
+
+        const avgPaceSec = distance > 0 ? displayTime / (distance / 1000) : 0;
+        const calories = Math.floor(distance * 0.05);
+
+        trackArray("routeCoordinates", routeCoordinates.length, 5000);
+        trackArray("paceHistory", paceHistory.length, 5000);
+
+        let recordId: number | undefined = undefined;
+
+        try {
+            perfLogger.start("saveRecord - API 호출");
+
+            const { recordId: rid } = await saveRecord({
+                userId: userId ? Number(userId) : 0,
+                mode: "NORMAL",
+                distanceM: Math.floor(distance),
+                durationSec: displayTime,
+                avgPaceSec,
+                calories,
+                cadence: avgCadence(),
+                routeCoordinates,
+                startedAtIso: startTime ? toIsoPlus9(new Date(startTime)) : undefined,
+                endedAtIso: toIsoPlus9(new Date()),
+            });
+
+            perfLogger.end("saveRecord - API 호출");
+            recordId = rid;
+        } catch (e) {
+            perfLogger.end("saveRecord - API 호출", { error: true });
+            console.error("[useRunningScreen] 기록 저장 실패:", e);
+        }
+
+        perfLogger.end("stopRun - 전체 처리");
+
+        navigation.navigate("RunResult", {
+            distanceM: distance,
+            durationSec: displayTime,
+            avgPaceSec,
+            calories,
+            routeCoordinates,
+            recordId,
+        });
+    };
+
+    return {
+        state: {
+            isReady,
+            countdown,
+            isRunning,
+            isPaused,
+            time: displayTime,
+            distance,
+            currentPace,
+            routeCoordinates,
+            paceHistory,
+            targetDistance,
+            initialLocation,
+            isVoiceEnabled,
+            isMale,
+        },
+        actions: {
+            pauseRun,
+            resumeRun,
+            stopRun,
+            pushCadenceSample,
+            setIsVoiceEnabled,
+            setIsMale,
+        },
+        utils,
+    };
 };
