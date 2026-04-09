@@ -10,9 +10,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { googleLoginForm } from './GoogleLoginForm';
 import { kakaoLoginForm } from './KakaoLoginForm';
-import {getFcmToken} from "@/services/notification/fcmToken";
+import { getFcmToken } from "@/services/notification/fcmToken";
 import { registerPushDevice } from '@/services/notification/notificationService';
-
 
 type AuthStackParamList = {
     SignUp: undefined;
@@ -37,28 +36,42 @@ export const localLoginForm = (onLoginSuccess: (token: string) => void) => {
             Alert.alert('알림', '아이디와 비밀번호를 모두 입력해주세요.');
             return;
         }
+
         console.log('LOGIN CLICKED', email);
+
         try {
             const res = await AuthService.login({ email, password });
 
             await AsyncStorage.setItem('accessToken', res.accessToken);
-            await AsyncStorage.setItem('refreshToken',  res.refreshToken);
+            await AsyncStorage.setItem('refreshToken', res.refreshToken);
 
             setAccessToken(res.accessToken);
             onLoginSuccess(res.accessToken);
-
-            const fcmToken = await getFcmToken();
-            await AsyncStorage.setItem('fcmToken', fcmToken);
-            console.log('FCM TOKEN', fcmToken)
-            await registerPushDevice({
-                token: fcmToken,
-                platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
-            });
         } catch (error: any) {
             Alert.alert(
                 '로그인 실패',
                 error?.message ?? '이메일 또는 비밀번호가 올바르지 않습니다.'
             );
+            console.error('[LocalLoginForm] 로그인 실패:', error);
+            return;
+        }
+
+        try {
+            const fcmToken = await getFcmToken();
+
+            if (fcmToken) {
+                await AsyncStorage.setItem('fcmToken', fcmToken);
+                console.log('[LocalLoginForm] FCM TOKEN:', fcmToken);
+
+                await registerPushDevice({
+                    token: fcmToken,
+                    platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
+                });
+            } else {
+                console.warn('[LocalLoginForm] FCM 토큰이 비어 있어서 디바이스 등록을 건너뜀');
+            }
+        } catch (error: any) {
+            //console.error('[LocalLoginForm] FCM 등록 실패:', error);
         }
     };
     /* =====================
