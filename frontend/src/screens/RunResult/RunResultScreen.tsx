@@ -34,7 +34,7 @@ type RunResultRouteParams = {
   avgPaceSec: number;
   calories: number;
   routeCoordinates: Coordinate[];
-  cadenceSpm: number;
+  cadenceSpm?: number;
 };
 
 type RunResultRouteProp = RouteProp<{ params: RunResultRouteParams }, "params">;

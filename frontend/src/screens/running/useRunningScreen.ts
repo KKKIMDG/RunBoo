@@ -281,6 +281,7 @@ export const useRunningScreen = () => {
             avgPaceSec,
             calories,
             routeCoordinates,
+            cadenceSpm: avgCadence(),
             recordId,
         });
     };
