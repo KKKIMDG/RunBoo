@@ -1,0 +1,13 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: runboo-backend
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    volumes:
+      - ./backend/backSecrets/runboo-fcm.json:/app/backSecrets/runboo-fcm.json:ro
+    restart: unless-stopped
