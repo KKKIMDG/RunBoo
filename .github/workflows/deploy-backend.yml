@@ -62,17 +62,24 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           GHCR_PAT: ${{ secrets.GHCR_PAT }}
         run: |
+          set -euo pipefail
+
+          if [ -z "$EC2_HOST" ] || [ -z "$EC2_USER" ] || [ -z "$EC2_SSH_KEY" ]; then
+            echo "EC2_HOST, EC2_USER, and EC2_SSH_KEY secrets are required."
+            exit 1
+          fi
+
           mkdir -p ~/.ssh
           printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/ec2_key
           chmod 600 ~/.ssh/ec2_key
-          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -T 10 -H "$EC2_HOST" >> ~/.ssh/known_hosts
 
           if [ -n "$GHCR_PAT" ]; then
             printf '%s\n' "$GHCR_PAT" | ssh -i ~/.ssh/ec2_key "$EC2_USER@$EC2_HOST" \
               "docker login ghcr.io -u kkkimgd --password-stdin"
           fi
 
-          ssh -i ~/.ssh/ec2_key "$EC2_USER@$EC2_HOST" << 'EOF'
+          ssh -o BatchMode=yes -o ConnectTimeout=15 -i ~/.ssh/ec2_key "$EC2_USER@$EC2_HOST" << 'EOF'
             set -e
             cd /home/ubuntu/RunBoo
 
