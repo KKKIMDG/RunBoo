@@ -76,7 +76,7 @@ jobs:
 
           if [ -n "$GHCR_PAT" ]; then
             printf '%s\n' "$GHCR_PAT" | ssh -i ~/.ssh/ec2_key "$EC2_USER@$EC2_HOST" \
-              "docker login ghcr.io -u kkkimgd --password-stdin"
+              "docker login ghcr.io -u kkkimdg --password-stdin"
           fi
 
           ssh -o BatchMode=yes -o ConnectTimeout=15 -i ~/.ssh/ec2_key "$EC2_USER@$EC2_HOST" << 'EOF'
