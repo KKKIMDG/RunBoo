@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ghcr.io/kkkimgd/runboo-backend:latest
+    image: ghcr.io/kkkimdg/runboo-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
