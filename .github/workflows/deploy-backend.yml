@@ -15,7 +15,6 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/kkkimgd/runboo-backend
   DEPLOY_PATH: /home/ubuntu/RunBoo
 
 jobs:
@@ -35,6 +34,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image name
+        run: echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/runboo-backend" >> "$GITHUB_ENV"
 
       - name: Build and push backend image
         uses: docker/build-push-action@v6
