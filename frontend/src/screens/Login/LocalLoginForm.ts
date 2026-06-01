@@ -47,13 +47,18 @@ export const localLoginForm = (onLoginSuccess: (token: string) => void) => {
             setAccessToken(res.accessToken);
             onLoginSuccess(res.accessToken);
 
-            const fcmToken = await getFcmToken();
-            await AsyncStorage.setItem('fcmToken', fcmToken);
-            console.log('FCM TOKEN', fcmToken)
-            await registerPushDevice({
-                token: fcmToken,
-                platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
-            });
+            // FCM 등록은 부가 기능이므로 실패해도 로그인 흐름을 막지 않는다.
+            try {
+                const fcmToken = await getFcmToken();
+                await AsyncStorage.setItem('fcmToken', fcmToken);
+                console.log('FCM TOKEN', fcmToken)
+                await registerPushDevice({
+                    token: fcmToken,
+                    platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
+                });
+            } catch (fcmError) {
+                console.warn('FCM 등록 실패 (로그인은 정상)', fcmError);
+            }
         } catch (error: any) {
             Alert.alert(
                 '로그인 실패',

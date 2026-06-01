@@ -21,6 +21,13 @@ export default (): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.runboo.frontend",
+    googleServicesFile: "./frontSecrets/GoogleService-Info.plist",
+    // 🔹 푸시 알림(APNs) 권한. TestFlight/App Store 배포는 "production".
+    //    로컬 실기기 Debug 빌드만 따로 테스트할 땐 "development"로 바꾸거나
+    //    Xcode 자동 서명이 맞는 프로비저닝 프로파일을 선택하도록 둔다.
+    entitlements: {
+      "aps-environment": "production",
+    },
     infoPlist: {
       UIBackgroundModes: ["location", "fetch", "remote-notification"],
       NSLocationAlwaysAndWhenInUseUsageDescription:
@@ -67,6 +74,26 @@ export default (): ExpoConfig => ({
   },
 
   plugins: [
+    // 🔹 expo-build-properties는 react-native-firebase + static framework 빌드를 위해
+    //    반드시 첫 번째 플러그인이어야 한다. (rnfirebase #8657)
+    [
+      "expo-build-properties",
+      {
+        android: {
+          // 🔹 카카오 SDK 서버 주소 (필수)
+          extraMavenRepos: [
+            "https://devrepo.kakao.com/nexus/content/groups/public/"
+          ],
+        },
+        ios: {
+          useFrameworks: "static",
+          // 🔹 RNFB 모듈들을 framework가 아닌 static library로 빌드해
+          //    "non-modular header" / "must be imported from module" 에러를 해결한다.
+          //    사용 중인 RNFB 모듈만 나열한다.
+          forceStaticLinking: ["RNFBApp", "RNFBMessaging"],
+        },
+      },
+    ],
     "expo-web-browser",
     [
       "expo-location",
@@ -84,20 +111,6 @@ export default (): ExpoConfig => ({
     ],
     "@react-native-firebase/app",
     "@react-native-firebase/messaging",
-    [
-      "expo-build-properties",
-      {
-        android: {
-          // 🔹 카카오 SDK 서버 주소 (필수)
-          extraMavenRepos: [
-            "https://devrepo.kakao.com/nexus/content/groups/public/"
-          ],
-        },
-        ios: {
-          useFrameworks: "static",
-        },
-      },
-    ],
   ],
 
   extra: {
