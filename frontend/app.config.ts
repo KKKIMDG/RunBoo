@@ -22,6 +22,12 @@ export default (): ExpoConfig => ({
     supportsTablet: true,
     bundleIdentifier: "com.runboo.frontend",
     googleServicesFile: "./frontSecrets/GoogleService-Info.plist",
+    // 🔹 푸시 알림(APNs) 권한. TestFlight/App Store 배포는 "production".
+    //    로컬 실기기 Debug 빌드만 따로 테스트할 땐 "development"로 바꾸거나
+    //    Xcode 자동 서명이 맞는 프로비저닝 프로파일을 선택하도록 둔다.
+    entitlements: {
+      "aps-environment": "production",
+    },
     infoPlist: {
       UIBackgroundModes: ["location", "fetch", "remote-notification"],
       NSLocationAlwaysAndWhenInUseUsageDescription:

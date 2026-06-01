@@ -82,14 +82,15 @@ export default function App() {
           setAccessToken(token);
           setIsLoggedIn(true);
 
-          if (Platform.OS !== "ios") {
-            try {
-              const fcmToken = await getFcmToken();
-              await AsyncStorage.setItem("fcmToken", fcmToken);
-              await registerPushDevice({ token: fcmToken, platform: "ANDROID" });
-            } catch (e) {
-              console.warn("FCM register failed", e);
-            }
+          try {
+            const fcmToken = await getFcmToken();
+            await AsyncStorage.setItem("fcmToken", fcmToken);
+            await registerPushDevice({
+              token: fcmToken,
+              platform: Platform.OS === "ios" ? "IOS" : "ANDROID",
+            });
+          } catch (e) {
+            console.warn("FCM register failed", e);
           }
         }
       } catch (e) {
@@ -114,14 +115,15 @@ export default function App() {
     setIsLoggedIn(true);
     authEventBus.emitLogin();
 
-    if (Platform.OS !== "ios") {
-      try {
-        const fcmToken = await getFcmToken();
-        await AsyncStorage.setItem("fcmToken", fcmToken);
-        await registerPushDevice({ token: fcmToken, platform: "ANDROID" });
-      } catch (e) {
-        console.warn("FCM register after login failed", e);
-      }
+    try {
+      const fcmToken = await getFcmToken();
+      await AsyncStorage.setItem("fcmToken", fcmToken);
+      await registerPushDevice({
+        token: fcmToken,
+        platform: Platform.OS === "ios" ? "IOS" : "ANDROID",
+      });
+    } catch (e) {
+      console.warn("FCM register after login failed", e);
     }
   };
 
