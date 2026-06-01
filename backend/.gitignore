@@ -25,5 +25,9 @@ out/
 
 HELP.md
 
+.env
+.env.*
+!.env.example
+
 # Firebase Service account
 backSecrets/
