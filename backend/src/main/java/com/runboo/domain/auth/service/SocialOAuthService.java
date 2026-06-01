@@ -49,15 +49,30 @@ public class SocialOAuthService {
      * - email: 동의하지 않은 경우 null 가능
      */
     private SocialUserInfo toSocialUserInfo(KakaoUserInfo body) {
+        KakaoUserInfo.KakaoAccount kakaoAccount = body.getKakaoAccount();
 
-        // 닉네임은 카카오 정책상 필수 동의 항목
-        String nickname = body.getKakaoAccount().getProfile().getNickname();
+        String nickname = "카카오러너";
+        String profileImageUrl = null;
+        String email = null;
 
-        // 프로필 이미지 URL (필수 동의 항목)
-        String profileImageUrl = body.getKakaoAccount().getProfile().getProfileImageUrl();
+        if (kakaoAccount != null) {
+            if (kakaoAccount.getProfile() != null) {
+                nickname = kakaoAccount.getProfile().getNickname();
+                profileImageUrl = kakaoAccount.getProfile().getProfileImageUrl();
+            }
 
-        // 이메일 (필수 동의 항목)
-        String email = body.getKakaoAccount().getEmail();
+            email = kakaoAccount.getEmail();
+        }
+
+        if (nickname == null || nickname.isBlank()) {
+            nickname = body.getProperties() != null && body.getProperties().getNickname() != null
+                    ? body.getProperties().getNickname()
+                    : "카카오러너";
+        }
+
+        if (email == null || email.isBlank()) {
+            email = "kakao_" + body.getId() + "@runboo.local";
+        }
 
         return new SocialUserInfo(
                 SocialProvider.KAKAO,
