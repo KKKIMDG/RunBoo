@@ -9,6 +9,27 @@ services:
       - .env
     ports:
       - "127.0.0.1:${SERVER_PORT:-8080}:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
     volumes:
       - ./backend/backSecrets/runboo-fcm.json:/app/backSecrets/runboo-fcm.json:ro
     restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: runboo-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "127.0.0.1:${REDIS_BIND_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  redis-data:
