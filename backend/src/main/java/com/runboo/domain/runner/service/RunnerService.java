@@ -5,27 +5,32 @@ import com.runboo.domain.runner.dto.RunnerResponse;
 import com.runboo.domain.user.entity.User;
 import com.runboo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;
-// ★ 중요: METERS를 쓰기 위해 DistanceUnit을 임포트해야 합니다.
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.core.GeoOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 public class RunnerService {
 
+    private static final String ACTIVE_RUNNERS_KEY = "active_runners";
+    private static final String HEARTBEAT_KEY_PREFIX = "active_runner:last_seen:";
+
     private final RedisTemplate<String, String> redisTemplate;
     private final UserRepository userRepository;
 
-    private final String REDIS_KEY = "active_runners";
+    @Value("${runner.location.heartbeat-ttl-seconds:60}")
+    private long heartbeatTtlSeconds;
 
     @Transactional
     public List<RunnerResponse> updateAndGetNearbyRunners(String email, LocationRequest request) {
@@ -36,8 +41,14 @@ public class RunnerService {
 
         GeoOperations<String, String> geoOps = redisTemplate.opsForGeo();
 
-        geoOps.add(REDIS_KEY, new Point(request.getLongitude(), request.getLatitude()), String.valueOf(myId));
-        redisTemplate.expire(REDIS_KEY, 1, TimeUnit.HOURS);
+        String myMemberId = String.valueOf(myId);
+        geoOps.add(
+                ACTIVE_RUNNERS_KEY,
+                new Point(request.getLongitude(), request.getLatitude()),
+                myMemberId
+        );
+        redisTemplate.persist(ACTIVE_RUNNERS_KEY);
+        refreshHeartbeat(myId);
 
         Circle circle = new Circle(
                 new Point(request.getLongitude(), request.getLatitude()),
@@ -48,7 +59,8 @@ public class RunnerService {
                 .newGeoRadiusArgs()
                 .includeCoordinates();
 
-        GeoResults<RedisGeoCommands.GeoLocation<String>> results = geoOps.radius(REDIS_KEY, circle, args);
+        GeoResults<RedisGeoCommands.GeoLocation<String>> results =
+                geoOps.radius(ACTIVE_RUNNERS_KEY, circle, args);
 
         List<RunnerResponse> responseList = new ArrayList<>();
 
@@ -58,6 +70,11 @@ public class RunnerService {
                 Long memberId = Long.parseLong(memberIdStr);
 
                 if (memberId.equals(myId)) continue;
+
+                if (!hasActiveHeartbeat(memberId)) {
+                    geoOps.remove(ACTIVE_RUNNERS_KEY, memberIdStr);
+                    continue;
+                }
 
                 Point point = result.getContent().getPoint();
 
@@ -76,5 +93,22 @@ public class RunnerService {
         }
 
         return responseList;
+    }
+
+    private void refreshHeartbeat(Long userId) {
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        valueOperations.set(
+                heartbeatKey(userId),
+                "active",
+                Duration.ofSeconds(heartbeatTtlSeconds)
+        );
+    }
+
+    private boolean hasActiveHeartbeat(Long userId) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey(heartbeatKey(userId)));
+    }
+
+    private String heartbeatKey(Long userId) {
+        return HEARTBEAT_KEY_PREFIX + userId;
     }
 }
