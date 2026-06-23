@@ -2,9 +2,9 @@ package com.runboo.domain.user.repository;
 
 import com.runboo.domain.user.entity.User;
 import com.runboo.domain.user.enums.SocialProvider;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;

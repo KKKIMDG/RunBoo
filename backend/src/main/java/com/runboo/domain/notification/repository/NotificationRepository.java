@@ -1,10 +1,10 @@
 package com.runboo.domain.notification.repository;
 
 import com.runboo.domain.notification.entity.Notification;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,7 +21,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
           and n.deletedAt is null
         order by n.createdAt desc
     """)
-    List<Notification> findAllActiveByUserId(Long userId);
+    List<Notification> findAllActiveByUserId(@Param("userId") Long userId);
 
     /**
      * 내 미읽음 알림 조회
@@ -34,7 +34,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
           and n.read = false
         order by n.createdAt desc
     """)
-    List<Notification> findUnreadByUserId(Long userId);
+    List<Notification> findUnreadByUserId(@Param("userId") Long userId);
 
     /**
      * 미읽음 알림 개수
@@ -46,7 +46,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
           and n.deletedAt is null
           and n.read = false
     """)
-    long countUnreadByUserId(Long userId);
+    long countUnreadByUserId(@Param("userId") Long userId);
 
     /**
      *
@@ -60,7 +60,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
           and n.deletedAt is null
           and n.read = false
     """)
-    int markAllAsRead(Long userId);
+    int markAllAsRead(@Param("userId") Long userId);
 
     /**
      * 알림 자동 삭제

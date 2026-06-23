@@ -7,6 +7,8 @@ import com.runboo.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.geo.Circle;
@@ -21,13 +23,16 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -125,6 +130,30 @@ class RunnerServiceTest {
         verify(userRepository, never()).findById(2L);
     }
 
+    @ParameterizedTest(name = "nearby runners {0}: performs {0} individual user lookups")
+    @ValueSource(ints = {10, 50, 100})
+    void loadsEachNearbyRunnerIndividually(int nearbyRunnerCount) {
+        User me = user(1L);
+        User nearbyRunner = org.mockito.Mockito.mock(User.class);
+        LocationRequest request = new LocationRequest(37.5665, 126.9780, 500);
+
+        when(nearbyRunner.isBlind()).thenReturn(false);
+        when(userRepository.findByEmail("me@runboo.local")).thenReturn(Optional.of(me));
+        when(geoOperations.radius(
+                eq(ACTIVE_RUNNERS_KEY),
+                any(Circle.class),
+                any(RedisGeoCommands.GeoRadiusCommandArgs.class)
+        )).thenReturn(nearbyGeoResults(nearbyRunnerCount));
+        when(redisTemplate.hasKey(any(String.class))).thenReturn(true);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(nearbyRunner));
+
+        List<RunnerResponse> result =
+                runnerService.updateAndGetNearbyRunners("me@runboo.local", request);
+
+        assertThat(result).hasSize(nearbyRunnerCount);
+        verify(userRepository, times(nearbyRunnerCount)).findById(anyLong());
+    }
+
     private User user(Long id) {
         User user = org.mockito.Mockito.mock(User.class);
         when(user.getId()).thenReturn(id);
@@ -149,5 +178,23 @@ class RunnerServiceTest {
                         new Point(longitude, latitude)
                 );
         return new GeoResult<>(location, new Distance(0));
+    }
+
+    private GeoResults<RedisGeoCommands.GeoLocation<String>> nearbyGeoResults(
+            int nearbyRunnerCount
+    ) {
+        List<GeoResult<RedisGeoCommands.GeoLocation<String>>> results = new ArrayList<>();
+        results.add(geoLocation("1", 126.9780, 37.5665));
+
+        for (long userId = 2; userId < nearbyRunnerCount + 2L; userId++) {
+            double offset = userId * 0.000001;
+            results.add(geoLocation(
+                    String.valueOf(userId),
+                    126.9780 + offset,
+                    37.5665 + offset
+            ));
+        }
+
+        return new GeoResults<>(results);
     }
 }
