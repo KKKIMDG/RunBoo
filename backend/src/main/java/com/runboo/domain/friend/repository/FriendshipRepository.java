@@ -3,10 +3,10 @@ package com.runboo.domain.friend.repository;
 import com.runboo.domain.friend.entity.FriendStatus;
 import com.runboo.domain.friend.entity.Friendship;
 import com.runboo.domain.user.entity.User;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.hibernate.annotations.processing.SQL;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
