@@ -2,6 +2,87 @@
 ***--- RunBoo ---*** <br>
 입니다. <br>
 
+## 처음 살펴보는 분을 위한 실행·체험 안내
+
+RunBoo는 **모바일 앱 + 백엔드 + 외부 서비스**가 함께 동작하는 팀 프로젝트입니다. 현재 이 저장소의 GitHub Releases에는 공개 설치 파일이 없습니다. 저장소만 받아서 바로 로그인할 수 있는 독립 데모는 제공하지 않습니다.
+
+| 목적 | 안내 |
+| --- | --- |
+| 앱을 직접 실행 | 아래 준비물을 갖춘 뒤 [모바일 실행 안내](frontend/README.md#실행-전-확인)를 따라 실행 |
+| 담당 기능 확인 | 앱의 챌린지 화면에서 진행 단계 확인, 러닝 기록·티어 기능 살펴보기 |
+| 백엔드 확인 | 아래 서버 실행 후 `http://localhost:8080/swagger-ui/index.html`에서 API 문서 확인 |
+| `web/` 확인 | 관리자 웹 코드이며, 모바일 앱의 대체 체험 화면은 아님 |
+
+### 실행 전 준비물
+
+- Git, Node.js 22 LTS, JDK 21, Android Studio와 에뮬레이터 또는 Android 기기
+- 접근 가능한 PostgreSQL DB와 Redis
+- Firebase 프로젝트와 서버용 서비스 계정 파일, 앱용 Firebase 설정
+- 회원가입 이메일 인증용 SMTP 설정, 사용할 소셜 로그인·지도·Supabase 설정
+
+서버와 외부 서비스 설정이 준비되지 않으면 앱 화면을 빌드하더라도 로그인·데이터 조회는 완료되지 않습니다. 운영 비밀값을 README에 공유하지 않으며, 별도의 개발용 설정을 사용합니다.
+
+### 1. 저장소와 서버 설정
+
+```bash
+git clone https://github.com/KKKIMDG/RunBoo.git
+cd RunBoo
+cp .env.example backend/.env
+```
+
+`backend/.env`의 예시 값을 사용할 개발 환경의 실제 값으로 바꿉니다.
+
+| 설정 | 넣을 값 |
+| --- | --- |
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | 개발용 PostgreSQL 접속 정보 |
+| `REDIS_HOST`, `REDIS_PORT` | 호스트에서 서버를 실행할 경우 `localhost`, `6379` |
+| `JWT_SECRET` | 별도로 생성한 32바이트 이상의 임의 문자열 |
+| `MAIL_*` | 회원가입 인증 메일을 보낼 SMTP 설정 |
+| `KAKAO_*`, `GOOGLE_*` | 본인 개발 앱의 OAuth 설정·리디렉션 주소 |
+| `AI_*` | AI 리포트에 사용할 API 설정 |
+| `ADMIN_PASSWORD` | 개발용 관리자 비밀번호 |
+| `VITE_API_BASE_URL` | 예: `http://localhost:8080` — 현재 서버 설정에도 필요한 항목이므로 직접 추가 |
+
+서버는 시작할 때 Firebase Admin을 초기화합니다. 개발용 Firebase 서비스 계정 파일을 `backend/backSecrets/runboo-fcm.json`에 두거나, `FIREBASE_CREDENTIALS_JSON`/`FIREBASE_CREDENTIALS_BASE64`로 주입해야 합니다. 파일이나 비밀값은 커밋하지 않습니다.
+
+```bash
+# 저장소 루트에서 Redis 실행 (PostgreSQL은 별도로 준비)
+docker compose up -d redis
+
+# 새 터미널에서 서버 실행
+cd backend
+./gradlew bootRun
+```
+
+Windows에서는 `gradlew.bat bootRun`을 사용합니다. 서버가 시작되면 [Swagger UI](http://localhost:8080/swagger-ui/index.html)를 확인합니다. 인증이 필요한 API는 로그인으로 받은 토큰이 필요합니다.
+
+루트의 `docker compose up -d` 전체 실행은 별도로 준비한 DB·서버 설정과 Firebase 파일을 사용하는 배포 구성입니다. 위 안내에서는 **Redis 서비스만** 실행합니다.
+
+### 2. 모바일 앱 실행
+
+[frontend/README.md의 실행 안내](frontend/README.md#실행-전-확인)에 따라 앱 환경변수와 Firebase 설정을 준비한 뒤 Android 네이티브 빌드로 실행합니다. Firebase Messaging·카카오·Unistyles 등 네이티브 의존성이 있어 **Expo Go만으로 실행하는 방법은 안내하지 않습니다.**
+
+### 3. 실행 후 확인할 흐름
+
+1. 이메일 인증을 거쳐 회원가입하고 로그인합니다.
+2. 챌린지 화면에서 현재 단계와 대기 단계를 확인합니다.
+3. 위치 권한을 허용한 뒤 러닝 기능을 확인하고, 기록 화면에서 저장 결과를 살펴봅니다.
+4. 티어 측정은 앱에서 안내하는 거리·완료 조건을 충족해야 하므로, 짧은 실행만으로 티어 결과가 생성되지는 않습니다.
+
+실제 위치 기반 러닝·주변 러너·푸시는 실기기와 권한 설정이 필요합니다. 에뮬레이터의 화면 확인과 실제 야외 러닝 검증은 다릅니다.
+
+### 실행이 막힐 때
+
+| 증상 | 먼저 확인할 것 |
+| --- | --- |
+| 서버 시작 시 설정값 오류 | `backend/.env`의 미입력 항목과 `VITE_API_BASE_URL` |
+| Firebase 파일 오류 | 서버 서비스 계정 파일과 모바일 Firebase 설정의 경로 구분 |
+| 앱에서 서버 연결 실패 | Android 에뮬레이터는 `10.0.2.2`, 실기기는 같은 네트워크의 개발 PC 주소 사용 |
+| 회원가입 인증 메일이 오지 않음 | SMTP 계정·발신 설정과 서버 로그 |
+| 로그인 후 목록이 비어 있음 | 새 개발 DB에는 기존 운영 데이터가 없음 |
+
+---
+
 ## 1. 서비스 관련 정보
 ### 🏃 서비스 개발 배경
 런닝은 하나의 라이프스타일로 자리 잡으며 빠르게 성장하고 있습니다. <br>
