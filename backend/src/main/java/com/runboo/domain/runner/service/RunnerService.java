@@ -17,7 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +66,7 @@ public class RunnerService {
         GeoResults<RedisGeoCommands.GeoLocation<String>> results =
                 geoOps.radius(ACTIVE_RUNNERS_KEY, circle, args);
 
-        List<RunnerResponse> responseList = new ArrayList<>();
+        Map<Long, Point> activeRunnerPoints = new LinkedHashMap<>();
 
         if (results != null) {
             for (GeoResult<RedisGeoCommands.GeoLocation<String>> result : results) {
@@ -76,20 +80,34 @@ public class RunnerService {
                     continue;
                 }
 
-                Point point = result.getContent().getPoint();
-
-                User nearbyUser = userRepository.findById(memberId).orElse(null);
-                if (nearbyUser == null) continue;
-                if (nearbyUser.isBlind()) continue;
-
-                responseList.add(RunnerResponse.builder()
-                        .userId(memberId)
-                        .nickname(nearbyUser.getNickname())
-                        .latitude(point.getY())
-                        .longitude(point.getX())
-                        .profileImageUrl(nearbyUser.getProfileImageUrl())
-                        .build());
+                activeRunnerPoints.put(memberId, result.getContent().getPoint());
             }
+        }
+
+        if (activeRunnerPoints.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, User> usersById = userRepository.findAllById(activeRunnerPoints.keySet())
+                .stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        List<RunnerResponse> responseList = new ArrayList<>();
+        for (Map.Entry<Long, Point> entry : activeRunnerPoints.entrySet()) {
+            Long memberId = entry.getKey();
+            User nearbyUser = usersById.get(memberId);
+
+            if (nearbyUser == null) continue;
+            if (nearbyUser.isBlind()) continue;
+
+            Point point = entry.getValue();
+            responseList.add(RunnerResponse.builder()
+                    .userId(memberId)
+                    .nickname(nearbyUser.getNickname())
+                    .latitude(point.getY())
+                    .longitude(point.getX())
+                    .profileImageUrl(nearbyUser.getProfileImageUrl())
+                    .build());
         }
 
         return responseList;
