@@ -24,8 +24,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -82,7 +85,8 @@ class RunnerServiceTest {
                         geoLocation("1", 126.9780, 37.5665),
                         geoLocation("2", 126.9781, 37.5666)
                 ));
-        when(redisTemplate.hasKey("active_runner:last_seen:2")).thenReturn(true);
+        when(valueOperations.multiGet(List.of("active_runner:last_seen:2")))
+                .thenReturn(List.of("active"));
         when(userRepository.findAllById(any())).thenReturn(List.of(nearbyRunner));
 
         List<RunnerResponse> result =
@@ -122,7 +126,8 @@ class RunnerServiceTest {
                         geoLocation("1", 126.9780, 37.5665),
                         geoLocation("2", 126.9781, 37.5666)
                 ));
-        when(redisTemplate.hasKey("active_runner:last_seen:2")).thenReturn(false);
+        when(valueOperations.multiGet(List.of("active_runner:last_seen:2")))
+                .thenReturn(Collections.singletonList(null));
 
         List<RunnerResponse> result =
                 runnerService.updateAndGetNearbyRunners("me@runboo.local", request);
@@ -146,7 +151,8 @@ class RunnerServiceTest {
                 any(Circle.class),
                 any(RedisGeoCommands.GeoRadiusCommandArgs.class)
         )).thenReturn(nearbyGeoResults(nearbyRunnerCount));
-        when(redisTemplate.hasKey(any(String.class))).thenReturn(true);
+        when(valueOperations.multiGet(any()))
+                .thenReturn(Collections.nCopies(nearbyRunnerCount, "active"));
         when(userRepository.findAllById(any())).thenReturn(nearbyUsers);
 
         List<RunnerResponse> result =
@@ -155,6 +161,64 @@ class RunnerServiceTest {
         assertThat(result).hasSize(nearbyRunnerCount);
         verify(userRepository, never()).findById(anyLong());
         verify(userRepository, times(1)).findAllById(any());
+        List<String> expectedKeys = nearbyUsers.stream()
+                .map(user -> "active_runner:last_seen:" + user.getId())
+                .toList();
+        verify(valueOperations, times(1)).multiGet(expectedKeys);
+        verify(redisTemplate, never()).hasKey(any());
+    }
+
+    @Test
+    void matchesHeartbeatResultsToCandidateOrder() {
+        User me = user(1L);
+        User runnerTwo = user(2L);
+        User runnerFour = user(4L);
+        when(userRepository.findByEmail("me@runboo.local")).thenReturn(Optional.of(me));
+        when(geoOperations.radius(eq(ACTIVE_RUNNERS_KEY), any(Circle.class),
+                any(RedisGeoCommands.GeoRadiusCommandArgs.class)))
+                .thenReturn(geoResults(
+                        geoLocation("1", 126.9780, 37.5665),
+                        geoLocation("4", 126.9784, 37.5669),
+                        geoLocation("3", 126.9783, 37.5668),
+                        geoLocation("2", 126.9782, 37.5667)));
+        when(valueOperations.multiGet(List.of(
+                "active_runner:last_seen:4", "active_runner:last_seen:3",
+                "active_runner:last_seen:2")))
+                .thenReturn(Arrays.asList("active", null, "active"));
+        when(userRepository.findAllById(any())).thenReturn(List.of(runnerTwo, runnerFour));
+
+        List<RunnerResponse> result = runnerService.updateAndGetNearbyRunners(
+                "me@runboo.local", new LocationRequest(37.5665, 126.9780, 500));
+
+        assertThat(result).extracting(RunnerResponse::getUserId).containsExactly(4L, 2L);
+        assertThat(result.get(0).getLongitude()).isEqualTo(126.9784);
+        assertThat(result.get(1).getLatitude()).isEqualTo(37.5667);
+        verify(userRepository).findAllById(Set.of(4L, 2L));
+        verify(geoOperations).remove(ACTIVE_RUNNERS_KEY, "3");
+        verify(geoOperations, never()).remove(ACTIVE_RUNNERS_KEY, "4");
+        verify(geoOperations, never()).remove(ACTIVE_RUNNERS_KEY, "2");
+        verify(redisTemplate, never()).hasKey(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1, 2})
+    void skipsHeartbeatLookupWhenThereAreNoOtherCandidates(int resultType) {
+        User me = user(1L);
+        when(userRepository.findByEmail("me@runboo.local")).thenReturn(Optional.of(me));
+        GeoResults<RedisGeoCommands.GeoLocation<String>> results = switch (resultType) {
+            case 0 -> null;
+            case 1 -> geoResults();
+            default -> geoResults(geoLocation("1", 126.9780, 37.5665));
+        };
+        when(geoOperations.radius(eq(ACTIVE_RUNNERS_KEY), any(Circle.class),
+                any(RedisGeoCommands.GeoRadiusCommandArgs.class))).thenReturn(results);
+
+        assertThat(runnerService.updateAndGetNearbyRunners(
+                "me@runboo.local", new LocationRequest(37.5665, 126.9780, 500))).isEmpty();
+
+        verify(valueOperations, never()).multiGet(any());
+        verify(userRepository, never()).findAllById(any());
+        verify(redisTemplate, never()).hasKey(any());
     }
 
     private User user(Long id) {

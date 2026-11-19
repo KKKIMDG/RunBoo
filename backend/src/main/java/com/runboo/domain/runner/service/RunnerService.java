@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -66,7 +67,7 @@ public class RunnerService {
         GeoResults<RedisGeoCommands.GeoLocation<String>> results =
                 geoOps.radius(ACTIVE_RUNNERS_KEY, circle, args);
 
-        Map<Long, Point> activeRunnerPoints = new LinkedHashMap<>();
+        Map<Long, Point> candidateRunnerPoints = new LinkedHashMap<>();
 
         if (results != null) {
             for (GeoResult<RedisGeoCommands.GeoLocation<String>> result : results) {
@@ -75,13 +76,30 @@ public class RunnerService {
 
                 if (memberId.equals(myId)) continue;
 
-                if (!hasActiveHeartbeat(memberId)) {
-                    geoOps.remove(ACTIVE_RUNNERS_KEY, memberIdStr);
-                    continue;
-                }
-
-                activeRunnerPoints.put(memberId, result.getContent().getPoint());
+                candidateRunnerPoints.put(memberId, result.getContent().getPoint());
             }
+        }
+
+        if (candidateRunnerPoints.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> candidateIds = new ArrayList<>(candidateRunnerPoints.keySet());
+        List<String> heartbeatKeys = candidateIds.stream()
+                .map(this::heartbeatKey)
+                .toList();
+        List<String> heartbeats = Objects.requireNonNull(
+                redisTemplate.opsForValue().multiGet(heartbeatKeys));
+
+        Map<Long, Point> activeRunnerPoints = new LinkedHashMap<>();
+        // MGET results retain the requested key order, including nulls for expired keys.
+        for (int i = 0; i < candidateIds.size(); i++) {
+            Long memberId = candidateIds.get(i);
+            if (heartbeats.get(i) == null) {
+                geoOps.remove(ACTIVE_RUNNERS_KEY, memberId.toString());
+                continue;
+            }
+            activeRunnerPoints.put(memberId, candidateRunnerPoints.get(memberId));
         }
 
         if (activeRunnerPoints.isEmpty()) {
@@ -120,10 +138,6 @@ public class RunnerService {
                 "active",
                 Duration.ofSeconds(heartbeatTtlSeconds)
         );
-    }
-
-    private boolean hasActiveHeartbeat(Long userId) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(heartbeatKey(userId)));
     }
 
     private String heartbeatKey(Long userId) {
