@@ -2,43 +2,40 @@
 
 이 프로젝트는 React Native와 Expo를 사용하여 개발된 모바일 애플리케이션입니다. 사용자에게 다양한 기능을 제공하며, 효율적인 개발을 위해 명확한 폴더 구조와 역할 분담을 따르고 있습니다.
 
-## 시작하기
+## 실행 전 확인
 
-### 1. 종속성 설치
+이 앱은 네이티브 Firebase Messaging·카카오·Unistyles 등을 사용합니다. Expo Go나 웹 실행만으로 모바일 기능 전체를 체험할 수 없습니다. 아래는 Android 네이티브 빌드 기준입니다.
 
-프로젝트를 시작하기 전에, 다음 명령어를 사용하여 필요한 종속성을 설치하세요.
-
-```bash
-npm install
-```
-
-### 2. 앱 실행
-
-다음은 각 플랫폼별로 앱을 실행하는 방법입니다.
-
-#### iOS
-
-iOS 시뮬레이터에서 앱을 실행하려면 다음 명령어를 사용하세요.
+1. [루트 README](../README.md)의 안내에 따라 백엔드를 준비합니다.
+2. Node.js 22 LTS, JDK 21, Android Studio의 Android SDK와 에뮬레이터를 준비합니다.
+3. `frontend/`에서 환경변수 예시를 복사합니다.
 
 ```bash
-npx expo start --ios
+cd frontend
+cp .env.example .env
+npm ci
 ```
 
-#### Android
+`.env`의 예시 값을 개발용 설정으로 바꿉니다.
 
-Android 에뮬레이터 또는 연결된 기기에서 앱을 실행하려면 다음 명령어를 사용하세요.
+- `API_BASE_URL`: Android 에뮬레이터에서 PC의 서버에 연결할 때 `http://10.0.2.2:8080`. 실기기에서는 같은 네트워크의 PC IP를 사용합니다. `localhost`는 휴대폰 자신을 가리킵니다.
+- `FRONT_URL`: `runboo://`
+- `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`: 개발용 Supabase 프로젝트의 공개 클라이언트 설정
+- `KAKAO_*`, `GOOGLE_WEB_CLIENT_ID`, `GOOGLE_MAPS_API_KEY`: 사용할 소셜 로그인·지도 설정
+
+개발용 Firebase 프로젝트에 Android 앱 `com.runboo.frontend`를 등록하고, 받은 앱 설정 파일을 `frontend/frontSecrets/google-services.json`에 둡니다. 서버 서비스 계정 JSON과 다른 파일입니다. iOS는 `frontSecrets/GoogleService-Info.plist`가 필요합니다.
+
+Android 에뮬레이터를 먼저 켜거나 USB 디버깅이 가능한 기기를 연결한 뒤:
 
 ```bash
-npx expo start --android
+npm run android
 ```
 
-#### Web
+기존에 개발 빌드를 설치했다면 다음부터 `npm start`로 개발 서버를 실행할 수 있습니다. 환경변수를 수정한 뒤에는 `npx expo start --clear`로 다시 시작하고, 네이티브 설정을 바꾸면 다시 빌드합니다.
 
-웹 브라우저에서 앱을 실행하려면 다음 명령어를 사용하세요.
+iOS 개발 빌드는 macOS·Xcode·CocoaPods와 Firebase/APNs 서명 설정을 준비한 뒤 `npm run ios`를 사용합니다. 설치 가능한 배포용 앱을 만드는 절차와는 다릅니다.
 
-```bash
-npx expo start --web
-```
+실행 후 **회원가입 → 이메일 인증 → 로그인 → 챌린지·기록 화면** 순서로 확인합니다. 위치 기반 기능은 위치 권한과 실제 기기에서 별도로 확인합니다. 앱을 빌드하는 것만으로 외부 서비스나 서버가 준비되지는 않습니다.
 
 ## 프로젝트 구조 및 가이드라인
 
