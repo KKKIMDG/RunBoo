@@ -24,8 +24,7 @@ public class AiAnalysisService {
 
     @Transactional
     public AnalysisResponse analyzeRecords(Long userId) {
-        UserAiStatus status = aiStatusRepository.findByUserId(userId)
-                .orElseGet(() -> createDefaultStatus(userId));
+        UserAiStatus status = loadStatusForUpdate(userId);
 
         // ✅ 1. 엔티티 내부 로직을 통해 갱신 처리
         status.renewIfNeeded();
@@ -60,10 +59,8 @@ public class AiAnalysisService {
 
     @Transactional
     public AiStatusViewResponse getStatusForView(Long userId) {
-        UserAiStatus status = aiStatusRepository.findByUserId(userId)
-                .orElseGet(() -> createDefaultStatus(userId));
+        UserAiStatus status = loadStatusForUpdate(userId);
 
-        // Note: readOnly지만 내부 필드 상태 반영을 위해 호출 (DB 저장 안됨)
         status.renewIfNeeded();
 
         return new AiStatusViewResponse(
@@ -84,9 +81,11 @@ public class AiAnalysisService {
         return null;
     }
 
-    private UserAiStatus createDefaultStatus(Long userId) {
-        User user = userRepository.findById(userId)
+    private UserAiStatus loadStatusForUpdate(Long userId) {
+        // Lock the user even when the AI status row has not been created yet.
+        User user = userRepository.findByIdForUpdate(userId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-        return aiStatusRepository.save(new UserAiStatus(user));
+        return aiStatusRepository.findByUserId(userId)
+                .orElseGet(() -> aiStatusRepository.save(new UserAiStatus(user)));
     }
 }
